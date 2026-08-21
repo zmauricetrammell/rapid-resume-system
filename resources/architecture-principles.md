@@ -1279,7 +1279,7 @@ Cover-letter generation is not part of the current active task model.
 
 # 46. CURRENT V2 ARTIFACT MODEL
 
-Primary artifact families currently include:
+Primary production artifact families currently include:
 
     Professional Evidence
     ├── Job Experience Record
@@ -1299,11 +1299,20 @@ Primary artifact families currently include:
     Resume Evaluation
     └── Resume Evaluation
 
-    Governance
+    System Feedback
     └── Process Feedback
 
-Schemas should represent these artifacts according to their professional meaning rather than runtime relationships.
+Governance may additionally produce human-readable governance documents such as:
 
+    Governance Proposal
+    System Analysis
+    Process Feedback Synthesis
+
+Governance documents support architectural review and human decision-making.
+
+They are not part of the production artifact pipeline and do not require structured schemas unless a future approved architecture establishes a need for machine-readable governance state.
+
+Schemas should represent production artifacts according to their professional meaning rather than runtime relationships.
 ---
 
 # 47. ARCHITECTURAL CONFORMANCE TEST
