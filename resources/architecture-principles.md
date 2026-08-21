@@ -3,88 +3,107 @@
 **Document Version:** 2.0  
 **System:** Rapid Resume System  
 **Status:** Active  
-**Scope:** Current V2 Refactor
+**Scope:** Current V2 Architecture
 
 ---
 
 # 1. PURPOSE
 
-This document defines the architectural principles governing the current V2 Rapid Resume System.
+This document defines the highest-level architectural principles governing the current V2 Rapid Resume System.
 
-These principles are the highest-level design rules for:
+These principles govern:
 
 - Agent contracts.
 - Agent task instructions.
 - Shared schemas.
-- Agent boundaries.
+- Artifact design.
+- Agent authority.
 - Evidence ownership.
 - System governance.
 - Future implementation decisions.
 
-All lower-level system artifacts should conform to these principles.
+All lower-level system artifacts must conform to these principles.
 
-When a contract, task instruction, schema, or other system artifact conflicts with this document, the conflict should be identified and resolved rather than silently interpreted around.
+When a contract, task instruction, schema, resource, or implementation conflicts with this document, the conflict must be identified and corrected rather than silently interpreted around.
 
-This document describes the **current V2 architecture**.
+This document defines the conceptual architecture.
 
-It does not define future transport, automation, orchestration, or connector implementations.
+It does not define runtime transport, orchestration, persistence, or connector implementation.
 
 ---
 
 # 2. CURRENT SYSTEM SCOPE
 
-The current V2 Rapid Resume System consists of conversational AI agents operating as independent reasoning roles.
+Current V2 consists of independent conversational AI reasoning roles operating on explicitly supplied artifacts.
 
-Each agent receives, as applicable:
+Each invocation may receive:
 
-- Its Agent Contract.
+- An Agent Contract.
 - A Task Instruction.
-- Relevant artifacts.
+- Relevant current artifacts.
 - Relevant feedback.
-- Human input when the agent's role requires it.
+- Human input when the assigned professional function requires it.
 
-The current system assumes that the human operator manually provides information to agents and manually transfers outputs between them.
+Current V2 may be operated manually by a human.
 
-Current V2 does **not** assume or require:
+Current V2 does not require:
 
 - Trello.
 - Discord.
-- Kanban boards.
-- Automated message routing.
+- Kanban.
+- Automated routing.
 - Automated agent invocation.
-- Python agent handlers.
+- Python handlers.
 - API connectors.
-- Automated persistence.
-- Automated task ownership.
-- Automated workflow transitions.
+- Persistent runtime state.
+- Automated work ownership.
+- Background workers.
 - Event-driven orchestration.
 
-Those capabilities may be introduced in a future system increment.
+Those capabilities may be introduced later.
 
-Current contracts and task instructions must remain usable without them.
+Current reasoning artifacts must remain valid without them.
 
 ---
 
-# 3. AGENT COGNITION IS SEPARATE FROM IMPLEMENTATION
+# 3. CURRENT FUNCTIONAL SCOPE
 
-The Rapid Resume System distinguishes between:
+The active V2 production scope supports:
 
-1. The agent's reasoning and professional behavior.
-2. The software that may eventually invoke the agent.
-3. The software that may eventually transport information between systems.
+- Professional evidence management.
+- Job-target analysis.
+- Human factual evidence investigation.
+- Targeted resume generation.
+- Independent resume evaluation.
+- System governance and continuous improvement.
 
-The current V2 refactor concerns only the first category.
+Cover-letter generation is outside current V2 scope.
 
-## Agent Reasoning Layer
+A future cover-letter capability may require a separate human-intent and narrative-support architecture and must not be forced into the resume evidence pipeline without deliberate design.
 
-The agent reasoning layer consists of:
+---
+
+# 4. REASONING IS SEPARATE FROM IMPLEMENTATION
+
+The system distinguishes three conceptual layers:
+
+    Reasoning Layer
+        ↓
+    Runtime / Handler Layer
+        ↓
+    Connector / Transport Layer
+
+## Reasoning Layer
+
+The reasoning layer contains:
 
 - Agent Contract.
 - Task Instruction.
 - Supplied artifacts.
-- Relevant current context.
+- Current context.
+- Professional judgment.
 
-This layer defines what the agent:
+It defines what an agent:
 
 - Understands.
 - Owns.
@@ -92,184 +111,267 @@ This layer defines what the agent:
 - Produces.
 - Must not do.
 
-## Future Handler Layer
+## Runtime / Handler Layer
 
-A future Python handler may eventually manage:
+Future software may manage:
 
-- Agent instance creation.
+- Agent creation.
 - Prompt loading.
 - Contract loading.
 - Task loading.
 - Artifact assembly.
-- Model invocation.
-- Session state.
+- Invocation.
 - Retry behavior.
+- Session lifecycle.
 - Output collection.
+- Iteration decisions.
 
-These responsibilities must not be embedded in the agent's professional contract unless the agent genuinely needs that knowledge to perform its reasoning role.
+These are implementation concerns.
 
-## Future Connector Layer
+## Connector / Transport Layer
 
-Future connectors may eventually manage:
+Future software may manage:
 
+- Messaging.
+- Persistence.
+- File storage.
+- GitHub.
 - Discord.
 - Trello.
-- GitHub.
-- File storage.
 - Databases.
-- Messaging.
 - Notifications.
-- API transport.
+- External APIs.
 - Artifact retrieval.
-- Artifact persistence.
+- Artifact delivery.
 
-Connector behavior is an implementation concern.
-
-Agents should reason about artifacts and professional responsibilities, not transport mechanisms.
+Transport mechanisms must not define professional authority.
 
 ---
 
-# 4. TRANSPORT NEUTRALITY
+# 5. TRANSPORT NEUTRALITY
 
-Agent contracts and task instructions must be transport-neutral.
+Contracts, tasks, and schemas must remain independent of transport technology.
 
 They may define:
 
 - Required inputs.
 - Optional inputs.
 - Outputs.
-- Intended consumers.
-- Information dependencies.
+- Artifact purpose.
 - Human-interaction requirements.
+- Professional constraints.
 
-They must not assume how those inputs arrive or how outputs are delivered.
+They must not depend on:
 
-For example, this is valid:
+- Cards.
+- Queues.
+- Lists.
+- Inboxes.
+- Routing.
+- Handoffs.
+- Message channels.
+- Workflow transitions.
+- Connector behavior.
 
-    The Researcher may produce an Evidence Request for Interviewer use.
+Valid:
 
-This is not appropriate in current V2:
+    Produce an Evidence Request describing a factual uncertainty.
 
-    Move the Trello card to the Interviewer list.
+Invalid:
 
-Likewise, this is valid:
+    Move the card to the Interviewer queue.
 
-    The Interviewer asks the job hunter one primary question at a time.
+Valid:
 
-This is outside current V2 scope:
+    Ask the human one primary question at a time.
+
+Invalid:
 
     Send the question through Discord.
 
-The agent should know **what communication is required**, not **which transport technology implements it**.
+---
+
+# 6. PARTNER-INDEPENDENT RUNTIME AGENTS
+
+Execution agents are partner-independent.
+
+A runtime agent must not require awareness of:
+
+- Which other runtime agents exist.
+- Which agent produced an input artifact.
+- Which agent will consume an output artifact.
+- Which agent should correct a deficiency.
+- Which component should act next.
+- Runtime topology.
+
+An execution agent reasons from:
+
+    its own contract
+    + its task
+    + supplied artifacts
+    + its own authority boundaries
+
+and produces a self-contained artifact.
+
+The artifact must remain useful regardless of which authorized human or software component consumes it.
 
 ---
 
-# 5. ROLE SPECIALIZATION
+# 7. AUTHORITY WITHOUT TOPOLOGY AWARENESS
 
-Each agent owns a distinct professional function.
+The system architecture must define authoritative ownership.
 
-The current execution agents are:
+Individual execution agents need only understand:
 
-- Researcher.
-- Interviewer.
-- Writer.
-- Evaluator.
+- What they own.
+- What they may decide.
+- What they may not decide.
+- What information is authoritative for their work.
+- When their professional task is complete.
 
-The system-governance agent is:
+They do not need to know which named agent owns every excluded decision.
 
-- Supervisor.
+For example, an execution contract may state:
 
-Agents should remain specialized.
+    Do not modify authoritative professional evidence.
 
-An agent must not absorb another agent's responsibility merely because doing so would be convenient.
+It need not state:
 
-Clear boundaries are preferred over generalized agents.
+    Researcher owns this decision.
+
+System-level documentation may describe ownership relationships.
+
+Runtime execution instructions should minimize knowledge of the system topology.
 
 ---
 
-# 6. RESEARCHER — AUTHORITATIVE EVIDENCE CUSTODIAN
+# 8. ROLE SPECIALIZATION
 
-The Researcher is the authoritative custodian of the professional evidence model.
+Each professional function should have a clear authority boundary.
 
-The Researcher owns:
+Current system-level ownership is:
 
-- Career-wide evidence interpretation.
+    Professional evidence and job analysis
+    → Researcher function
+
+    Human factual evidence acquisition
+    → Interviewer function
+
+    Resume presentation
+    → Writer function
+
+    Resume product judgment
+    → Evaluator function
+
+    System governance
+    → Supervisor function
+
+    Architecture adoption
+    → System Owner
+
+This ownership map exists for system governance.
+
+It does not imply that runtime agents must know or communicate with one another directly.
+
+---
+
+# 9. SINGLE AUTHORITATIVE OWNER
+
+Every mutable information domain or material professional judgment should have one authoritative owner.
+
+Avoid architectures where:
+
+- Multiple agents independently modify the same state.
+- Multiple agents believe they own the same judgment.
+- No component owns a required decision.
+- Runtime agents negotiate ownership during execution.
+
+Single ownership reduces:
+
+- Conflict.
+- Reconciliation overhead.
+- Behavioral loops.
+- Ambiguous state.
+- Hidden coupling.
+
+---
+
+# 10. AUTHORITATIVE PROFESSIONAL EVIDENCE
+
+The professional evidence model has one authoritative custodian.
+
+The evidence-custody function owns:
+
 - Evidence retrieval.
-- Evidence classification.
+- Evidence interpretation.
+- Evidence integration.
 - Evidence reconciliation.
-- Requirement-to-evidence mapping.
 - Job Experience Record creation.
 - Job Experience Record modification.
-- Job Experience Record merging.
-- Job Experience Record splitting.
-- Record supersession when required.
-- Provenance maintenance.
-- Evidence integration.
-- Evidence conflict resolution.
+- Record merging.
+- Record splitting.
+- Provenance.
+- Evidence conflicts.
 - Functional-role classification.
-- Transferability analysis.
+- Transferability.
+- Requirement-to-evidence mapping.
 - Job-fit analysis.
-- Evidence-gap identification.
-- Job Experience Analysis generation.
+- Evidence-gap determination.
 - Evidence Request generation.
 
-Only the Researcher should modify the authoritative professional evidence model.
-
-Other agents may identify deficiencies, provide evidence, or consume evidence.
-
-They do not independently alter authoritative evidence state.
+No other runtime function may independently mutate authoritative professional evidence.
 
 ---
 
-# 7. INTERVIEWER — HUMAN EVIDENCE ACQUISITION
+# 11. HUMAN EVIDENCE ACQUISITION
 
-The Interviewer is the human evidence-acquisition interface.
+Human evidence acquisition is distinct from evidence interpretation.
 
-The Interviewer owns:
+The factual-investigation function owns:
 
 - Collaborative questioning.
 - Memory prompting.
-- Professional experience discovery.
 - Responsibility clarification.
 - Ownership clarification.
 - Scope clarification.
-- Attribution clarification.
 - Result clarification.
+- Attribution clarification.
 - Human confirmation.
 - Evidence Response generation.
 
-The Interviewer does not own:
+Its transformation is:
 
-- Authoritative Job Experience Record modification.
-- Evidence reconciliation.
-- Record merging.
-- Record splitting.
-- Career-wide evidence selection.
-- Job-fit analysis.
-- Resume content selection.
+    Factual Investigation Specification
+            ↓
+    Human Conversation
+            ↓
+    Supportable Facts
+            ↓
+    Evidence Response
 
-The Interviewer's fundamental transformation is:
+It does not determine:
 
-    Evidence Request
-        ↓
-    Human investigation
-        ↓
-    Confirmed Evidence Response
+- Evidence strength.
+- Direct versus transferable classification.
+- Requirement coverage.
+- Job fit.
+- Authoritative record consequences.
 
-The Researcher then determines how that response affects the authoritative evidence model.
+The factual acquisition artifact records what can be established.
+
+Interpretation occurs only after integration with the wider evidence model.
 
 ---
 
-# 8. WRITER — PRESENTATION AUTHORITY
+# 12. RESUME PRESENTATION AUTHORITY
 
-The Writer owns presentation of Researcher-authorized evidence.
+The resume-writing function owns presentation of authorized professional evidence.
 
-The Writer owns:
+It owns:
 
 - Resume composition.
-- Cover-letter composition.
-- Supported civilian functional-role presentation.
 - Content placement.
+- Supported functional-role presentation.
 - Bullet construction.
 - Narrative structure.
 - Concision.
@@ -278,249 +380,291 @@ The Writer owns:
 - Target professional identity.
 - Writer Content Manifest maintenance.
 
-The Writer may decide:
+It may:
 
-- How authorized evidence is expressed.
-- Where authorized evidence appears.
-- Which authorized evidence is omitted for relevance or space.
-- How the professional narrative is organized.
+- Select among authorized evidence.
+- Omit authorized evidence for relevance or space.
+- Reorganize authorized evidence for recruiter comprehension.
+- Translate supported terminology into civilian-recognizable language.
 
-The Writer may not independently:
+It may not:
 
 - Expand the evidence boundary.
 - Invent professional evidence.
-- Reclassify unsupported evidence as direct experience.
-- Resolve factual conflicts.
-- Modify authoritative Job Experience Records.
-- Perform career-wide evidence research in place of the Researcher.
-
-When authorized evidence is insufficient, the Writer identifies the deficiency for Researcher consideration.
+- Reconcile factual conflicts.
+- Reclassify evidence beyond authorization.
+- Acquire new professional evidence.
+- Demand upstream improvement.
 
 ---
 
-# 9. EVALUATOR — PRODUCT JUDGMENT AUTHORITY
+# 13. RESUME PRODUCT-JUDGMENT AUTHORITY
 
-The Evaluator owns independent assessment of the visible resume product.
+The resume-evaluation function owns independent judgment of the current resume product.
 
-The Evaluator owns judgments concerning:
+It may judge:
 
 - Requirement visibility.
+- ATS explicitness.
 - Recruiter comprehension.
-- ATS-relevant explicitness.
 - Hiring-manager evidence strength.
 - Claim credibility.
 - Screening risk.
-- Requirement scoring.
-- Submission blockers.
-- Resume readiness.
-- Whether a visible product deficiency exists.
+- Requirement coverage.
+- Professional positioning.
+- Seniority alignment.
+- Submission readiness.
+- Material product deficiencies.
 
-The Evaluator evaluates:
+It evaluates:
 
 > What does the current resume actually demonstrate to a reasonable external reviewer?
 
-The Evaluator does not own:
+It does not:
 
-- Career-wide evidence retrieval.
-- Evidence reconciliation.
-- Human evidence acquisition.
-- Resume rewriting.
-- Job Experience Record modification.
+- Modify evidence.
+- Rewrite the resume.
+- Acquire evidence.
+- Assign corrective work.
+- Identify which runtime component must act next.
 
-The Evaluator identifies deficiencies.
-
-It does not dictate how another agent must solve those deficiencies.
+Its output describes product state.
 
 ---
 
-# 10. SUPERVISOR — SYSTEM GOVERNANCE
+# 14. GOVERNANCE AUTHORITY
 
-The Supervisor owns governance of the Rapid Resume System.
+The governance function maintains the architecture.
 
-The Supervisor may:
+It may:
 
 - Review contracts.
-- Review task instructions.
+- Review tasks.
 - Review schemas.
-- Identify architectural conflicts.
-- Identify recurring process problems.
+- Identify conflicts.
+- Analyze recurring Process Feedback.
 - Draft proposed improvements.
 - Draft revised contracts.
-- Draft revised task instructions.
+- Draft revised tasks.
 - Draft revised schemas.
-- Recommend role-boundary changes.
 - Recommend architecture changes.
 - Recommend version changes.
-- Analyze Process Feedback.
 
-The Supervisor does not normally perform execution-agent work.
+Governance proposes.
 
-The Supervisor proposes system changes for System Owner approval.
-
-The System Owner retains authority to approve changes to the active system.
+The System Owner approves adoption into the active system.
 
 ---
 
-# 11. SINGLE AUTHORITATIVE OWNER
+# 15. PROFESSIONAL STATE OVER WORKFLOW STATE
 
-Every material decision or mutable information domain should have one authoritative owner.
+Execution agents describe professional state.
 
-The system should avoid architectures where:
+They do not control workflow state.
 
-- Multiple agents can independently modify the same authoritative data.
-- Two agents both believe they own the same decision.
-- No agent owns an important decision.
-- Agents must negotiate ownership during ordinary execution.
+Examples of professional state:
 
-Examples:
+- Evidence is insufficient to establish direct ownership.
+- The resume does not visibly demonstrate a critical requirement.
+- A factual conflict remains unresolved.
+- Structural constraints reduce available presentation space.
+- A claim is unsupported.
+- Current evidence supports only a qualified statement.
 
-    Professional evidence state → Researcher
+Examples of workflow state that execution agents must not own:
 
-    Human factual acquisition → Interviewer
+- Block the workflow.
+- Send backward.
+- Route to another agent.
+- Move to another queue.
+- Retry another component.
+- Require another agent to act.
+- Stop progression.
 
-    Resume presentation → Writer
+Infrastructure may later use professional state to make workflow decisions.
 
-    Product screening judgment → Evaluator
-
-    System architecture → Supervisor
-
-Clear ownership reduces reconciliation complexity and prevents agent conflict.
+That decision belongs outside execution-agent reasoning.
 
 ---
 
-# 12. DOMAIN AUTHORITY MUST BE RESPECTED
+# 16. FORWARD PRODUCTION
 
-Agents should not adjudicate another agent's judgment inside that agent's owned domain.
+Execution agents should complete the strongest professional artifact possible from the current supplied state.
+
+An agent should not interrupt production merely because:
+
+- Better evidence might exist.
+- More detail might improve the artifact.
+- Another component could theoretically improve an input.
+- The current state is imperfect.
+- The candidate is not a perfect match.
+
+Instead:
+
+    Preserve factual integrity
+            ↓
+    Use strongest available authorized state
+            ↓
+    Record material limitations
+            ↓
+    Produce the artifact
+            ↓
+    Complete the task
+
+Imperfection is not authority to create backward work.
+
+---
+
+# 17. ITERATION THROUGH RICHER STATE
+
+System improvement occurs through repeated execution against richer current state.
+
+Conceptually:
+
+    Produce
+        ↓
+    Evaluate
+        ↓
+    New information exists
+        ↓
+    Invoke relevant task again with richer artifacts
+        ↓
+    Produce stronger current state
+
+The system should not model iteration as runtime agents sending work backward.
+
+A previous output becomes another artifact in the next invocation.
+
+A failed or insufficient evaluation becomes new information.
+
+The same task runs again.
+
+---
+
+# 18. DOWNSTREAM JUDGMENTS BECOME ARTIFACT STATE
+
+A product judgment made within valid authority should be preserved as explicit artifact state.
 
 For example:
 
-The Evaluator may determine:
+    Current resume does not sufficiently demonstrate vendor ownership.
 
-    The resume does not adequately demonstrate vendor management.
+That judgment may later influence another invocation.
 
-The Researcher should not respond:
+The judgment does not need to:
 
-    I think the resume demonstrates it well enough.
+- Name another agent.
+- Assign corrective ownership.
+- Demand action.
+- Specify routing.
 
-That judgment belongs to the Evaluator.
+The artifact preserves the observation.
 
-Instead, the Researcher asks:
-
-    What evidence can better support this requirement?
-
-Likewise, the Evaluator should not instruct the Researcher:
-
-    Use record JER-014 and classify it as direct evidence.
-
-That solution belongs to the Researcher.
-
-The governing pattern is:
-
-    Agent A identifies a problem within Agent A's authority.
-
-    Agent B accepts that problem as requiring action.
-
-    Agent B determines the solution within Agent B's authority.
-
-This prevents circular agent disagreement.
+Future reasoning may incorporate it.
 
 ---
 
-# 13. DOWNSTREAM DEFICIENCY AUTHORITY
+# 19. NO CORRECTIVE OWNERSHIP IN EXECUTION ARTIFACTS
 
-When a downstream agent determines that an upstream product is insufficient for a decision the downstream agent owns, the upstream agent must treat the deficiency as requiring resolution.
+Execution artifacts should describe deficiencies, not assign fixers.
 
-The upstream agent may determine how to resolve it.
+Prefer:
 
-The upstream agent may not simply dismiss the deficiency because it disagrees with the downstream judgment.
+    Deficiency Type:
+    Evidence Visibility
 
-Examples:
+    Observation:
+    Direct ownership is not sufficiently visible.
 
-    Evaluator:
-    The resume does not sufficiently demonstrate requirement X.
+    Successful Future State:
+    Product clearly communicates the strongest supportable ownership.
 
-    Writer:
-    Determine how current authorized evidence can make X clearer.
+Avoid:
+
+    Corrective Owner:
+    Writer
 
 or:
 
-    Writer:
-    The current analysis does not provide enough authorized evidence
-    to express requirement X safely.
+    Send to Researcher.
 
-    Researcher:
-    Reconsider the available evidence for X.
-
-The downstream agent owns the deficiency judgment.
-
-The upstream agent owns the corrective solution within its domain.
+This keeps artifacts partner-independent.
 
 ---
 
-# 14. EVIDENCE REQUESTS PASS THROUGH THE RESEARCHER
+# 20. ARTIFACT PURPOSE OVER RECIPIENT
 
-The Researcher determines whether new human evidence acquisition is necessary.
+Artifacts should define:
 
-Other agents may identify deficiencies that could ultimately require new factual evidence.
+- What they represent.
+- What information they contain.
+- What professional state they establish.
 
-However, they should not bypass the Researcher and directly initiate human evidence acquisition.
+They should not require fields such as:
 
-The logical path is:
+- Intended consumer.
+- Destination agent.
+- Source agent.
+- Routing target.
+- Next owner.
 
-    Writer or Evaluator identifies deficiency
-                ↓
-            Researcher
-                ↓
-    Search and reassess authoritative evidence
-                ↓
-        ┌───────┴────────┐
-        │                │
-    Evidence exists    Evidence insufficient
-        │                │
-        ↓                ↓
-    Updated analysis   Evidence Request
-                         ↓
-                     Interviewer
-                         ↓
-                     Evidence Response
-                         ↓
-                     Researcher
+For example:
 
-This prevents unnecessary human questioning and preserves Researcher custody of the evidence model.
+    Evidence Request
+
+    Purpose:
+    Define a factual question requiring human investigation.
+
+rather than:
+
+    Intended consumer:
+    Interviewer.
+
+Artifact semantics should survive changes in runtime topology.
 
 ---
 
-# 15. STRUCTURED ARTIFACTS ARE THE AGENT INTERFACE
+# 21. STRUCTURED ARTIFACTS ARE THE INTERFACE
 
-Agents communicate conceptually through explicit artifacts.
+Important system information should be captured in explicit artifacts.
 
-Examples include:
+Current artifact families include:
 
-- Job Experience Analysis.
 - Job Experience Record.
+- Job Experience Analysis.
 - Evidence Request.
 - Evidence Response.
+- Targeted Resume.
 - Writer Content Manifest.
 - Resume Evaluation.
 - Process Feedback.
 
-An artifact should contain enough information for its intended consumer to use it without access to another agent's hidden reasoning.
+An artifact must contain sufficient information for an authorized consumer to use it without access to another agent's hidden reasoning.
 
-The current human operator may manually transfer these artifacts.
+The artifact is the interface.
 
-Future software may automate that transfer.
-
-The artifact interface should remain valid in either case.
+The conversation is not.
 
 ---
 
-# 16. MINIMIZE HIDDEN CONTEXT
+# 22. MINIMIZE HIDDEN CONTEXT
 
-Agents should not depend on information that exists only in another agent's conversation history.
+Do not rely on information that exists only in another conversation.
 
-Important facts, decisions, deficiencies, and outputs should be captured in explicit artifacts.
+Material:
 
-The system should prefer:
+- Facts.
+- Decisions.
+- Deficiencies.
+- Qualifications.
+- Uncertainty.
+- Evidence.
+- Feedback.
+- Output state.
+
+should be represented explicitly.
+
+Prefer:
 
     explicit artifact
 
@@ -532,109 +676,116 @@ This supports:
 
 - Reproducibility.
 - Auditability.
-- Agent replacement.
-- Model replacement.
-- Future automation.
 - Human inspection.
-- Consistent re-execution.
+- Model replacement.
+- Agent replacement.
+- Future automation.
+- Independent testing.
 
 ---
 
-# 17. CONTRACTS DEFINE DURABLE BEHAVIOR
+# 23. CONTRACTS DEFINE DURABLE BEHAVIOR
 
 An Agent Contract defines persistent role behavior.
 
-A contract answers:
+It answers:
 
-- Who is this agent?
+- What is this role?
 - What is its mission?
-- What responsibilities does it own?
+- What does it own?
 - What authority does it have?
-- What information may it trust?
+- What inputs may it trust?
 - What outputs may it produce?
 - What must it not do?
-- What decisions belong to other agents?
+- What is outside its authority?
 - When is its work complete?
 
-Contracts should not contain implementation-specific transport instructions.
+Contracts describe professional reasoning.
+
+They do not describe runtime topology.
 
 ---
 
-# 18. TASK INSTRUCTIONS DEFINE KINDS OF WORK
+# 24. TASK INSTRUCTIONS DEFINE KINDS OF WORK
 
 A Task Instruction defines one repeatable operation.
 
-A task answers:
+It answers:
 
 - What work is being performed?
-- What inputs should be considered?
-- What process should be followed?
-- What output should be produced?
-- What validation must occur?
+- What inputs are considered?
+- What process is followed?
+- What output is produced?
+- What validation occurs?
+- What completion means?
 
-A new workflow condition does not automatically require a new task.
+A task must represent a genuine kind of work.
 
-Different inputs may invoke the same task when the actual work remains the same.
-
-For example:
-
-    Initial resume creation
-    and
-    Resume generation after evaluator feedback
-
-both invoke:
-
-    generate_resume
-
-if the underlying operation is:
-
-> Generate the best current resume from the current artifact set.
+Workflow position alone does not justify a new task.
 
 ---
 
-# 19. TASK IDENTITY IS NOT WORKFLOW STATE
-
-Tasks represent kinds of work, not iteration state.
+# 25. TASK IDENTITY IS NOT ITERATION STATE
 
 Avoid separate tasks such as:
 
-- generate.
-- regenerate.
-- reevaluate.
-- revise.
-- recheck.
+- Generate.
+- Regenerate.
+- Revise.
+- Recheck.
+- Reevaluate.
 
-when the underlying operation is actually the same.
+when the underlying professional operation is unchanged.
 
-Instead, provide the current artifacts and execute the same task again.
-
-Examples:
+Prefer:
 
     generate_analysis
 
-always means:
+meaning:
 
-> Generate the best current analysis from all available artifacts.
+> Produce the best current analysis from all current supplied artifacts.
+
+Prefer:
 
     generate_resume
 
-always means:
+meaning:
 
-> Generate the best current resume from all available artifacts.
+> Produce the best current resume from all current supplied artifacts.
+
+Prefer:
 
     evaluate_resume
 
-always means:
+meaning:
 
-> Evaluate the current resume against the target job using all available artifacts.
+> Evaluate the current resume against the current target and supplied context.
 
-This reduces unnecessary branching in both agent reasoning and future implementation.
+Iteration changes inputs.
+
+It does not necessarily change the task.
 
 ---
 
-# 20. IDEMPOTENCE
+# 26. IMPLIED SUB-OPERATIONS DO NOT REQUIRE NEW TASKS
 
-Tasks should be idempotent when the nature of the work allows it.
+A professional task may include subordinate operations inherently required to perform it.
+
+For example, maintaining authoritative evidence may require:
+
+- Integrating new Evidence Responses.
+- Updating records.
+- Reconciling facts.
+
+Those actions need not become separate tasks when there is no meaningful use case for performing them independently.
+
+Create a new task only when the professional operation is genuinely distinct and independently useful.
+
+---
+
+# 27. IDEMPOTENCE
+
+Tasks should be idempotent when practical.
 
 Given materially identical:
 
@@ -642,138 +793,197 @@ Given materially identical:
 - Evidence.
 - Feedback.
 - Constraints.
-- Target requirements.
 
-repeated execution should converge on materially the same result.
+repeated execution should converge on materially stable decisions.
 
 Idempotence does not require identical wording.
 
-It requires stability in material decisions.
+It requires stability in material professional judgment.
 
-For example, repeated Writer execution should not:
+Avoid:
 
-- Select different evidence merely for novelty.
-- Reorganize roles without a substantive reason.
-- Rewrite strong bullets simply because the task ran again.
+- Rewriting for novelty.
+- New criticism without new basis.
+- Arbitrary reprioritization.
+- Different classifications without changed evidence.
 
-Repeated Evaluator execution should not:
+New information may justify change.
 
-- Invent new criticisms.
-- Arbitrarily change scores.
-- Change readiness without new information.
-
-New information may legitimately change the result.
-
-Unchanged information should generally produce stable judgment.
+Unchanged information should generally produce convergence.
 
 ---
 
-# 21. CURRENT STATE OVER HISTORICAL TASK MODE
+# 28. CURRENT-STATE REASONING
 
-Agents should evaluate the complete current artifact set.
+Agents evaluate the complete current artifact set.
 
 Prior outputs are historical context.
 
-They are not immutable conclusions.
+They are not automatically immutable conclusions.
 
-For example:
+A prior analysis may be reconsidered when:
 
-A previous Job Experience Analysis may be reconsidered when:
-
-- New Evidence Responses exist.
-- Evaluator feedback identifies a weakness.
-- Writer feedback identifies insufficient evidence.
-- New Job Experience Records have been integrated.
+- New evidence exists.
+- New feedback exists.
+- A prior interpretation proves insufficient.
+- Authoritative evidence changes.
 
 A prior resume may be reconsidered when:
 
-- The analysis changes.
-- Evaluator feedback identifies a product weakness.
-- New evidence becomes authorized.
+- Analysis changes.
+- Evaluation changes.
+- Constraints change.
 
-The agent should produce the best current result rather than merely applying a narrow delta to the prior result.
+The governing question is:
+
+> What is the strongest correct state now?
 
 ---
 
-# 22. PRESERVE STABLE INFORMATION
+# 29. PRESERVE STABLE INFORMATION
 
-Current-state reasoning does not require unnecessary change.
+Current-state reasoning does not mean rewriting everything.
 
-Agents should preserve prior material that remains optimal.
+Agents should preserve material that remains optimal.
 
 The desired behavior is:
 
-    Reconsider everything necessary.
+    Reconsider what matters.
 
     Change only what materially benefits from change.
 
-This principle works together with idempotence.
-
-The system seeks improvement, not novelty.
+The system seeks convergence rather than novelty.
 
 ---
 
-# 23. FACTUAL INTEGRITY OVERRIDES OPTIMIZATION
+# 30. EVIDENCE REQUESTS REPRESENT FACTUAL NEED
 
-No optimization goal may override factual integrity.
+An Evidence Request represents a factual investigation need.
 
-The system must never improve apparent job fit by:
+It should describe:
+
+- What is known.
+- What remains unknown.
+- Why the missing information matters.
+- What facts must not be assumed.
+- What factual dimensions require investigation.
+- What analytical limitation currently exists.
+
+It should not describe:
+
+- Routing.
+- Runtime ownership.
+- Workflow blocking.
+- Destination agent.
+- Required sequence.
+
+Evidence Requests should only be produced after reasonable existing evidence retrieval has been exhausted.
+
+---
+
+# 31. EVIDENCE RESPONSES REPRESENT FACTS
+
+An Evidence Response represents the factual result of human investigation.
+
+It may contain:
+
+- Confirmed facts.
+- Qualified facts.
+- Estimates.
+- Unsupported possibilities.
+- Remaining uncertainty.
+- Conflicting facts.
+- Addressed requested dimensions.
+- Unresolved requested dimensions.
+
+It must not independently determine:
+
+- Evidence strength.
+- Direct versus transferable classification.
+- Requirement coverage.
+- Job fit.
+- Authoritative record consequences.
+
+Those judgments require integration with the broader evidence model.
+
+---
+
+# 32. EVIDENCE CLASSIFICATION REQUIRES GLOBAL CONTEXT
+
+Evidence should not be classified solely from an isolated interview response.
+
+Classification may require:
+
+- Career-wide context.
+- Other evidence.
+- Provenance.
+- Target requirements.
+- Existing records.
+- Contradictory information.
+- Related professional episodes.
+
+Therefore:
+
+> Evidence acquisition and evidence classification remain separate operations.
+
+This prevents factual investigation from expanding unnecessarily merely to create a self-contained analytical conclusion.
+
+---
+
+# 33. FACTUAL INTEGRITY OVERRIDES OPTIMIZATION
+
+No optimization objective may override factual integrity.
+
+Never improve apparent fit by:
 
 - Inventing experience.
 - Inventing metrics.
+- Inventing responsibility.
 - Inventing ownership.
 - Inventing scope.
-- Inventing tools.
+- Inventing systems.
 - Inventing results.
 - Inventing certifications.
+- Inventing education.
 - Changing employer provenance.
 - Changing employment history.
-- Treating transferable evidence as direct evidence without support.
 - Converting contribution into ownership.
+- Converting transferable evidence into direct evidence.
 - Misstating attribution.
 
-When factual evidence is insufficient, the system must preserve the limitation.
+When evidence is insufficient, preserve the limitation.
 
 ---
 
-# 24. PROVENANCE AND PRESENTATION ARE DISTINCT
+# 34. PROVENANCE AND PRESENTATION ARE DISTINCT
 
-The system distinguishes:
+Maintain the distinction between:
 
     Provenance
-    = where, when, and under what employment relationship
-      the experience occurred.
+    = where, when, and under what employment relationship experience occurred.
 
-from:
+    Professional capability
+    = what the experience demonstrates.
 
-    Professional function
-    = what kind of work the experience demonstrates.
-
-and from:
+    Functional classification
+    = what recognizable professional function the work represents.
 
     Presentation
-    = how that supported professional experience is communicated
-      for a target application.
+    = how authorized evidence is communicated.
 
-The Researcher preserves evidence provenance.
-
-The Writer may reorganize supported evidence for recruiter comprehension while preserving factual employment relationships.
-
-Professional translation is permitted.
+Professional translation is allowed.
 
 Historical fabrication is not.
 
 ---
 
-# 25. DIRECT AND TRANSFERABLE EVIDENCE REMAIN DISTINCT
+# 35. DIRECT AND TRANSFERABLE EVIDENCE REMAIN DISTINCT
 
-The system should actively recognize transferable professional capability.
+The system should recognize transferable professional capability.
 
-Terminology differences, military context, internal job titles, or unusual organizational structures should not create artificial gaps.
+Terminology, military context, internal titles, and unusual organizational structures should not create artificial gaps.
 
-However, transferability must not erase meaningful differences.
-
-The system must preserve distinctions such as:
+However:
 
     Similar tool ≠ direct tool experience
 
@@ -785,111 +995,172 @@ The system must preserve distinctions such as:
 
     Adjacent capability ≠ identical capability
 
-Transferability should reduce unnecessary recruiter translation burden without inflating evidence.
+Transferability should reduce unnecessary translation burden without inflating evidence.
 
 ---
 
-# 26. PROCESS FEEDBACK IS SEPARATE FROM PRODUCTION OUTPUT
+# 36. LIMITATIONS ARE VALID STATE
 
-Execution agents may identify recurring system problems while performing their professional roles.
+An artifact does not need to be perfect to be complete.
 
-Examples:
+Valid professional state may include:
+
+- Unknown information.
+- Weak evidence.
+- Qualified evidence.
+- Genuine gaps.
+- Structural constraints.
+- Partial requirement coverage.
+- Product deficiencies.
+- Factual conflicts.
+
+Agents should represent limitations accurately rather than creating requests merely because limitations exist.
+
+---
+
+# 37. PRODUCT READINESS IS NOT WORKFLOW AUTHORITY
+
+The evaluation function may judge:
+
+- Ready to submit.
+- Not ready to submit.
+- Weak fit.
+
+This is a professional product judgment.
+
+It does not mean:
+
+- Stop workflow.
+- Block execution.
+- Route backward.
+- Require another agent to act.
+
+Product readiness and runtime workflow state must remain distinct.
+
+---
+
+# 38. PROCESS FEEDBACK IS SEPARATE FROM PRODUCTION OUTPUT
+
+Execution roles may identify recurring system problems while performing normal work.
+
+Examples include:
 
 - Contract ambiguity.
 - Schema weakness.
-- Repeated missing information.
-- Poor handoff definitions.
+- Repeated missing artifact fields.
 - Repeated task friction.
-- Recurring role-boundary confusion.
+- Recurring authority confusion.
+- Repeated interface failures.
 
-When useful, an agent may produce a Process Feedback artifact in addition to its normal production output.
+When materially useful, the agent may additionally produce Process Feedback.
 
-Process Feedback is intended for Supervisor review.
+Process Feedback describes system-level friction.
 
-Current V2 does not define how Process Feedback is transported.
+It does not:
 
-The human operator may provide it manually.
-
-Future implementation may automate collection.
+- Modify architecture.
+- Assign corrective ownership.
+- Control runtime behavior.
 
 ---
 
-# 27. KAIZEN IS GOVERNED CHANGE
+# 39. KAIZEN IS GOVERNED CHANGE
 
-The Supervisor may analyze Process Feedback and propose improvements.
-
-The Supervisor may draft proposed:
-
-- Contract changes.
-- Task-instruction changes.
-- Schema changes.
-- Architecture changes.
-- Role-boundary changes.
-
-The Supervisor does not autonomously promote those changes into the active system.
-
-The System Owner retains approval authority.
+The governance function may analyze Process Feedback and draft improvements.
 
 The continuous-improvement model is:
 
     Observe
         ↓
-    Identify recurring pattern
+    Identify pattern
         ↓
     Analyze root cause
         ↓
+    Identify owning architectural layer
+        ↓
     Draft improvement
+        ↓
+    Validate architecture
         ↓
     System Owner review
         ↓
-    Approve or reject
+    Approve / reject / modify
         ↓
     Adopt new standard
-        ↓
-    Observe again
 
-This allows the system to evolve while preserving human governance.
+Governance may autonomously diagnose and draft.
+
+The System Owner retains adoption authority.
 
 ---
 
-# 28. SCHEMAS DEFINE STRUCTURED DATA, NOT AGENT BEHAVIOR
+# 40. SCHEMAS DEFINE DATA, NOT BEHAVIOR
 
-Schemas define the structure of shared artifacts.
+Schemas define structured artifact interfaces.
 
 A schema answers:
 
 - What fields exist?
 - Which fields are required?
-- What data types are permitted?
-- Which identifiers connect artifacts?
-- Which values are valid?
+- What types are permitted?
+- What identifiers connect related artifacts?
+- What values are valid?
 
-Schemas should not contain substantial behavioral doctrine.
+Schemas should not define:
 
-Likewise, contracts should reference shared schemas rather than duplicate their full definitions.
+- Runtime routing.
+- Destination agents.
+- Corrective owners.
+- Workflow transitions.
+- Agent behavior.
+- Task procedure.
 
-The intended separation is:
-
-    Contract
-        = durable behavior and authority
-
-    Task Instruction
-        = repeatable operation
-
-    Schema
-        = structured artifact interface
-
-    Resource
-        = shared material
-
-    Future Code
-        = implementation
+Schemas describe professional state.
 
 ---
 
-# 29. PREFER THE SIMPLEST COHERENT INTERFACE
+# 41. ARTIFACT IDENTITY IS VALID; RUNTIME DESTINATION IS NOT
 
-Do not create a new artifact, task, role, or workflow distinction unless it represents genuinely different work or information.
+Artifacts may contain stable identifiers such as:
+
+- Artifact ID.
+- Version.
+- Superseded version.
+- Related artifact IDs.
+- Requirement IDs.
+- Evidence IDs.
+- Resume IDs.
+
+These support:
+
+- Traceability.
+- Correlation.
+- Versioning.
+- Auditability.
+
+They should not require:
+
+- Source-agent IDs.
+- Destination-agent IDs.
+- Next-agent fields.
+- Queue ownership.
+- Workflow status.
+
+Artifact identity and runtime topology are separate concerns.
+
+---
+
+# 42. PREFER THE SIMPLEST COHERENT INTERFACE
+
+Do not create a new:
+
+- Artifact.
+- Task.
+- Role.
+- State.
+- Classification.
+
+unless it represents genuinely distinct information or work.
 
 Prefer:
 
@@ -897,15 +1168,23 @@ Prefer:
 
 over:
 
-    several tasks differentiated only by workflow state
+    iteration-specific tasks
 
 Prefer:
 
-    one standardized Evidence Request
+    one Evidence Request artifact
 
 over:
 
-    separate request types that differ only by originating agent
+    agent-specific request types
+
+Prefer:
+
+    limitations recorded in an existing manifest
+
+over:
+
+    separate request artifacts with no independent purpose
 
 Prefer:
 
@@ -913,189 +1192,213 @@ Prefer:
 
 over:
 
-    multiple agents reconciling competing copies
+    competing evidence copies
 
-Complexity should be introduced only when it solves a real problem.
-
----
-
-# 30. HUMAN INTERACTION IS A ROLE CAPABILITY, NOT A TRANSPORT
-
-Some agents may require direct human interaction.
-
-For example:
-
-- Interviewer interacts with the job hunter.
-- Supervisor collaborates with the System Owner.
-
-Contracts may specify that interaction is required or permitted.
-
-They should not specify the communication technology.
-
-Current V2 may use the ChatGPT conversation directly.
-
-Future implementations may use other interfaces.
-
-The professional interaction model should remain unchanged.
+Complexity must solve a real problem.
 
 ---
 
-# 31. FUTURE IMPLEMENTATION MUST PRESERVE AGENT BOUNDARIES
+# 43. HUMAN INTERACTION IS A CAPABILITY, NOT TRANSPORT
 
-Future automation may introduce:
+Some professional functions require direct human interaction.
+
+Contracts may define:
+
+- Why human interaction is required.
+- What information may be requested.
+- What confirmation is needed.
+- What boundaries apply.
+
+They must not specify:
+
+- Discord.
+- Email.
+- Chat platform.
+- Webhook.
+- Messaging transport.
+
+The professional interaction model must survive changes in communication technology.
+
+---
+
+# 44. FUTURE IMPLEMENTATION MUST PRESERVE CONCEPTUAL BOUNDARIES
+
+Future software may introduce:
 
 - Python handlers.
-- Agent instances.
-- APIs.
-- Trello.
-- Discord.
-- Persistence.
+- Persistent agents.
+- Databases.
 - Message buses.
-- Background workers.
+- Queues.
+- GitHub.
+- Discord.
+- Trello.
 - Automated routing.
+- Background jobs.
+- Retry behavior.
 
-Those systems should implement the architecture rather than redefine it.
+Those mechanisms implement the architecture.
 
-Future code should preserve:
+They must not redefine:
 
-- Agent authority.
-- Artifact ownership.
-- Evidence custody.
-- Role specialization.
-- Idempotent task semantics.
+- Evidence authority.
+- Professional judgment.
+- Artifact meaning.
 - Human approval boundaries.
+- Task semantics.
+- Role specialization.
 
-A transport mechanism must not become a source of professional authority.
+Runtime code may decide which component receives an artifact.
 
-A Python handler must not silently perform reasoning that belongs to an agent unless the architecture explicitly assigns that responsibility to software.
-
----
-
-# 32. ARCHITECTURAL CONFORMANCE TEST
-
-When reviewing any contract, task instruction, schema, or future implementation, ask:
-
-## Role
-
-- Is the responsible agent clear?
-- Is the behavior inside that agent's domain?
-
-## Authority
-
-- Is there one authoritative owner?
-- Does this artifact accidentally give another agent conflicting authority?
-
-## Evidence
-
-- Is Researcher custody of professional evidence preserved?
-- Is Interviewer limited to evidence acquisition and confirmation?
-
-## Product
-
-- Is Writer presentation authority preserved?
-- Is Evaluator product-judgment authority preserved?
-
-## Governance
-
-- Is Supervisor governance distinct from execution?
-- Does System Owner approval remain required for system changes?
-
-## Task Design
-
-- Does the task represent a real kind of work?
-- Is a separate task being created merely because the workflow is at a different iteration?
-- Can the task be idempotent?
-
-## Interface
-
-- Is important information contained in explicit artifacts?
-- Does the agent depend on hidden conversational context?
-
-## Scope
-
-- Does the instruction assume Trello, Discord, Kanban, Python handlers, connectors, or automated routing?
-
-If yes, determine whether that language belongs in a future implementation layer rather than current V2.
+The artifact-producing agent does not need to know that decision.
 
 ---
 
-# 33. CURRENT V2 AGENT MODEL
+# 45. CURRENT V2 TASK MODEL
 
-The current execution model is intentionally simple:
+The active V2 production task set is:
 
-    Human Operator
-        │
-        │ supplies contracts, tasks, and artifacts
-        ▼
-    ┌───────────────────────────────────────┐
-    │ Researcher                            │
-    │                                      │
-    │ Authoritative professional evidence  │
-    │ and job analysis                     │
-    └──────────────────┬────────────────────┘
-                       │
-              analysis / evidence request
-                       │
-          ┌────────────┴────────────┐
-          ▼                         ▼
-    ┌─────────────┐           ┌──────────────┐
-    │ Writer      │           │ Interviewer  │
-    │             │           │              │
-    │ Presentation│           │ Human factual│
-    │ authority   │           │ acquisition  │
-    └──────┬──────┘           └──────┬───────┘
-           │                         │
-           │ resume                  │ evidence response
-           ▼                         ▼
-    ┌─────────────┐             Researcher
-    │ Evaluator   │
-    │             │
-    │ Product     │
-    │ judgment    │
-    └─────────────┘
-
-The human operator currently transfers information between these roles.
-
-The Supervisor operates separately at the governance layer.
-
----
-
-# 34. CURRENT V2 TASK MODEL
-
-The intended task model is:
-
-    Researcher
+    Researcher Function
     ├── generate_analysis
     └── request_evidence
 
-    Interviewer
+    Human Evidence Acquisition Function
     └── investigate_evidence_request
 
-    Writer
-    ├── generate_resume
-    └── generate_cover_letter
+    Resume Writing Function
+    └── generate_resume
 
-    Evaluator
+    Resume Evaluation Function
     └── evaluate_resume
 
-These task names represent kinds of work.
+System governance work is governed separately.
 
-They do not represent workflow iterations.
-
-Future changes to this task set should require a genuine difference in operation, not merely a different trigger or sequence position.
+Cover-letter generation is not part of the current active task model.
 
 ---
 
-# 35. GOVERNING PRINCIPLE
+# 46. CURRENT V2 ARTIFACT MODEL
 
-The Rapid Resume System should remain understandable even if all transport technology is removed.
+Primary artifact families currently include:
 
-At its core, the system is:
+    Professional Evidence
+    ├── Job Experience Record
+    └── related atomic evidence
 
-> A set of specialized reasoning agents with explicit authority boundaries, communicating through structured artifacts, each performing a stable professional function against the current available information.
+    Job Analysis
+    └── Job Experience Analysis
 
-Current V2 should implement that conceptual system as simply as possible.
+    Human Investigation
+    ├── Evidence Request
+    └── Evidence Response
+
+    Resume Production
+    ├── Targeted Resume
+    └── Writer Content Manifest
+
+    Resume Evaluation
+    └── Resume Evaluation
+
+    Governance
+    └── Process Feedback
+
+Schemas should represent these artifacts according to their professional meaning rather than runtime relationships.
+
+---
+
+# 47. ARCHITECTURAL CONFORMANCE TEST
+
+When reviewing a contract, task, schema, or implementation, ask:
+
+## Authority
+
+- Is the role's own authority explicit?
+- Are excluded decisions clear?
+- Is authoritative mutable state owned exactly once?
+
+## Partner Independence
+
+- Does the runtime agent need to know another runtime agent exists?
+- Does the artifact name a destination or corrective owner unnecessarily?
+- Could the task still operate if the system topology changed?
+
+## Professional State
+
+- Does the artifact describe what is true?
+- Or does it attempt to control what happens next?
+
+## Forward Production
+
+- Does the agent produce the strongest current artifact?
+- Or does ambiguity unnecessarily create backward requests?
+
+## Evidence
+
+- Is factual acquisition separate from evidence interpretation?
+- Is classification performed with sufficient global context?
+- Is authoritative evidence protected?
+
+## Iteration
+
+- Does new information become richer current state?
+- Or has workflow iteration been encoded as separate task identity?
+
+## Artifact Design
+
+- Is the artifact self-contained?
+- Does it depend on hidden conversation history?
+- Does it describe purpose rather than recipient?
+
+## Scope
+
+- Does the reasoning artifact assume:
+  - Trello?
+  - Discord?
+  - Kanban?
+  - Routing?
+  - Python handlers?
+  - Connectors?
+  - Automated workflow?
+
+If yes, determine whether implementation concerns have leaked into the reasoning layer.
+
+---
+
+# 48. GOVERNING PRINCIPLES
+
+The Rapid Resume System follows these governing rules:
+
+1. **Professional authority is explicit.**
+2. **Authoritative mutable state has one owner.**
+3. **Runtime agents are partner-independent.**
+4. **Agents know their boundaries, not the runtime topology.**
+5. **Artifacts describe professional state, not workflow state.**
+6. **Artifacts describe purpose, not destination.**
+7. **Agents produce forward from the current state.**
+8. **Imperfection does not automatically create backward work.**
+9. **Iteration occurs through richer current artifacts.**
+10. **Evidence acquisition and evidence interpretation remain separate.**
+11. **Professional evidence remains authoritative and traceable.**
+12. **Presentation cannot create truth.**
+13. **Evaluation judges the product without dispatching corrective work.**
+14. **Tasks represent kinds of work, not workflow iterations.**
+15. **Tasks should converge under unchanged inputs.**
+16. **Explicit artifacts replace hidden shared memory.**
+17. **Schemas describe structured state rather than behavior or routing.**
+18. **Governance proposes; the System Owner adopts.**
+19. **Current reasoning must remain independent of future implementation.**
+20. **Complexity must justify itself.**
+
+---
+
+# 49. GOVERNING MODEL
+
+At its core, the Rapid Resume System is:
+
+> A set of specialized, partner-independent reasoning functions operating within explicit authority boundaries, consuming self-contained artifacts, producing self-contained professional state, and converging through repeated execution against increasingly complete information.
+
+Current V2 should implement that conceptual model as simply as possible.
 
 Future automation should make the system easier to operate.
 
-It should not be required to explain how the system works.
+It should not be necessary to explain how the reasoning system works.
