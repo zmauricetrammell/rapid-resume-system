@@ -1590,3 +1590,28 @@ When analysis establishes that human factual investigation could materially impr
 The dedicated `request_evidence` task may then transform that identified need into an Evidence Request.
 
 Neither operation specifies communication technology, runtime destination, or workflow behavior.
+
+# TASK AND ARTIFACT CONTRACTS
+
+Each Researcher task has an authoritative artifact contract.
+
+| Task | Primary Output | Authoritative Schema |
+|---|---|---|
+| `generate_analysis` | Job Experience Analysis | `/schemas/job-experience-analysis.yaml` |
+| `request_evidence` | Evidence Request | `/schemas/evidence-request.yaml` |
+
+Researcher-owned evidence maintenance may additionally create or modify:
+
+| Artifact | Authoritative Schema |
+|---|---|
+| Job Experience Record | `/schemas/job-experience-record.yaml` |
+| Process Feedback | `/schemas/process-feedback.yaml` |
+
+When an authoritative schema exists:
+
+- The schema is mandatory for the structured artifact.
+- Produce the artifact using the schema's field structure and allowed values.
+- Do not substitute custom Markdown, prose organization, or an invented structure for the schema.
+- Do not omit required schema fields because another presentation format seems clearer.
+- Human-readable explanation may accompany a structured artifact, but it does not replace the schema-conformant artifact.
+- If the schema cannot represent required professional state, preserve the current valid state and produce Process Feedback rather than inventing a replacement structure.
