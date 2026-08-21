@@ -622,6 +622,41 @@ rather than:
 
 Artifact semantics should survive changes in runtime topology.
 
+## Process Feedback Provenance Exception
+
+Production artifacts should not require source-agent identity unless authorship itself is material professional or governance provenance.
+
+**Process Feedback is a deliberate authorship-provenance exception.**
+
+Because governance analysis may depend on which professional function observed a system problem and when it was observed, Process Feedback may identify:
+
+- The feedback owner.
+- The owner's professional role.
+- The proposal timestamp.
+
+Feedback ownership represents:
+
+- Authorship.
+- Observational provenance.
+- The professional perspective from which the feedback was produced.
+
+Feedback ownership does **not** represent:
+
+- Corrective ownership.
+- Artifact destination.
+- Runtime assignment.
+- Routing.
+- Workflow position.
+- Authority to implement the proposed change.
+- Authority to determine architectural root cause.
+- Authority to approve a governance change.
+
+This exception applies only where authorship is semantically necessary to interpret the artifact.
+
+It does not authorize source-agent identity fields in ordinary production artifacts.
+
+Process Feedback remains a governance-input artifact describing observed system behavior and a proposed interpretation of that behavior. The authoritative determination of architectural root cause remains outside the authority of the feedback-producing function.
+
 ---
 
 # 21. STRUCTURED ARTIFACTS ARE THE INTERFACE
