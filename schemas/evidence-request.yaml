@@ -1,0 +1,728 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://rapid-resume-system.local/schemas/evidence-request.yaml"
+
+title: "Evidence Request"
+description: >
+  Professional-state artifact defining a focused factual investigation need.
+  An Evidence Request describes what is currently known, what remains unknown,
+  why the missing information matters, what factual dimensions require
+  investigation, and what factual outcomes would materially resolve the issue.
+  It does not define runtime routing, workflow state, corrective ownership, or
+  interview-script behavior.
+
+type: object
+
+additionalProperties: false
+
+required:
+  - schema_version
+  - evidence_request_id
+  - request_version
+  - status
+  - origin
+  - factual_issue
+  - current_evidence
+  - missing_dimensions
+  - professional_context
+  - facts_not_to_assume
+  - investigative_objectives
+  - resolution_conditions
+  - analytical_context
+  - related_artifacts
+  - lineage
+
+properties:
+
+  schema_version:
+    type: string
+    description: >
+      Version of this schema against which the Evidence Request was created.
+    pattern: "^[0-9]+\\.[0-9]+$"
+    examples:
+      - "2.0"
+
+  evidence_request_id:
+    type: string
+    description: >
+      Stable human-readable identifier for this factual investigation need.
+      The identifier should remain stable across ordinary revisions of the
+      same coherent request.
+    pattern: "^ERQ-[0-9]{4,}$"
+    examples:
+      - "ERQ-0001"
+
+  request_version:
+    type: integer
+    minimum: 1
+    description: >
+      Monotonically increasing version number for this Evidence Request.
+
+  status:
+    type: string
+    description: >
+      Professional lifecycle state of the Evidence Request artifact itself.
+      This is not investigation progress or workflow state.
+    enum:
+      - active
+      - superseded
+      - deprecated
+
+  origin:
+    $ref: "#/$defs/origin"
+
+  factual_issue:
+    $ref: "#/$defs/factual_issue"
+
+  current_evidence:
+    $ref: "#/$defs/current_evidence"
+
+  missing_dimensions:
+    type: array
+    minItems: 1
+    uniqueItems: true
+    description: >
+      Factual dimensions that remain insufficiently established and materially
+      justify human investigation.
+    items:
+      $ref: "#/$defs/missing_dimension"
+
+  professional_context:
+    type: array
+    description: >
+      Existing professional episodes or evidence likely to provide useful
+      context for investigation. Inclusion does not imply the missing fact exists.
+    items:
+      $ref: "#/$defs/professional_context_reference"
+
+  facts_not_to_assume:
+    type: array
+    description: >
+      Explicit factual inferences that must not be made during investigation
+      without human support.
+    items:
+      type: string
+      minLength: 1
+
+  investigative_objectives:
+    type: array
+    minItems: 1
+    description: >
+      Factual questions the investigation must attempt to answer. These define
+      what facts are needed, not exact conversational wording.
+    items:
+      $ref: "#/$defs/investigative_objective"
+
+  resolution_conditions:
+    $ref: "#/$defs/resolution_conditions"
+
+  analytical_context:
+    $ref: "#/$defs/analytical_context"
+
+  related_artifacts:
+    $ref: "#/$defs/related_artifacts"
+
+  lineage:
+    $ref: "#/$defs/lineage"
+
+
+$defs:
+
+  origin:
+    type: object
+    additionalProperties: false
+
+    required:
+      - source_type
+      - related_requirement_ids
+
+    properties:
+
+      source_type:
+        type: string
+        enum:
+          - jea_evidence_need
+          - evidence_conflict
+          - evidence_custody
+          - other_researcher_factual_issue
+        description: >
+          Professional origin of the factual investigation need. This describes
+          source semantics, not the identity of the runtime component that
+          generated the request.
+
+      source_jea_id:
+        type:
+          - string
+          - "null"
+        pattern: "^JEA-[0-9]{4,}$"
+        description: >
+          Job Experience Analysis containing the originating Material Evidence
+          Need when source_type is jea_evidence_need.
+
+      source_evidence_need_id:
+        type:
+          - string
+          - "null"
+        pattern: "^EN-[0-9]{3,}$"
+        description: >
+          JEA-local Material Evidence Need ID when this request originates from
+          a target-specific analytical evidence need.
+
+      source_jer_id:
+        type:
+          - string
+          - "null"
+        pattern: "^JER-[0-9]{4,}$"
+        description: >
+          Job Experience Record containing the originating evidence-custody
+          issue or conflict when applicable.
+
+      source_conflict_id:
+        type:
+          - string
+          - "null"
+        pattern: "^CONFLICT-[0-9]{4,}-[0-9]{2,}$"
+        description: >
+          Authoritative evidence conflict that prompted the request when
+          applicable.
+
+      related_requirement_ids:
+        type: array
+        uniqueItems: true
+        description: >
+          Target-job requirement IDs materially affected by the factual issue.
+          May be empty for evidence-custody requests that are not target-specific.
+        items:
+          type: string
+          pattern: "^REQ-[0-9]{3,}$"
+
+      originating_artifact_refs:
+        type: array
+        uniqueItems: true
+        description: >
+          Additional stable artifact references materially related to the origin.
+        items:
+          type: string
+
+
+  factual_issue:
+    type: object
+    additionalProperties: false
+
+    required:
+      - summary
+      - reason_for_request
+
+    properties:
+
+      summary:
+        type: string
+        minLength: 1
+        description: >
+          Concise neutral statement of the factual issue requiring investigation.
+
+      reason_for_request:
+        type: string
+        minLength: 1
+        description: >
+          Why current authoritative evidence is insufficient and why human
+          factual investigation could materially improve the professional state.
+
+      affected_claim_or_interpretation:
+        type:
+          - string
+          - "null"
+        description: >
+          Professional claim or interpretation affected by the unresolved issue
+          when useful for investigation context.
+
+
+  current_evidence:
+    type: object
+    additionalProperties: false
+
+    required:
+      - summary
+      - evidence_refs
+
+    properties:
+
+      summary:
+        type: string
+        minLength: 1
+        description: >
+          Concise summary of what current authoritative evidence already
+          establishes. This prevents unnecessary rediscovery.
+
+      evidence_refs:
+        type: array
+        description: >
+          Structured references to authoritative professional evidence relevant
+          to the issue.
+        items:
+          $ref: "#/$defs/evidence_reference"
+
+      relevant_conflict_refs:
+        type: array
+        uniqueItems: true
+        description: >
+          Existing evidence-conflict identifiers materially relevant to the
+          investigation.
+        items:
+          type: string
+          pattern: "^CONFLICT-[0-9]{4,}-[0-9]{2,}$"
+
+      known_limitations:
+        type: array
+        description: >
+          Existing factual limitations that should remain visible during
+          investigation.
+        items:
+          type: string
+
+
+  missing_dimension:
+    type: string
+    enum:
+      - responsibility
+      - action
+      - ownership
+      - decision_authority
+      - leadership
+      - scope
+      - organizational_scope
+      - user_customer_scope
+      - geographic_scope
+      - budget
+      - systems
+      - tools
+      - complexity
+      - duration
+      - frequency
+      - proficiency
+      - result
+      - baseline
+      - final_state
+      - attribution
+      - business_significance
+      - operational_significance
+      - customer_significance
+      - verification
+      - conflicting_value
+      - directness
+      - other
+
+
+  professional_context_reference:
+    type: object
+    additionalProperties: false
+
+    required:
+      - jer_id
+      - rationale
+
+    properties:
+
+      jer_id:
+        type: string
+        pattern: "^JER-[0-9]{4,}$"
+
+      experience_point_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^EP-[0-9]{4,}-[0-9]{2,}$"
+
+      result_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^RES-[0-9]{4,}-[0-9]{2,}$"
+
+      source_role_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^ROLE-[0-9]{4,}$"
+
+      context_summary:
+        type:
+          - string
+          - "null"
+        description: >
+          Brief factual context useful for orienting the human investigation.
+
+      rationale:
+        type: string
+        minLength: 1
+        description: >
+          Why this professional context may contain relevant information.
+          This must not presume that the missing fact exists.
+
+
+  investigative_objective:
+    type: object
+    additionalProperties: false
+
+    required:
+      - objective_id
+      - objective
+
+    properties:
+
+      objective_id:
+        type: string
+        pattern: "^OBJ-[0-9]{3,}$"
+        description: >
+          Human-readable objective identifier local to this Evidence Request.
+
+      objective:
+        type: string
+        minLength: 1
+        description: >
+          Neutral factual objective describing what the investigation should
+          establish.
+
+      related_missing_dimensions:
+        type: array
+        uniqueItems: true
+        items:
+          $ref: "#/$defs/missing_dimension"
+
+      importance:
+        type:
+          - string
+          - "null"
+        enum:
+          - critical
+          - high
+          - moderate
+          - low
+          - null
+
+
+  resolution_conditions:
+    type: object
+    additionalProperties: false
+
+    required:
+      - full
+      - partial
+      - related_capability
+      - unsupported
+
+    properties:
+
+      full:
+        type: array
+        description: >
+          Factual outcomes that would fully answer the investigation question.
+          More than one factual state may constitute full resolution.
+        items:
+          $ref: "#/$defs/full_resolution_condition"
+
+      partial:
+        type: array
+        description: >
+          Factual outcomes that would materially improve understanding while
+          leaving an important dimension unresolved.
+        items:
+          $ref: "#/$defs/partial_resolution_condition"
+
+      related_capability:
+        type: array
+        description: >
+          Factual outcomes that would establish related professional capability
+          without establishing the requested direct experience. Satisfaction of
+          one of these conditions does not itself assign a transferability
+          classification.
+        items:
+          $ref: "#/$defs/related_capability_condition"
+
+      unsupported:
+        type: array
+        description: >
+          Factual outcomes that would establish that the requested experience
+          cannot currently be supported.
+        items:
+          $ref: "#/$defs/unsupported_resolution_condition"
+
+
+  full_resolution_condition:
+    type: object
+    additionalProperties: false
+
+    required:
+      - condition_id
+      - condition
+
+    properties:
+
+      condition_id:
+        type: string
+        pattern: "^FULL-[0-9]{3,}$"
+
+      condition:
+        type: string
+        minLength: 1
+
+      related_objective_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^OBJ-[0-9]{3,}$"
+
+
+  partial_resolution_condition:
+    type: object
+    additionalProperties: false
+
+    required:
+      - condition_id
+      - condition
+      - remaining_limitation
+
+    properties:
+
+      condition_id:
+        type: string
+        pattern: "^PART-[0-9]{3,}$"
+
+      condition:
+        type: string
+        minLength: 1
+
+      remaining_limitation:
+        type: string
+        minLength: 1
+        description: >
+          Important factual dimension that would remain unresolved even if this
+          condition is established.
+
+      related_objective_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^OBJ-[0-9]{3,}$"
+
+
+  related_capability_condition:
+    type: object
+    additionalProperties: false
+
+    required:
+      - condition_id
+      - condition
+
+    properties:
+
+      condition_id:
+        type: string
+        pattern: "^REL-[0-9]{3,}$"
+
+      condition:
+        type: string
+        minLength: 1
+
+      direct_experience_limitation:
+        type:
+          - string
+          - "null"
+        description: >
+          What requested direct factual dimension would remain absent or
+          unestablished if this condition is met.
+
+      related_objective_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^OBJ-[0-9]{3,}$"
+
+
+  unsupported_resolution_condition:
+    type: object
+    additionalProperties: false
+
+    required:
+      - condition_id
+      - condition
+
+    properties:
+
+      condition_id:
+        type: string
+        pattern: "^UNSUP-[0-9]{3,}$"
+
+      condition:
+        type: string
+        minLength: 1
+
+      related_objective_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^OBJ-[0-9]{3,}$"
+
+
+  analytical_context:
+    type: object
+    additionalProperties: false
+
+    required:
+      - materiality
+      - analytical_impact
+      - current_supported_position
+      - claim_constraints
+
+    properties:
+
+      materiality:
+        type: string
+        enum:
+          - critical
+          - high
+          - moderate
+          - low
+
+      analytical_impact:
+        type: string
+        minLength: 1
+        description: >
+          Why the unresolved factual issue matters to current professional
+          analysis.
+
+      current_supported_position:
+        type: string
+        minLength: 1
+        description: >
+          Strongest analytical position safely supportable before the requested
+          factual investigation occurs.
+
+      claim_constraints:
+        type: array
+        description: >
+          Claims or interpretations that cannot currently be made safely.
+        items:
+          type: string
+
+      target_fit_impact:
+        type:
+          - string
+          - "null"
+        description: >
+          Current effect of the unresolved factual question on target-job fit
+          analysis when applicable.
+
+
+  related_artifacts:
+    type: object
+    additionalProperties: false
+
+    required:
+      - prior_evidence_request_ids
+      - evidence_response_ids
+
+    properties:
+
+      prior_evidence_request_ids:
+        type: array
+        uniqueItems: true
+        description: >
+          Prior or related Evidence Requests concerning the same or overlapping
+          factual issue.
+        items:
+          type: string
+          pattern: "^ERQ-[0-9]{4,}$"
+
+      evidence_response_ids:
+        type: array
+        uniqueItems: true
+        description: >
+          Evidence Responses already associated with this factual issue when
+          they exist. Presence does not imply complete resolution.
+        items:
+          type: string
+          pattern: "^ERESP-[0-9]{4,}$"
+
+      related_jea_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^JEA-[0-9]{4,}$"
+
+      related_jer_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^JER-[0-9]{4,}$"
+
+
+  evidence_reference:
+    type: object
+    additionalProperties: false
+
+    required:
+      - jer_id
+      - experience_point_ids
+      - result_ids
+
+    properties:
+
+      jer_id:
+        type: string
+        pattern: "^JER-[0-9]{4,}$"
+
+      experience_point_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^EP-[0-9]{4,}-[0-9]{2,}$"
+
+      result_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^RES-[0-9]{4,}-[0-9]{2,}$"
+
+
+  lineage:
+    type: object
+    additionalProperties: false
+
+    required:
+      - created_at
+      - updated_at
+
+    properties:
+
+      created_at:
+        type: string
+        format: date-time
+
+      updated_at:
+        type: string
+        format: date-time
+
+      supersedes_version:
+        type:
+          - integer
+          - "null"
+        minimum: 1
+
+      material_change_summary:
+        type:
+          - string
+          - "null"
+        description: >
+          Concise description of material semantic changes from the prior
+          request version. This records artifact evolution, not workflow state.
