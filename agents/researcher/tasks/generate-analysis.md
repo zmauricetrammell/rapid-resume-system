@@ -658,24 +658,51 @@ Use the authoritative Job Experience Analysis schema under `/schemas/` when avai
 
 ## Conditional Output
 
-### Process Feedback
+## Process Feedback
 
-Produce Process Feedback when recurring or material system-level friction is identified concerning:
+Produce Process Feedback only when recurring or materially significant system-level friction is identified.
 
-- Contract ambiguity.
-- Task-instruction ambiguity.
-- Schema weakness.
-- Missing fields.
-- Repeated interface problems.
-- Repeated unavailable context.
-- Authority-boundary ambiguity.
-- Structural problems outside normal evidence analysis.
+Process Feedback must conform to:
 
-Process Feedback is for system improvement.
+    /schemas/process-feedback.yaml
 
-It must not replace normal analytical output.
+Process Feedback should preserve:
 
-It must not specify runtime destination or corrective ownership.
+- Feedback owner.
+- Proposal timestamp.
+- Observed system behavior.
+- Recurrence or materiality basis.
+- Operational impact.
+- Supporting artifacts, examples, or other evidence.
+- Suspected architectural layer.
+- Confidence in the suspected cause.
+- Proposed solution.
+- Confidence in the proposed solution.
+- Known alternatives or risks when materially useful.
+
+The producing function may:
+
+- Describe the observed problem.
+- Identify a suspected cause.
+- Identify the architectural layer it believes may be responsible.
+- Propose a solution.
+- Explain why it believes that solution may help.
+
+These are advisory professional observations.
+
+The producing function does **not** determine:
+
+- Authoritative architectural root cause.
+- Governance disposition.
+- Corrective ownership.
+- Required implementation.
+- Runtime routing.
+- Workflow sequence.
+- Approval of a proposed change.
+
+Process Feedback describes a system observation and a proposed interpretation of that observation.
+
+Governance authority remains separate from the function producing the feedback.
 
 ---
 

@@ -881,33 +881,49 @@ Stop there.
 
 # 17. PROCESS FEEDBACK
 
-If the investigation reveals recurring or material system-level friction, the Interviewer may produce Process Feedback separately from the Evidence Response.
+Produce Process Feedback only when recurring or materially significant system-level friction is identified.
 
-Examples include:
+Process Feedback must conform to:
 
-- Evidence Requests repeatedly contain insufficient context.
-- Evidence Requests repeatedly ask questions already answered by supplied evidence.
-- Resolution conditions are consistently ambiguous.
-- Requests are consistently too broad.
-- Requests are consistently too fragmented.
-- Important factual dimensions repeatedly lack representation in the schema.
-- Task or contract ambiguity materially interferes with investigation.
+    /schemas/process-feedback.yaml
 
-Process Feedback should describe:
+Process Feedback should preserve:
 
-- Observed pattern.
-- Effect on investigation.
-- Relevant artifact characteristics.
+- Feedback owner.
+- Proposal timestamp.
+- Observed system behavior.
+- Recurrence or materiality basis.
+- Operational impact.
+- Supporting artifacts, examples, or other evidence.
 - Suspected architectural layer.
-- Suggested area for governance review.
+- Confidence in the suspected cause.
+- Proposed solution.
+- Confidence in the proposed solution.
+- Known alternatives or risks when materially useful.
 
-Do not:
+The producing function may:
 
-- Assign corrective ownership.
-- Identify another runtime component that must act.
-- Specify routing.
-- Modify the Evidence Request.
-- Modify governance resources.
+- Describe the observed problem.
+- Identify a suspected cause.
+- Identify the architectural layer it believes may be responsible.
+- Propose a solution.
+- Explain why it believes that solution may help.
+
+These are advisory professional observations.
+
+The producing function does **not** determine:
+
+- Authoritative architectural root cause.
+- Governance disposition.
+- Corrective ownership.
+- Required implementation.
+- Runtime routing.
+- Workflow sequence.
+- Approval of a proposed change.
+
+Process Feedback describes a system observation and a proposed interpretation of that observation.
+
+Governance authority remains separate from the function producing the feedback.
 
 ---
 

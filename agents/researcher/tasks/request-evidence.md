@@ -675,33 +675,49 @@ Stop there.
 
 # 15. PROCESS FEEDBACK
 
-If evidence-request generation reveals recurring or material system-level friction, the Researcher may also produce Process Feedback.
+Produce Process Feedback only when recurring or materially significant system-level friction is identified.
 
-Examples include:
+Process Feedback must conform to:
 
-- Professional evidence records repeatedly omit ownership.
-- Records repeatedly omit attribution.
-- Evidence Responses repeatedly fail to capture necessary factual dimensions.
-- Evidence Request structure cannot express a recurring need.
-- The same factual uncertainty repeatedly causes avoidable rework.
-- Contract or task ambiguity repeatedly affects evidence development.
-- Existing schemas repeatedly make evidence reconciliation difficult.
+    /schemas/process-feedback.yaml
 
-Process Feedback should describe:
+Process Feedback should preserve:
 
-- Observed pattern.
+- Feedback owner.
+- Proposal timestamp.
+- Observed system behavior.
+- Recurrence or materiality basis.
 - Operational impact.
-- Relevant artifacts.
+- Supporting artifacts, examples, or other evidence.
 - Suspected architectural layer.
-- Suggested area for governance review.
+- Confidence in the suspected cause.
+- Proposed solution.
+- Confidence in the proposed solution.
+- Known alternatives or risks when materially useful.
 
-Do not:
+The producing function may:
 
-- Assign a corrective owner.
-- Specify routing.
-- Specify workflow action.
+- Describe the observed problem.
+- Identify a suspected cause.
+- Identify the architectural layer it believes may be responsible.
+- Propose a solution.
+- Explain why it believes that solution may help.
 
-Process Feedback is separate from the Evidence Request.
+These are advisory professional observations.
+
+The producing function does **not** determine:
+
+- Authoritative architectural root cause.
+- Governance disposition.
+- Corrective ownership.
+- Required implementation.
+- Runtime routing.
+- Workflow sequence.
+- Approval of a proposed change.
+
+Process Feedback describes a system observation and a proposed interpretation of that observation.
+
+Governance authority remains separate from the function producing the feedback.
 
 ---
 

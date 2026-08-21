@@ -1042,36 +1042,49 @@ The Resume Evaluation must stand on its own as a professional assessment artifac
 
 # 25. PROCESS FEEDBACK
 
-The Evaluator may also produce Process Feedback when evaluation reveals recurring or material system-level friction.
+Produce Process Feedback only when recurring or materially significant system-level friction is identified.
 
-Examples include:
+Process Feedback must conform to:
 
-- Evaluation criteria are repeatedly ambiguous.
-- Supporting analysis repeatedly lacks information necessary for credible product evaluation.
-- Traceability artifacts repeatedly fail to establish claim support.
-- Structural standards repeatedly create material screening problems.
-- Schemas cannot represent recurring deficiency types.
-- Contract or task boundaries repeatedly create inconsistent evaluation behavior.
-- The same class of factual-integrity problem repeatedly appears across products.
-- Readiness criteria are insufficiently defined.
+    /schemas/process-feedback.yaml
 
-Process Feedback should identify:
+Process Feedback should preserve:
 
-- Observed pattern.
+- Feedback owner.
+- Proposal timestamp.
+- Observed system behavior.
+- Recurrence or materiality basis.
 - Operational impact.
-- Relevant artifacts.
+- Supporting artifacts, examples, or other evidence.
 - Suspected architectural layer.
-- Suggested area for governance review.
+- Confidence in the suspected cause.
+- Proposed solution.
+- Confidence in the proposed solution.
+- Known alternatives or risks when materially useful.
 
-Do not use Process Feedback for:
+The producing function may:
 
-- Ordinary candidate weaknesses.
-- Isolated resume deficiencies.
-- Personal stylistic preferences.
+- Describe the observed problem.
+- Identify a suspected cause.
+- Identify the architectural layer it believes may be responsible.
+- Propose a solution.
+- Explain why it believes that solution may help.
 
-Process Feedback describes system state.
+These are advisory professional observations.
 
-It does not assign corrective work or runtime destination.
+The producing function does **not** determine:
+
+- Authoritative architectural root cause.
+- Governance disposition.
+- Corrective ownership.
+- Required implementation.
+- Runtime routing.
+- Workflow sequence.
+- Approval of a proposed change.
+
+Process Feedback describes a system observation and a proposed interpretation of that observation.
+
+Governance authority remains separate from the function producing the feedback.
 
 ---
 

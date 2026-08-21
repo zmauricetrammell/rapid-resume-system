@@ -804,27 +804,51 @@ Purpose:
 
 ## Conditional Output
 
-### Process Feedback
+## Process Feedback
 
-Purpose:
+Produce Process Feedback only when recurring or materially significant system-level friction is identified.
 
-> Document recurring or material system-level friction discovered during resume production.
+Process Feedback must conform to:
 
-Process Feedback may concern:
+    /schemas/process-feedback.yaml
 
-- Contract ambiguity.
-- Task ambiguity.
-- Schema weakness.
-- Repeated insufficient analytical context.
-- Repeated unclear evidence authorization.
-- Repeated skeleton conflicts.
-- Repeated evidence-to-presentation interface problems.
-- Missing manifest fields.
-- Structural problems outside normal Writer authority.
+Process Feedback should preserve:
 
-Do not use Process Feedback for ordinary case-specific evidence limitations.
+- Feedback owner.
+- Proposal timestamp.
+- Observed system behavior.
+- Recurrence or materiality basis.
+- Operational impact.
+- Supporting artifacts, examples, or other evidence.
+- Suspected architectural layer.
+- Confidence in the suspected cause.
+- Proposed solution.
+- Confidence in the proposed solution.
+- Known alternatives or risks when materially useful.
 
-Do not assign a destination or corrective owner.
+The producing function may:
+
+- Describe the observed problem.
+- Identify a suspected cause.
+- Identify the architectural layer it believes may be responsible.
+- Propose a solution.
+- Explain why it believes that solution may help.
+
+These are advisory professional observations.
+
+The producing function does **not** determine:
+
+- Authoritative architectural root cause.
+- Governance disposition.
+- Corrective ownership.
+- Required implementation.
+- Runtime routing.
+- Workflow sequence.
+- Approval of a proposed change.
+
+Process Feedback describes a system observation and a proposed interpretation of that observation.
+
+Governance authority remains separate from the function producing the feedback.
 
 ---
 
