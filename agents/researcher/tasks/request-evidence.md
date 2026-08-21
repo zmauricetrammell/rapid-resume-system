@@ -7,6 +7,24 @@
 
 ---
 
+## Artifact Contract
+
+This task produces:
+
+    Evidence Request
+
+The authoritative output schema is:
+
+    /schemas/evidence-request.yaml
+
+Schema conformance is mandatory.
+
+Produce one schema-conformant Evidence Request for each coherent factual investigation assigned to this task.
+
+Do not substitute custom prose or an independently invented request format.
+
+---
+
 # 1. TASK
 
 Generate an Evidence Request when current authoritative professional evidence is insufficient to resolve a material factual question and additional human factual investigation could materially improve the evidence state.

@@ -5,6 +5,33 @@
 **Agent:** Researcher  
 **System:** Rapid Resume System
 
+--- 
+
+## Artifact Contract
+
+This task produces:
+
+    Job Experience Analysis
+
+The authoritative output schema is:
+
+    /schemas/job-experience-analysis.yaml
+
+Schema conformance is mandatory.
+
+The completed Job Experience Analysis must be structured according to that schema.
+
+Do not substitute:
+
+- Custom Markdown structure.
+- Freeform prose organization.
+- A legacy analysis format.
+- An independently invented field structure.
+
+Material Evidence Needs produced by this task are represented inside the Job Experience Analysis according to the same schema.
+
+This task does not produce formal Evidence Requests.
+
 ---
 
 # 1. TASK
@@ -651,8 +678,6 @@ The Job Experience Analysis should contain, as applicable:
 - Material Evidence Needs.
 
 The current analysis supersedes obsolete analytical conclusions while preserving stable identifiers and useful provenance where appropriate.
-
-Use the authoritative Job Experience Analysis schema under `/schemas/` when available.
 
 ---
 
