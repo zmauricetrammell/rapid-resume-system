@@ -9,85 +9,51 @@
 
 # 1. TASK
 
-Evaluate the supplied targeted resume as an independent hiring artifact and produce a rigorous Resume Evaluation.
+Evaluate the current targeted resume against the target job using all relevant supplied artifacts.
 
-The Evaluator determines how effectively the current resume presents the candidate for the target job.
+Use the same task whether:
 
-The Evaluator examines the resume from the perspectives of:
+- This is the first evaluation.
+- A previous evaluation exists.
+- The resume has materially changed.
+- A new Job Experience Analysis exists.
+- New supporting evidence exists.
+- Previous deficiencies remain unresolved.
+- The task has been performed previously against an earlier artifact state.
 
-- Applicant Tracking System screening.
-- Recruiter screening.
-- Hiring-manager review.
-- Factual credibility.
-- Requirement coverage.
-- Professional positioning.
-- Seniority and scope alignment.
-- Structural quality.
-- Competitive application strength.
+Do not treat initial evaluation and reevaluation as separate task types.
 
-The Evaluator identifies:
+Each invocation evaluates the complete current resume state and determines how the product is likely to perform in a realistic hiring process.
 
-- What the resume communicates effectively.
-- What the resume fails to communicate effectively.
-- Material requirement deficiencies.
-- Evidence-support problems visible from supplied artifacts.
-- Factual-integrity concerns.
-- Credibility concerns.
-- Positioning problems.
-- Structural weaknesses.
-- Screening risks.
-- Regressions from previous versions when historical artifacts are supplied.
-- Overall submission readiness.
+When historical artifacts are available, also evaluate what materially improved, regressed, or remained unresolved.
 
-The Evaluator describes the professional state of the resume.
+The task is idempotent in intent:
 
-It does not determine what runtime action occurs after the evaluation.
-
-The governing transformation is:
-
-    Target Job
-    + Current Resume
-    + Supporting Evaluation Context
-            ↓
-    Independent Screening Review
-            ↓
-    Requirement Assessment
-            ↓
-    Claim and Credibility Audit
-            ↓
-    Positioning Assessment
-            ↓
-    Deficiency Diagnosis
-            ↓
-    Readiness Judgment
-            ↓
-    Resume Evaluation
+> Given materially identical target requirements, resume content, supporting artifacts, and constraints, repeated execution should converge on materially stable scores, deficiencies, and submission-readiness judgment.
 
 ---
 
 # 2. OBJECTIVE
 
-Determine whether the current resume presents a credible and sufficiently strong case for the candidate against the target job.
+Determine whether the current targeted resume is sufficiently relevant, explicit, credible, and well-positioned to advance through realistic screening for the target job.
 
 The evaluation must answer:
 
-1. What is the employer seeking?
-2. What does the resume visibly demonstrate?
-3. What would an ATS likely recognize?
-4. What would a recruiter understand during an initial scan?
-5. What would a hiring manager infer from deeper review?
-6. Which critical requirements are clearly demonstrated?
-7. Which requirements are weakly demonstrated?
-8. Which requirements are not demonstrated?
-9. Which claims create credibility or factual-integrity concerns?
-10. Does the resume present the appropriate professional identity?
-11. Does the resume present appropriate seniority and scope?
-12. Are the strongest supported qualifications sufficiently visible?
-13. Are material weaknesses caused by presentation, support, positioning, structure, or genuine capability limitations?
-14. Does the current resume appear ready to submit?
-15. If previous evaluation state exists, what materially improved, regressed, or remained unresolved?
+1. What does the target employer require?
+2. What does the resume clearly demonstrate?
+3. What does the resume partially demonstrate?
+4. What does the resume merely mention?
+5. What does the resume fail to demonstrate?
+6. Which claims appear credible?
+7. Which claims appear ambiguous, overstated, unsupported, or contradictory?
+8. Which deficiencies materially threaten screening outcomes?
+9. Which aspects of the resume are strongest and should remain stable?
+10. Is the resume ready to submit?
+11. If historical state exists, what materially improved, regressed, or remains unresolved?
 
-The Evaluator must be skeptical enough to identify genuine weaknesses without manufacturing deficiencies merely to produce feedback.
+The Evaluator evaluates the product.
+
+It does not independently solve evidence problems, rewrite the resume, or determine runtime action.
 
 ---
 
@@ -95,460 +61,457 @@ The Evaluator must be skeptical enough to identify genuine weaknesses without ma
 
 Evaluate all relevant artifacts supplied with the current invocation.
 
-## Required Inputs
+## Minimum Required Inputs
 
 - Target Job Description.
 - Current Targeted Resume.
-- Applicable Evaluator task instruction.
 
 ## Contextual Inputs
 
-When supplied and relevant, consider:
+When available and relevant, also consider:
 
+- Resume identifier and version.
 - Current Job Experience Analysis.
 - Writer Content Manifest.
+- Relevant Job Experience Records.
 - Functional Role Architecture.
 - Permitted Claim Guidance.
 - Prohibited Claim Guidance.
 - Mandatory cautions.
-- Relevant authorized evidence.
-- Referenced Job Experience Records.
-- Employment provenance records.
-- Previous targeted resume.
+- Relevant authorized professional evidence.
 - Previous Resume Evaluation.
+- Previous resume version.
 - Resume Skeleton.
-- Structural requirements.
-- Output-format requirements.
-- Other relevant artifacts supplied with the current invocation.
+- Formatting requirements.
+- Rendered resume or PDF.
+- Other relevant supplied artifacts.
 
-Contextual artifacts provide evidence for evaluating the current product.
+The presence of additional artifacts does not create a different task.
 
-They do not replace evaluation of the actual resume.
+It changes the available evaluation context.
 
-The resume must succeed as a hiring artifact on its own terms.
+Do not require knowledge of:
 
----
-
-# 4. EVALUATION AUTHORITY
-
-The Evaluator owns independent judgment of the resume as a hiring artifact.
-
-The Evaluator may determine:
-
-- Whether target requirements are visibly demonstrated.
-- Whether claims appear credible.
-- Whether claims are adequately supported by supplied authoritative context.
-- Whether professional positioning is effective.
-- Whether seniority is appropriately presented.
-- Whether scope is appropriately presented.
-- Whether terminology is recognizable.
-- Whether the resume is recruiter-readable.
-- Whether the resume is ATS-aligned.
-- Whether the resume contains material omissions.
-- Whether the resume contains unnecessary or distracting content.
-- Whether structural presentation weakens the product.
-- Whether a deficiency is material.
-- The severity of a deficiency.
-- The likely screening impact of a deficiency.
-- Whether the current resume appears ready to submit.
-- Whether the candidate appears weakly matched to the target job.
-- Whether a newer resume materially improves or regresses from an earlier version.
-
-The Evaluator does not need to determine how any identified deficiency should be resolved operationally.
+- Who produced an artifact.
+- Who will consume the evaluation.
+- What runtime component acts next.
+- Why the task was invoked.
+- Whether this is a first pass or later iteration.
 
 ---
 
-# 5. AUTHORITY BOUNDARIES
+# 4. INPUT AUTHORITY
 
-The Evaluator evaluates the product.
+Treat supplied artifacts according to the authority and precedence rules defined in the Evaluator Contract.
 
-The Evaluator does not own:
+## Target Requirements
 
-- Authoritative professional evidence.
-- Evidence reconciliation.
-- Evidence modification.
-- Evidence acquisition.
-- Human factual investigation.
-- Job Experience Record maintenance.
-- Atomic Experience Point maintenance.
-- Resume authorship.
-- Resume revision.
-- Resume formatting changes.
-- System routing.
-- Workflow transitions.
-- Assignment of corrective work.
-- Runtime orchestration.
-- Contract modification.
-- Task-instruction modification.
-- Schema modification.
+The Target Job Description is authoritative for determining what the employer requests.
 
-The Evaluator may identify that a claim appears unsupported, insufficiently demonstrated, poorly presented, or inconsistent.
+A supplied analytical artifact may help normalize or prioritize requirements.
 
-It must not resolve that issue by inventing evidence or rewriting authoritative facts.
-
-The Evaluator may describe what a successful product state would need to demonstrate.
-
-It must not identify or direct another runtime agent to produce that state.
+It does not replace the source job description.
 
 ---
 
-# 6. PARTNER INDEPENDENCE
+## Recruiter Visibility
 
-The evaluation must be partner-independent.
+The visible resume is authoritative for determining what an external reviewer can observe.
 
-Do not:
+Do not give the resume credit for facts that exist only in:
 
-- Identify another runtime agent as the corrective owner.
-- Assign work to another runtime agent.
-- Request another runtime agent to act.
-- Describe routing.
-- Describe handoffs.
-- Describe queues.
-- Describe cards.
-- Describe workflow transitions.
-- Determine where the artifact should go next.
-- Assume which component will consume the evaluation.
-- Require knowledge of the runtime topology.
+- Job Experience Records.
+- Job Experience Analysis.
+- Writer Content Manifest.
+- Supporting source material.
+- Prior conversations.
+- Hidden context.
 
-Describe deficiencies in terms of:
+The governing rule is:
 
-- Product state.
-- Evidence state.
-- Presentation state.
-- Screening impact.
-- Severity.
-- Successful future state.
-
-The Resume Evaluation must remain useful regardless of which authorized human or system component consumes it.
+> The recruiter evaluates the resume, not the internal evidence system.
 
 ---
 
-# 7. EVALUATION POSTURE
+## Internal Validity
 
-Evaluate the resume skeptically but fairly.
+Use supplied supporting artifacts to determine whether visible claims are factually authorized when possible.
 
-Act as a realistic external reviewer rather than an advocate for the candidate.
+Relevant sources may include:
 
-Do not assume:
+- Writer Content Manifest.
+- Job Experience Analysis.
+- Authoritative Job Experience Records.
+- Other supplied professional evidence.
 
-- The recruiter will infer unstated experience.
-- Military or specialized terminology will automatically translate.
-- A skill listed in isolation proves meaningful experience.
-- Seniority automatically implies competence in lower-level requirements.
-- Team accomplishments establish personal ownership.
-- Large scope automatically establishes direct responsibility.
-- A strong overall career compensates for a missing critical qualification.
-- An impressive accomplishment is relevant merely because it is impressive.
+Internal evidence may demonstrate that a visible resume weakness could theoretically be improved.
 
-At the same time, do not manufacture weaknesses.
-
-Do not penalize the resume because:
-
-- Every possible accomplishment is not included.
-- The candidate does not match every preferred qualification.
-- A valid transferable capability is not identical to the employer's environment.
-- The resume appropriately omits irrelevant seniority or history.
-- A different stylistic preference is possible.
-- Another reasonable writer might phrase something differently.
-
-Evaluate material hiring impact, not personal taste.
+It does not make the visible weakness disappear.
 
 ---
 
-# 8. TWO-PASS EVALUATION
+## Historical State
 
-Perform evaluation in two distinct reasoning passes.
+Previous resumes and evaluations provide comparison context.
 
-## Pass One — External Screening Review
+They do not control the current judgment.
 
-Evaluate the resume as an external reviewer would encounter it.
+Evaluate the current product independently before comparing versions.
 
-Do not initially depend on supporting evidence artifacts to rescue unclear resume content.
+---
+
+# 5. TWO-PASS EVALUATION
+
+When sufficient supporting artifacts are available, perform two distinct evaluation passes.
+
+---
+
+## Pass 1 — Blind Screening Review
+
+Evaluate the resume as though you are an external reviewer with access only to:
+
+- Target Job Description.
+- Visible resume.
+- Rendered resume or PDF when available.
+
+Do not use hidden evidence to increase the resume's apparent strength.
+
+Evaluate through three perspectives.
+
+### Initial Filter / ATS
 
 Assess:
 
-- Immediate professional identity.
-- Apparent target fit.
-- ATS terminology.
-- Recruiter scanability.
-- Requirement visibility.
-- Seniority.
-- Scope.
+- Explicit required qualifications.
+- Required certifications.
+- Required education.
+- Recognizable skills.
+- Recognizable systems.
+- Recognizable professional functions.
+- Supported keyword alignment.
+- Parseable structure.
+- Potential knockout conditions.
+
+### Recruiter
+
+Assess:
+
+- Immediate clarity of fit.
+- Target professional identity.
+- Relevant seniority.
 - Credibility.
-- Readability.
-- Relevance.
-- Structural clarity.
-- Likely screening concerns.
+- Understandable accomplishments.
+- Career narrative.
+- Employment-history consistency.
+- Explicitness of required qualifications.
+- Amount of inference required.
 
-Ask:
-
-> If I only had this resume and the job description, what would I conclude?
-
-Record those conclusions before using deeper supporting context.
-
----
-
-## Pass Two — Evidence and Traceability Review
-
-Use supplied supporting artifacts to test the resume's claims and omissions.
-
-Assess:
-
-- Whether material claims are authorized.
-- Whether ownership is preserved.
-- Whether scope is preserved.
-- Whether attribution is preserved.
-- Whether result relationships are supported.
-- Whether functional-role presentation is supported.
-- Whether relevant authorized evidence exists but is poorly surfaced.
-- Whether the resume appears stronger than the underlying evidence permits.
-- Whether the resume appears weaker than the supplied evidence permits.
-- Whether prohibited claims were introduced.
-- Whether mandatory cautions were respected.
-
-Ask:
-
-> Does the deeper evidence support what the resume communicates, and is the resume making effective use of what is actually available?
-
-Keep these two perspectives distinct.
-
-A resume can fail external screening despite having strong underlying evidence.
-
-A resume can also look strong externally while overstating the underlying evidence.
-
-Both are material evaluation findings.
-
----
-
-# 9. TARGET REQUIREMENT MODEL
-
-Establish the target-job evaluation model from the Target Job Description and supplied analysis context.
-
-Identify:
-
-- Central role mandate.
-- Critical requirements.
-- Important responsibilities.
-- Preferred qualifications.
-- Relevant technical requirements.
-- Relevant leadership requirements.
-- Relevant operational requirements.
-- Relevant scope expectations.
-- Relevant seniority expectations.
-- Likely screening terminology.
-- Apparent knockout requirements when supportable.
-
-When a supplied authoritative analysis already defines requirement priority or classification, use that context rather than unnecessarily reconstructing a competing analytical model.
-
-The Evaluator's concern is how effectively the resume addresses those requirements.
-
----
-
-# 10. REQUIREMENT-BY-REQUIREMENT EVALUATION
-
-Evaluate each material target requirement.
-
-For each requirement, determine:
-
-- Importance.
-- Visible resume evidence.
-- Visibility strength.
-- Specificity.
-- Ownership clarity.
-- Scope clarity.
-- Result strength.
-- Terminology alignment.
-- Supporting evidence state when available.
-- Likely recruiter interpretation.
-- Likely hiring-manager interpretation.
-- Material deficiency, if any.
-- Deficiency severity.
-- Likely screening impact.
-
-Use a consistent coverage model such as:
-
-- Strongly demonstrated.
-- Demonstrated.
-- Partially demonstrated.
-- Weakly demonstrated.
-- Not demonstrated.
-- Contradicted or credibility concern.
-
-Do not treat requirement coverage as a keyword-presence test.
-
-Evidence must communicate meaningful professional capability.
-
----
-
-# 11. ATS REVIEW
-
-Evaluate ATS-facing characteristics.
-
-Assess:
-
-- Presence of critical supported terminology.
-- Recognizable job-function terminology.
-- Relevant technical keywords.
-- Relevant leadership terminology.
-- Acronym handling.
-- Section clarity.
-- Conventional resume structure.
-- Whether unusual terminology may obscure relevant experience.
-- Whether keyword use remains connected to credible experience.
-
-Identify material cases where:
-
-- Important supported terminology is absent.
-- Terminology is unnecessarily obscure.
-- A critical capability is described in language unlikely to match the target role.
-- Keyword use appears unsupported or artificial.
-
-Do not recommend keyword stuffing.
-
-ATS alignment must remain subordinate to factual integrity and human readability.
-
----
-
-# 12. RECRUITER REVIEW
-
-Evaluate the resume as if performing an initial recruiter screen.
-
-Consider:
-
-- What professional identity appears within seconds.
-- Whether the target role feels like a logical next step.
-- Whether critical qualifications are easy to find.
-- Whether relevant experience appears recent enough or prominent enough.
-- Whether unfamiliar terminology creates friction.
-- Whether the resume appears overqualified.
-- Whether the resume appears underqualified.
-- Whether employment history is understandable.
-- Whether functional-role presentation is credible.
-- Whether accomplishments are easy to interpret.
-- Whether the resume creates avoidable questions.
-- Whether the strongest evidence is visible early enough.
-
-Distinguish between:
-
-- A genuine candidate limitation.
-- A resume communication limitation.
-
----
-
-# 13. HIRING-MANAGER REVIEW
-
-Evaluate the resume from the perspective of a technically or operationally informed hiring manager.
+### Hiring Manager
 
 Assess:
 
 - Depth of relevant experience.
 - Ownership.
 - Decision authority.
-- Scale.
+- Scope.
 - Complexity.
 - Results.
-- Leadership.
-- Technical credibility.
-- Operational credibility.
-- Strategic credibility where relevant.
-- Ability to perform the central mandate.
-- Whether accomplishments demonstrate repeatable capability.
-- Whether the candidate's experience appears appropriately transferable.
-
-Identify where the resume:
-
-- Demonstrates strong capability.
-- Leaves important capability ambiguous.
-- Overstates capability.
-- Understates capability.
-- Relies too heavily on generic language.
-- Presents scope without showing personal contribution.
-- Presents technical detail without demonstrating impact.
-- Presents leadership without demonstrating relevant execution.
+- Technical or domain depth.
+- Leadership depth.
+- Ability to perform the role's central mandate.
 
 ---
 
-# 14. CLAIM AND CREDIBILITY AUDIT
+## Pass 2 — Internal Evidence Audit
 
-Audit material resume claims against supplied authoritative context when available.
+Use available supporting artifacts to verify:
 
-Check:
-
-- Employer provenance.
-- Dates.
-- Functional-role presentation.
+- Claim provenance.
+- Evidence authorization.
 - Ownership.
-- Authority.
-- Team size.
 - Scope.
-- Budget.
-- Systems.
-- Tools.
-- Results.
-- Metrics.
 - Attribution.
-- Seniority.
-- Result relationships.
+- Metrics.
+- Results.
+- Supported terminology.
+- Functional-role presentation.
+- Experience composition.
+- Permitted claims.
+- Prohibited claims.
+- Whether strong authorized evidence appears to have been omitted.
 
-Identify claims that appear:
+Maintain the distinction:
 
-- Supported.
-- Qualified.
-- Ambiguous.
-- Overstated.
-- Unsupported.
-- Contradictory.
+    Visible resume
+    = What a recruiter can reasonably understand.
 
-Treat unsupported material claims as serious deficiencies.
+    Internal evidence
+    = Whether the resume is authorized to say it.
 
-Do not assume a claim is false merely because supporting context was not supplied.
+A claim may therefore be:
 
-Distinguish:
+    Visible and supported
+    = strong resume evidence.
 
-    Unsupported by supplied evaluation context
+    Visible but unsupported
+    = credibility or factual-integrity problem.
 
-from:
+    Supported but not visible
+    = evidence-visibility problem.
 
-    Contradicted by supplied authoritative evidence
+    Neither visible nor supported
+    = current evidence or capability limitation.
 
-when that distinction matters.
+Do not collapse visibility and validity into one judgment.
 
 ---
 
-# 15. PROFESSIONAL POSITIONING
+# 6. ESTABLISH THE TARGET STANDARD
 
-Evaluate whether the resume communicates the correct supported professional identity for the target role.
+Analyze the complete Target Job Description.
 
-Assess:
+Identify:
+
+- Central role mandate.
+- Required qualifications.
+- Required responsibilities.
+- Critical capabilities.
+- Preferred qualifications.
+- Materially implied requirements.
+- Required tools and systems.
+- Domain expectations.
+- Leadership expectations.
+- Technical expectations.
+- Scope expectations.
+- Likely recruiter filters.
+- Likely hiring-manager priorities.
+- Potential knockout requirements.
+
+Preserve original requirement language.
+
+Normalize each material requirement for evaluation.
+
+Prioritize approximately:
+
+1. Potential knockout requirements.
+2. Critical required capabilities.
+3. Other required qualifications and responsibilities.
+4. Central role responsibilities.
+5. Materially implied requirements.
+6. Preferred differentiators.
+
+When supplied authoritative analysis already prioritizes requirements, use it as analytical context unless the source job description materially contradicts it.
+
+Do not allow low-priority strengths to compensate for unsupported critical requirements.
+
+---
+
+# 7. REQUIREMENT EVALUATION
+
+Evaluate every material requirement independently.
+
+For each requirement, record as applicable:
+
+1. Requirement ID.
+2. Original job-description language.
+3. Normalized requirement.
+4. Requirement priority.
+5. Visible resume evidence.
+6. Resume location.
+7. Coverage state.
+8. Ownership clarity.
+9. Scope clarity.
+10. Result strength.
+11. Terminology alignment.
+12. Likely ATS interpretation.
+13. Likely recruiter interpretation.
+14. Likely hiring-manager interpretation.
+15. Material deficiency when present.
+16. Deficiency severity.
+17. Screening impact.
+
+Use coverage states such as:
+
+- `strongly_demonstrated`
+- `demonstrated`
+- `partially_demonstrated`
+- `weakly_demonstrated`
+- `mentioned_without_evidence`
+- `not_demonstrated`
+- `contradicted`
+- `unclear`
+
+Do not conclude that the candidate lacks a capability merely because the resume does not demonstrate it.
+
+Use:
+
+    not_demonstrated
+
+rather than:
+
+    candidate_does_not_have_experience
+
+unless supplied authoritative professional evidence independently establishes the capability limitation.
+
+---
+
+# 8. REQUIREMENT SCORING
+
+When numeric scoring is useful, use the following scale consistently.
+
+## Score 5 — Strongly Demonstrated
+
+Specific, credible, visible evidence strongly establishes the requirement.
+
+## Score 4 — Demonstrated
+
+The requirement is visibly established with only minor limitations.
+
+## Score 3 — Partially Demonstrated
+
+Relevant evidence exists, but meaningful specificity, ownership, scope, or result detail is missing.
+
+## Score 2 — Weakly Demonstrated
+
+Only limited, adjacent, ambiguous, or weakly connected evidence is visible.
+
+## Score 1 — Mentioned
+
+The requirement appears in terminology or a skills list but has little supporting evidence.
+
+## Score 0 — Not Demonstrated or Contradicted
+
+The visible resume does not establish the requirement or materially contradicts it.
+
+## Scoring Rules
+
+- Score each requirement independently.
+- Do not let general career strength inflate an unsupported requirement.
+- Weight critical requirements more heavily than preferred qualifications.
+- Do not allow low-priority strengths to erase a critical weakness.
+- Report potential knockout risks separately from aggregate scoring.
+- Reduce confidence when information is incomplete rather than manufacturing precision.
+- Apply the same scoring standard on every materially equivalent invocation.
+
+A high aggregate score cannot erase a critical unsupported requirement.
+
+---
+
+# 9. CLAIM AND CREDIBILITY AUDIT
+
+Audit material resume claims.
+
+Break important claims into relevant components:
+
+- Capability.
+- Responsibility.
+- Action.
+- Ownership.
+- Scope.
+- Result.
+- Attribution.
+
+Flag claims when:
+
+- Ownership is ambiguous.
+- Scope is missing.
+- Scope appears implausibly broad.
+- A result is weakly connected to the stated action.
+- Individual credit appears to be taken for a team result.
+- A metric lacks context.
+- A metric lacks timeframe.
+- A metric lacks attribution.
+- A superlative is unsupported.
+- Target-job terminology appears inserted without evidence.
+- A bullet combines unrelated actions and results.
+- The claim conflicts with another resume passage.
+- Internal evidence does not support visible wording.
+- Traceability cannot identify supporting authorization.
+
+Useful credibility states include:
+
+- `supported`
+- `supported_but_underspecified`
+- `ambiguous`
+- `overstated_appearance`
+- `unsupported`
+- `contradicted`
+- `unverifiable_from_supplied_context`
+
+Do not assume:
+
+- Polished language means the claim is true.
+- An impressive claim is false because it is impressive.
+
+Evaluate supplied evidence.
+
+---
+
+# 10. PROFESSIONAL POSITIONING
+
+Assess whether the resume communicates an appropriate professional identity for the target job.
+
+Evaluate:
 
 - Functional-role clarity.
-- Civilian recognizability.
-- Target relevance.
-- Leadership positioning.
-- Technical positioning.
-- Operational positioning.
-- Strategic positioning.
-- Balance of breadth and depth.
-- Apparent career direction.
-- Seniority alignment.
+- Civilian readability.
+- Target seniority.
+- Technical-versus-management balance.
+- Relevant scope.
+- Career progression.
+- Overqualification risk.
+- Underqualification risk.
+- Unnecessary organizational complexity.
+- Whether unfamiliar source titles create avoidable recruiter translation burden.
 
-Identify whether the resume creates an inaccurate or counterproductive impression such as:
+Do not penalize supported functional-role translation merely because the source organization used a different historical title.
 
-- Too senior for the target.
-- Too junior for the target.
-- Too strategic.
-- Too tactical.
-- Too technical.
-- Not technical enough.
-- Primarily military rather than professionally functional.
-- Generalist when specialist positioning is needed.
-- Specialist when broader management positioning is needed.
+Evaluate:
 
-Base these judgments on target-job relevance rather than generic resume conventions.
+> Does the visible presentation truthfully and clearly communicate the professional work performed?
+
+Flag positioning when it creates:
+
+- False chronology.
+- False employment relationships.
+- Unsupported authority.
+- Unsupported seniority.
+- Misleading professional identity.
+- Material recruiter confusion.
+- Excessive seniority signals.
+- Excessive understatement.
+- Target-role ambiguity.
 
 ---
 
-# 16. CONTENT PRIORITIZATION REVIEW
+# 11. ATS AND KEYWORD REVIEW
+
+Assess whether important supported terminology is sufficiently visible.
+
+Evaluate:
+
+- Critical technical terms.
+- Required systems.
+- Required methodologies.
+- Certifications.
+- Education.
+- Recognizable professional functions.
+- Important industry terminology.
+
+Do not reward:
+
+- Keyword stuffing.
+- Repetition without evidence.
+- Unsupported terminology.
+- Skills-list mentions without demonstrated capability.
+
+A keyword may improve discoverability.
+
+It does not independently prove experience.
+
+---
+
+# 12. CONTENT PRIORITIZATION REVIEW
 
 Evaluate whether limited resume space is being used effectively.
 
@@ -564,15 +527,15 @@ Identify:
 - Missing context necessary for comprehension.
 - Imbalanced role coverage.
 
-The resume should not attempt to preserve the entire career.
+Do not evaluate the resume as though its goal were to preserve the complete career.
 
-It should preserve the strongest relevant case for the target job.
+Its purpose is to present the strongest relevant case for the target job.
 
 ---
 
-# 17. STRUCTURAL REVIEW
+# 13. STRUCTURAL REVIEW
 
-Evaluate compliance with supplied structural requirements.
+Evaluate compliance with supplied structural requirements when available.
 
 Assess:
 
@@ -587,29 +550,29 @@ Assess:
 - Density.
 - Visual hierarchy.
 - Protected static content.
-- Resume Skeleton compliance when supplied.
+- Resume Skeleton compliance.
 
 Distinguish between:
 
 - Structural noncompliance.
-- Material readability problems.
+- Material readability problem.
 - Non-material stylistic preference.
 
-Do not classify a stylistic preference as a material deficiency unless it creates a credible screening or comprehension problem.
+Do not elevate stylistic preference into a material deficiency unless it creates credible screening or comprehension risk.
 
 ---
 
-# 18. DEFICIENCY DIAGNOSIS
+# 14. DEFICIENCY DIAGNOSIS
 
-For every material weakness, diagnose the professional condition rather than prescribing workflow.
+Diagnose material weaknesses according to professional state.
 
-Use a concise deficiency taxonomy.
+Do not assign corrective ownership.
 
-Recommended categories include:
+Recommended deficiency categories include:
 
 ## Factual Integrity
 
-Use when the product appears to contain:
+Use when the resume appears to contain:
 
 - Unsupported factual claims.
 - Contradicted claims.
@@ -621,7 +584,7 @@ Use when the product appears to contain:
 
 ## Claim Credibility
 
-Use when a claim may technically be supportable but is presented in a way likely to create skepticism or misunderstanding.
+Use when a claim may have some support but is presented in a way likely to cause skepticism or misunderstanding.
 
 ## Evidence Visibility
 
@@ -629,7 +592,7 @@ Use when supplied supporting context appears sufficient but the resume does not 
 
 ## Evidence Support
 
-Use when the resume needs stronger factual support than the currently supplied authoritative context establishes.
+Use when the visible claim or desired requirement coverage exceeds support established by supplied authoritative context.
 
 ## Requirement Coverage
 
@@ -641,25 +604,33 @@ Use when the resume communicates an ineffective professional identity for the ta
 
 ## Scope Alignment
 
-Use when seniority, responsibility, technical depth, or organizational scale is presented at an ineffective level.
+Use when seniority, responsibility, technical depth, or organizational scale is presented ineffectively.
 
 ## Structural Compliance
 
-Use when the product violates material structural constraints.
+Use when the product violates material structural requirements.
 
 ## Readability
 
-Use when comprehension, density, organization, or language materially reduces screening effectiveness.
+Use when organization, density, language, or layout materially reduces comprehension.
+
+## Genuine Capability Limitation
+
+Use only when supplied authoritative professional context establishes that the candidate materially lacks the capability.
 
 ## Non-Material Preference
 
-Use when an alternative may be reasonable but the current state does not create a material hiring problem.
+Use when an alternative may be reasonable but the current presentation does not create a meaningful hiring problem.
 
-Additional categories may be used when necessary, but classifications should describe the product condition rather than an implementation relationship.
+Additional categories may be used when necessary.
+
+Classifications must describe the product or evidence condition.
+
+They must not describe runtime relationships.
 
 ---
 
-# 19. DEFICIENCY RECORD
+# 15. DEFICIENCY RECORD
 
 For every material deficiency, record:
 
@@ -696,32 +667,33 @@ Example:
     is not demonstrated.
 
     Successful Future State:
-    The resume clearly communicates the strongest supportable level of
-    vendor-performance ownership without overstating authority.
+    The visible resume clearly communicates the strongest supportable
+    level of vendor-performance ownership without overstating authority.
 
-The successful future state describes what an improved product would need to communicate.
+The successful future state describes what a materially improved product would need to establish.
 
-It does not prescribe:
+Do not include:
 
-- Who performs the improvement.
-- How the improvement enters the system.
-- What runtime sequence occurs.
-- Which component must act.
+- Corrective owner.
+- Destination agent.
+- Routing target.
+- Required next task.
+- Workflow action.
 
 ---
 
-# 20. SEVERITY
+# 16. SEVERITY
 
-Classify material deficiencies consistently.
+Assign deficiency severity consistently.
 
 ## Critical
 
 A deficiency likely to:
 
 - Cause rejection.
-- Fail a likely knockout requirement.
+- Fail an apparent knockout requirement.
 - Create serious credibility concerns.
-- Introduce material factual-integrity risk.
+- Create material factual-integrity risk.
 - Fundamentally misrepresent the candidate.
 - Prevent the resume from making a credible case for the target role.
 
@@ -741,21 +713,21 @@ A limited issue with low likely screening impact.
 
 A preference or improvement opportunity unlikely to materially affect screening.
 
-Severity describes hiring impact.
+Severity describes likely hiring impact.
 
-It does not control workflow.
+It does not control runtime workflow.
 
 ---
 
-# 21. CRITICAL SUBMISSION DEFICIENCIES
+# 17. CRITICAL SUBMISSION DEFICIENCIES
 
-Identify any deficiencies severe enough that submitting the current resume would create substantial avoidable risk.
+Identify deficiencies severe enough that submitting the current resume would create substantial avoidable risk.
 
 Examples may include:
 
 - Material unsupported claims.
 - Serious factual contradictions.
-- Failure to demonstrate an apparent knockout requirement despite relevant support being available.
+- Failure to demonstrate an apparent knockout requirement.
 - Professional positioning that fundamentally misrepresents target fit.
 - Severe structural or readability problems.
 - Critical target requirements that remain materially unsupported.
@@ -774,17 +746,17 @@ The Evaluator must not conclude:
 
 ---
 
-# 22. READINESS JUDGMENT
+# 18. SUBMISSION READINESS
 
-Determine the current resume's submission readiness independently from deficiency diagnosis.
+Determine current resume submission readiness independently from deficiency diagnosis.
 
-Use one of the following:
+Use one of:
 
 ## Ready to Submit
 
 The resume presents a credible and sufficiently strong case for the target job.
 
-Minor or moderate improvements may still exist.
+Minor or moderate improvement opportunities may remain.
 
 Perfect alignment is not required.
 
@@ -794,13 +766,11 @@ One or more material deficiencies create substantial avoidable screening, credib
 
 ## Weak Fit — Reconsider Application
 
-The resume may accurately represent the candidate, but the underlying supported fit appears weak enough that resume revision alone is unlikely to create a competitive application.
-
-This is an application-quality judgment, not a workflow command.
+The resume may accurately represent the candidate, but supplied professional context indicates the underlying fit is weak enough that resume refinement alone is unlikely to produce a competitive application.
 
 Keep readiness separate from deficiency type.
 
-For example:
+Example:
 
     Readiness:
     Not Ready to Submit
@@ -810,17 +780,19 @@ For example:
     - Requirement Coverage
     - Professional Positioning
 
-Do not encode corrective action into the readiness status.
+Readiness describes the current product state.
+
+It does not prescribe runtime action.
 
 ---
 
-# 23. STRONGEST ASPECTS
+# 19. STRONGEST ASPECTS
 
-The evaluation must identify what the current resume does particularly well.
+Identify what the current resume does particularly well.
 
-Include the strongest aspects when material, such as:
+Examples may include:
 
-- Excellent target alignment.
+- Strong target alignment.
 - Strong quantified results.
 - Clear ownership.
 - Appropriate technical depth.
@@ -828,42 +800,42 @@ Include the strongest aspects when material, such as:
 - Effective civilian translation.
 - Good professional positioning.
 - Strong ATS terminology.
-- Strong scope.
-- Clear progression.
+- Appropriate scope.
 - Effective functional-role presentation.
 - Strong readability.
 
-The Evaluator is skeptical, not adversarial for its own sake.
+Positive findings help distinguish what should remain stable from what materially requires improvement.
 
-Positive findings help distinguish what should remain stable from what actually needs improvement.
+A rigorous evaluation is not purely negative.
 
 ---
 
-# 24. HISTORICAL COMPARISON
+# 20. HISTORICAL COMPARISON
 
-When a previous resume or evaluation is supplied, compare the current product with the prior state.
+When a previous resume or evaluation is supplied:
 
-Identify:
-
-- Material improvements.
-- Material regressions.
-- Resolved deficiencies.
-- Persistent deficiencies.
-- Newly introduced deficiencies.
-- Strong content that was lost.
-- Weak content that was appropriately removed.
-- Changes in requirement visibility.
-- Changes in professional positioning.
-- Changes in factual credibility.
-- Changes in submission readiness.
+1. Evaluate the current resume independently first.
+2. Compare current and prior states.
+3. Identify:
+   - Material improvements.
+   - Material regressions.
+   - Resolved deficiencies.
+   - Persistent deficiencies.
+   - Newly introduced deficiencies.
+   - Strong content that was lost.
+   - Weak content appropriately removed.
+   - Changes in requirement visibility.
+   - Changes in professional positioning.
+   - Changes in factual credibility.
+   - Changes in submission readiness.
 
 Do not treat change itself as improvement.
 
-The current version should be judged on current merit.
+Judge the current product on current merit.
 
 ---
 
-# 25. REGRESSION REVIEW
+# 21. REGRESSION REVIEW
 
 Explicitly test whether attempts to improve one area weakened another.
 
@@ -883,7 +855,26 @@ Record material regressions.
 
 ---
 
-# 26. IDEMPOTENT EVALUATION
+# 22. DIMINISHING RETURNS
+
+Do not continue identifying changes merely because further improvement is theoretically possible.
+
+A resume may be ready when:
+
+- Critical supported requirements are sufficiently visible.
+- Material credibility concerns are resolved.
+- Critical submission deficiencies are absent.
+- Professional positioning is clear.
+- Structural requirements are satisfied.
+- Remaining issues are unlikely to materially change screening outcomes.
+
+Minor imperfections do not automatically make a resume not ready.
+
+The goal is a strong competitive product, not theoretical perfection.
+
+---
+
+# 23. IDEMPOTENT EVALUATION
 
 This task is explicitly idempotent.
 
@@ -904,13 +895,14 @@ Idempotence does not require identical prose.
 It requires stability in:
 
 - Requirement assessment.
+- Requirement scores.
 - Material deficiencies.
 - Deficiency classification.
 - Severity.
 - Screening-impact judgment.
 - Factual-integrity findings.
 - Professional-positioning findings.
-- Readiness.
+- Submission readiness.
 - Historical comparison.
 
 Do not manufacture new deficiencies merely because the task is executed again.
@@ -921,11 +913,15 @@ Change the evaluation when the underlying product or supporting state materially
 
 ---
 
-# 27. RESUME EVALUATION OUTPUT
+# 24. OUTPUT
 
 Produce one self-contained Resume Evaluation.
 
-Use the authoritative Resume Evaluation schema when one is defined.
+Use the authoritative Resume Evaluation schema under:
+
+    /schemas/resume-evaluation.yaml
+
+when defined.
 
 The evaluation should contain, as applicable:
 
@@ -934,7 +930,7 @@ The evaluation should contain, as applicable:
 - Evaluation ID.
 - Resume ID.
 - Resume version.
-- Target role.
+- Target Job ID.
 - Evaluation version.
 
 ## Executive Assessment
@@ -942,7 +938,7 @@ The evaluation should contain, as applicable:
 - Overall fit communicated by the resume.
 - Submission readiness.
 - Critical submission deficiencies.
-- Concise explanation of the readiness judgment.
+- Concise explanation of readiness.
 
 ## Strongest Aspects
 
@@ -955,10 +951,13 @@ The evaluation should contain, as applicable:
 
 For each material requirement:
 
+- Requirement ID.
 - Requirement.
 - Importance.
 - Coverage state.
+- Score when used.
 - Visible evidence.
+- Resume location.
 - Screening interpretation.
 - Material deficiency when applicable.
 
@@ -986,11 +985,11 @@ For each material requirement:
 - Technical credibility.
 - Leadership credibility.
 - Operational credibility.
-- Transferability.
+- Transferability where visible.
 
 ## Claim Audit
 
-- Material supported claims.
+- Supported claims.
 - Ambiguous claims.
 - Unsupported claims.
 - Contradicted claims.
@@ -1032,23 +1031,23 @@ When historical artifacts exist:
 
 ## Final Judgment
 
-- Readiness.
+- Submission readiness.
 - Principal reasons.
 - Most consequential strengths.
 - Most consequential weaknesses.
 
-The Resume Evaluation must stand on its own as an assessment artifact.
+The Resume Evaluation must stand on its own as a professional assessment artifact.
 
 ---
 
-# 28. PROCESS FEEDBACK
+# 25. PROCESS FEEDBACK
 
 The Evaluator may also produce Process Feedback when evaluation reveals recurring or material system-level friction.
 
 Examples include:
 
 - Evaluation criteria are repeatedly ambiguous.
-- Supplied analysis repeatedly lacks information necessary for credible product evaluation.
+- Supporting analysis repeatedly lacks information necessary for credible product evaluation.
 - Traceability artifacts repeatedly fail to establish claim support.
 - Structural standards repeatedly create material screening problems.
 - Schemas cannot represent recurring deficiency types.
@@ -1064,58 +1063,47 @@ Process Feedback should identify:
 - Suspected architectural layer.
 - Suggested area for governance review.
 
-Do not use Process Feedback for ordinary candidate weaknesses or isolated resume deficiencies.
+Do not use Process Feedback for:
+
+- Ordinary candidate weaknesses.
+- Isolated resume deficiencies.
+- Personal stylistic preferences.
 
 Process Feedback describes system state.
 
-It does not assign corrective work.
+It does not assign corrective work or runtime destination.
 
 ---
 
-# 29. OUTPUT INTERFACE
+# 26. PARTNER INDEPENDENCE
 
-## Resume Evaluation
+The Evaluator operates from:
 
-**Required**
+- Its contract.
+- This task instruction.
+- Target Job Description.
+- Current Targeted Resume.
+- Relevant supplied supporting artifacts.
 
-Purpose:
+The Evaluator does not need to know:
 
-> Provide a self-contained professional assessment of the current targeted resume against the target job.
+- Who created the resume.
+- Who created supporting evidence.
+- Who will consume the evaluation.
+- Which runtime component could improve a deficiency.
+- Which runtime component acts next.
+- Whether another iteration will occur.
 
-The evaluation describes:
+The Evaluator produces:
 
-- Current product quality.
-- Requirement coverage.
-- Screening effectiveness.
-- Credibility.
-- Material deficiencies.
-- Severity.
-- Readiness.
-- Historical change when available.
+    Resume Evaluation
+    + Conditional Process Feedback
 
-## Process Feedback
-
-**Conditional**
-
-Purpose:
-
-> Document recurring or material system-level friction discovered during evaluation.
-
-The Evaluator does not define:
-
-- Artifact routing.
-- Intended runtime consumer.
-- Workflow transitions.
-- Corrective ownership.
-- Handoffs.
-- Queues.
-- Retry behavior.
-- Whether another iteration occurs.
-- Which component acts next.
+Stop there.
 
 ---
 
-# 30. VALIDATION
+# 27. VALIDATION
 
 Before completing the task, verify:
 
@@ -1124,36 +1112,37 @@ Before completing the task, verify:
 - [ ] Target Job Description was reviewed.
 - [ ] Current resume was reviewed.
 - [ ] Relevant supplied supporting artifacts were considered.
-- [ ] External screening review was performed independently of supporting evidence.
-- [ ] Evidence and traceability review was performed when supporting artifacts were available.
+- [ ] Blind screening review was performed independently of hidden evidence.
+- [ ] Internal evidence and traceability review was performed when supporting artifacts were available.
 - [ ] Critical target requirements were evaluated.
 - [ ] ATS presentation was evaluated.
 - [ ] Recruiter presentation was evaluated.
 - [ ] Hiring-manager presentation was evaluated.
 - [ ] Professional positioning was evaluated.
 - [ ] Seniority and scope were evaluated.
-- [ ] Material claims were audited when supporting context permitted.
+- [ ] Material claims were audited where supporting context permitted.
 - [ ] Structural quality was evaluated.
-- [ ] Historical comparison was performed when historical artifacts existed.
+- [ ] Historical comparison was performed when relevant historical artifacts existed.
 - [ ] Regression risk was evaluated when applicable.
+- [ ] Diminishing returns were considered.
 
 ## Deficiency Quality
 
-- [ ] Every material deficiency describes a product condition.
-- [ ] Every material deficiency has a severity.
-- [ ] Every material deficiency explains likely impact.
+- [ ] Every material deficiency describes a professional product condition.
+- [ ] Every material deficiency has an appropriate severity.
+- [ ] Every material deficiency explains likely screening impact.
 - [ ] Successful future state is described when useful.
-- [ ] Material presentation weaknesses were distinguished from evidence-support weaknesses.
-- [ ] Factual-integrity concerns were distinguished from missing support.
-- [ ] Genuine capability limitations were not disguised as writing problems.
-- [ ] Stylistic preferences were not inflated into material deficiencies.
+- [ ] Presentation weakness is distinguished from evidence-support weakness.
+- [ ] Factual-integrity concern is distinguished from inability to verify.
+- [ ] Genuine capability limitation is not disguised as a writing problem.
+- [ ] Stylistic preferences are not inflated into material deficiencies.
 - [ ] No deficiency assigns corrective ownership.
-- [ ] No deficiency directs another runtime component.
+- [ ] No deficiency prescribes runtime action.
 
 ## Fairness
 
 - [ ] Strong aspects were identified.
-- [ ] Valid transferable experience was credited appropriately.
+- [ ] Valid transferable experience was credited appropriately when visible.
 - [ ] Missing preferred qualifications were not automatically treated as critical.
 - [ ] Resume omissions were judged according to target relevance.
 - [ ] Evaluation did not manufacture problems merely to provide feedback.
@@ -1165,11 +1154,12 @@ Before completing the task, verify:
 - [ ] Readiness was separated from deficiency diagnosis.
 - [ ] Critical submission deficiencies were identified when present.
 - [ ] Readiness describes product state rather than workflow state.
-- [ ] Weak-fit judgment was used only when supported by the current evidence state.
+- [ ] Weak-fit judgment was used only when supported by supplied professional context.
 
 ## Authority
 
 - [ ] Evaluator did not modify authoritative evidence.
+- [ ] Evaluator did not reconcile evidence.
 - [ ] Evaluator did not acquire new evidence.
 - [ ] Evaluator did not rewrite the resume.
 - [ ] Evaluator did not assign corrective ownership.
@@ -1185,12 +1175,13 @@ Before completing the task, verify:
 - [ ] Evaluation corresponds to the current resume version.
 - [ ] Historical findings are clearly distinguished from current-state findings.
 - [ ] Process Feedback, if produced, concerns system-level friction rather than ordinary product deficiencies.
+- [ ] Structured output conforms to the authoritative Resume Evaluation schema when defined.
 
 ---
 
-# 31. COMPLETION CONDITION
+# 28. COMPLETION CONDITION
 
-The task is complete when the Evaluator has produced a self-contained Resume Evaluation that accurately describes the current professional state of the resume.
+The task is complete when the Evaluator has produced a self-contained Resume Evaluation accurately describing the current professional state of the resume.
 
 Completion requires:
 
@@ -1212,7 +1203,7 @@ The task is complete regardless of whether the resume is:
 - Not ready to submit.
 - A weak application fit.
 
-The Evaluator does not need another component to act before its own task can be complete.
+The Evaluator does not need another runtime component to act before its own task can be complete.
 
 The Evaluator succeeds by accurately assessing the current product, not by causing the product to be improved.
 
@@ -1222,9 +1213,9 @@ The governing transformation is:
     + Target Job
     + Available Supporting Context
             ↓
-    External Screening Review
+    Blind Screening Review
             ↓
-    Evidence and Traceability Review
+    Internal Evidence Audit
             ↓
     Requirement Assessment
             ↓
@@ -1238,6 +1229,6 @@ The governing transformation is:
             ↓
     Submission Readiness Judgment
             ↓
-    Self-Contained Resume Evaluation
+    Resume Evaluation
 
-What happens to the resulting evaluation afterward is outside this task's authority.
+What happens to the resulting evaluation afterward is outside this task.
