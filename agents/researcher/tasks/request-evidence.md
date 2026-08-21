@@ -791,6 +791,17 @@ Before completing the task, verify:
 - [ ] One request represents one coherent factual investigation.
 - [ ] Output conforms to the authoritative Evidence Request schema when defined.
 
+## Artifact Validation
+
+Before completing:
+
+- [ ] Each output artifact is an Evidence Request.
+- [ ] Each Evidence Request conforms to `/schemas/evidence-request.yaml`.
+- [ ] All required schema fields are present.
+- [ ] Target context is populated only when applicable.
+- [ ] Every local cross-artifact identifier is properly scoped.
+- [ ] No custom request format replaces the schema.
+
 ---
 
 # 17. COMPLETION CONDITION
