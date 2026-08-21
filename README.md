@@ -418,7 +418,6 @@ They are not agent-internal workflow rules.
 
 # Repository Structure
 
-```text
 rapid-resume-system/
 │
 ├── agents/
@@ -452,7 +451,13 @@ rapid-resume-system/
 │   └── agent-contract-standard.md
 │
 ├── schemas/
-│   └── [shared artifact schemas]
+│   ├── job-experience-record.yaml
+│   ├── job-experience-analysis.yaml
+│   ├── evidence-request.yaml
+│   ├── evidence-response.yaml
+│   ├── writer-content-manifest.yaml
+│   ├── resume-evaluation.yaml
+│   └── process-feedback.yaml
 │
 └── README.md
 ```
