@@ -334,23 +334,10 @@ The Researcher does not need to know who produced the feedback.
 
 ## Conflict Handling
 
-When professional evidence conflicts:
-
-1. Preserve the conflicting values.
-2. Identify relevant provenance.
-3. Determine whether the values may both be true under different scopes, periods, populations, definitions, or responsibilities.
-4. Resolve the conflict when current evidence supports a defensible interpretation.
-5. Preserve qualification when certainty remains incomplete.
-6. Do not select whichever value creates stronger job fit.
-7. Generate an Evidence Request when additional human factual investigation could materially resolve the conflict.
-
 ---
-
 # 7. OUTPUTS
 
-## Primary Outputs
-
-The Researcher may produce:
+## Primary Evidence Output
 
 ### Job Experience Record
 
@@ -358,78 +345,71 @@ Purpose:
 
 > Represent authoritative, reusable professional evidence while preserving factual provenance, scope, ownership, results, attribution, and uncertainty.
 
+Job Experience Records may contain stable, individually addressable evidence elements according to the authoritative schema.
+
+---
+
+## Primary Analytical Output
+
 ### Job Experience Analysis
 
 Purpose:
 
 > Represent the strongest current evidence-grounded analysis of how the job hunter's professional experience relates to a target job.
 
+The Job Experience Analysis contains the analytical structures necessary to express current target-job fit, including as applicable:
+
+- Target Role Analysis.
+- Requirement-to-Evidence Mapping.
+- Priority Evidence.
+- Evidence-strength assessment.
+- Transferability assessment.
+- Functional Role Architecture.
+- Supported Claim Guidance.
+- Prohibited Claim Guidance.
+- Mandatory cautions.
+- Evidence limitations.
+- Unsupported Requirement Findings.
+- Evidence Conflict Findings relevant to the target analysis.
+- Skill-area Fit Assessment.
+- Overall Fit Assessment.
+- Material factual evidence needs.
+
+These are components of the Job Experience Analysis.
+
+They are not separate artifact types unless a future approved architecture establishes an independent need for them.
+
 A newer Job Experience Analysis is a newer version of the same artifact type rather than a separate reanalysis or reassessment artifact.
 
-## Conditional Outputs
+---
 
-The Researcher may also produce:
-
-### Revised Professional Evidence
-
-Purpose:
-
-> Update authoritative evidence when newly supplied facts legitimately expand, correct, qualify, merge, split, or otherwise alter the evidence model.
+## Conditional Output
 
 ### Evidence Request
 
 Purpose:
 
-> Define a material factual question requiring human investigation because current authoritative evidence is insufficient and additional factual information could materially improve the evidence state.
+> Define a coherent factual investigation when an identified material evidence need requires human factual development.
 
-### Requirement-to-Evidence Mapping
+Evidence Requests are produced through the `request_evidence` task.
 
-Purpose:
+An Evidence Request is a distinct artifact because it represents a separate professional operation: translating an identified analytical evidence need into a factual investigation specification.
 
-> Preserve traceability between target requirements and supporting professional evidence.
+---
 
-### Functional Role Architecture
-
-Purpose:
-
-> Describe how selected evidence naturally groups into recognizable civilian professional functions.
-
-### Supported and Prohibited Claim Guidance
-
-Purpose:
-
-> Define the strongest professional claims supported by current evidence and identify interpretations that must not be made.
-
-### Unsupported Requirement Finding
-
-Purpose:
-
-> Record that reasonable evidence retrieval does not currently establish a material target requirement.
-
-### Evidence Conflict Finding
-
-Purpose:
-
-> Preserve a material unresolved contradiction or ambiguity in professional evidence.
-
-### Fit Assessment
-
-Purpose:
-
-> Describe the strength of evidence supporting the target role overall and by material capability area.
+## Conditional Output
 
 ### Process Feedback
 
 Purpose:
 
-> Document recurring or material system-level friction discovered during Researcher work.
+> Document recurring or material system-level friction discovered during professional evidence or analysis work.
 
 Structured outputs should conform to authoritative schemas maintained under `/schemas/` when defined.
 
 Outputs describe professional state.
 
 They do not define destination, routing, corrective ownership, or runtime sequence.
-
 ---
 
 # 8. OPERATING PRINCIPLES
