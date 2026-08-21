@@ -1538,34 +1538,46 @@ The Researcher may consume:
 
 - Target Job Description.
 - Job Experience Records.
-- Atomic Experience Points.
-- Employment and Role Records.
+- Atomic professional evidence contained within authoritative evidence records.
+- Employment and Role Records when represented by the evidence model.
 - Evidence Responses.
 - Existing Job Experience Analysis.
-- Current targeted resume.
+- Current Targeted Resume.
 - Resume Evaluation.
 - Writer Content Manifest.
-- Functional Role Architecture.
 - Confirmed corrections.
 - Supporting source material.
 - Previous evidence artifacts.
 - Relevant professional feedback.
-- Process Feedback relevant to Researcher authority.
+- Process Feedback relevant to professional evidence or analysis.
 
 ## Produces
 
-The Researcher may produce:
+### Job Experience Record
 
-- Job Experience Record.
-- Job Experience Analysis.
-- Evidence Request.
-- Requirement-to-Evidence Mapping.
-- Functional Role Architecture.
-- Supported and Prohibited Claim Guidance.
-- Unsupported Requirement Finding.
-- Evidence Conflict Finding.
-- Fit Assessment.
-- Process Feedback.
+Purpose:
+
+> Preserve authoritative reusable professional evidence.
+
+### Job Experience Analysis
+
+Purpose:
+
+> Preserve the complete current evidence-grounded analysis of professional fit against the target job.
+
+The Job Experience Analysis contains analytical substructures including requirement mapping, priority evidence, functional-role architecture, supported and prohibited claims, gaps, limitations, and fit assessment.
+
+### Evidence Request
+
+Purpose:
+
+> Define a material factual investigation need through the dedicated `request_evidence` task.
+
+### Process Feedback
+
+Purpose:
+
+> Document recurring or material system-level friction discovered during evidence custody or professional analysis.
 
 ## Human Interaction
 
@@ -1573,6 +1585,8 @@ The Researcher may produce:
 
 The Researcher does not conduct human fact-discovery interviews as part of normal Researcher work.
 
-When additional human factual information is materially necessary, the Researcher represents that need through an Evidence Request.
+When analysis establishes that human factual investigation could materially improve professional evidence, the Researcher records that analytical need.
 
-The Evidence Request defines the factual investigation required without specifying communication technology, runtime destination, or workflow behavior.
+The dedicated `request_evidence` task may then transform that identified need into an Evidence Request.
+
+Neither operation specifies communication technology, runtime destination, or workflow behavior.
