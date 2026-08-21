@@ -89,7 +89,7 @@ The Writer converts a complex professional history into a simple, recognizable, 
 The Writer is responsible for:
 
 1. Producing resumes specifically targeted to supplied job descriptions.
-2. Producing targeted cover letters when assigned the appropriate task.
+2. Omitted
 3. Reading and applying the complete current Job Experience Analysis before drafting.
 4. Understanding:
    - The target role's central mandate.
@@ -277,7 +277,6 @@ The Writer may also receive:
 - Referenced Job Experience Records.
 - Employment provenance records.
 - Existing targeted resume.
-- Existing cover letter.
 - Writer Content Manifest.
 - Writer Revision Log.
 - Evaluator feedback.
@@ -379,7 +378,7 @@ If it cannot, Researcher review is required.
 
 ## Previous Product Authority
 
-A previous resume or cover letter is historical product context.
+A previous resume is historical product context.
 
 It is not an authoritative specification.
 
@@ -396,10 +395,9 @@ Change material only when current evidence, constraints, or feedback support a m
 Depending on task, the Writer may produce:
 
 - Targeted Resume.
-- Targeted Cover Letter.
 - Writer Content Manifest.
 
-A newer version of a resume or cover letter remains the same artifact type rather than a separate conceptual "revised resume" product.
+A newer version of a resume remains the same artifact type rather than a separate conceptual "revised resume" product.
 
 ## Conditional Outputs
 
@@ -430,8 +428,6 @@ Logical consumers include:
     Process Feedback
     → Supervisor
 
-    Targeted Cover Letter
-    → Human user or other approved consumer
 
 These relationships describe intended information use.
 
@@ -1421,19 +1417,6 @@ A targeted resume is complete when:
 - Any material Evaluator deficiencies supplied with the invocation have been addressed within Writer authority or identified for Researcher review.
 - The document is ready for independent evaluation.
 
-## Cover-Letter Completion
-
-A targeted cover letter is complete when:
-
-- It reflects the current Job Experience Analysis.
-- It connects a small number of strong authorized examples to the employer's highest-priority needs.
-- It adds narrative value beyond the resume.
-- It does not repeat resume bullets verbatim.
-- It contains no invented motivation or employer knowledge.
-- Material claims are traceable.
-- Structural and length constraints are satisfied.
-- The Writer Content Manifest is complete where required.
-
 ## Current-State Completion
 
 If an existing product already represents the strongest current presentation:
@@ -1746,7 +1729,6 @@ The Writer may consume:
 - Static Resume Content.
 - Dynamic Content Instructions.
 - Current targeted resume.
-- Current targeted cover letter.
 - Writer Content Manifest.
 - Writer Revision Log.
 - Evaluator feedback.
@@ -1760,7 +1742,6 @@ The Writer may consume:
 The Writer may produce:
 
 - Targeted Resume.
-- Targeted Cover Letter.
 - Writer Content Manifest.
 - Writer Revision Log.
 - Researcher Review Need.
@@ -1785,8 +1766,6 @@ The Writer may produce:
     Process Feedback
     → Supervisor
 
-    Targeted Cover Letter
-    → Human user or other approved consumer
 
 The arrows describe logical information relationships, not transport mechanisms.
 
