@@ -1,185 +1,180 @@
-$schema: "https://json-schema.org/draft/2020-12/schema"
-$id: "https://rapid-resume-system.local/schemas/evidence-request.yaml"
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://rapid-resume-system.local/schemas/evidence-request.yaml
+title: Evidence Request
+description: 'Professional-state artifact defining a focused factual investigation need. It describes
+  the factual question and investigation specification without encoding runtime routing, workflow state,
+  or corrective ownership.
 
-title: "Evidence Request"
-description: >
-  Professional-state artifact defining a focused factual investigation need.
-  It describes the factual question and investigation specification without
-  encoding runtime routing, workflow state, or corrective ownership.
-
+  '
 type: object
 additionalProperties: false
-
 required:
-  - schema_version
-  - evidence_request_id
-  - request_version
-  - status
-  - origin
-  - factual_issue
-  - current_evidence
-  - missing_dimensions
-  - professional_context
-  - facts_not_to_assume
-  - investigative_objectives
-  - resolution_conditions
-  - analytical_context
-  - related_artifacts
-  - lineage
-
+- schema_version
+- evidence_request_id
+- request_version
+- status
+- origin
+- target_context
+- factual_issue
+- current_evidence
+- missing_dimensions
+- professional_context
+- facts_not_to_assume
+- investigative_objectives
+- resolution_conditions
+- analytical_context
+- related_artifacts
+- lineage
 properties:
-
   schema_version:
     type: string
-    pattern: "^[0-9]+\\.[0-9]+$"
-
+    pattern: ^[0-9]+\.[0-9]+$
   evidence_request_id:
     type: string
-    pattern: "^ERQ-[0-9]{4,}$"
-
+    pattern: ^ERQ-[0-9]{4,}$
   request_version:
     type: integer
     minimum: 1
-
   status:
     type: string
     enum:
-      - active
-      - superseded
-      - deprecated
-
+    - active
+    - superseded
+    - deprecated
   origin:
-    $ref: "#/$defs/origin"
-
+    $ref: '#/$defs/origin'
+  target_context:
+    oneOf:
+    - $ref: '#/$defs/target_context'
+    - type: 'null'
   factual_issue:
-    $ref: "#/$defs/factual_issue"
-
+    $ref: '#/$defs/factual_issue'
   current_evidence:
-    $ref: "#/$defs/current_evidence"
-
+    $ref: '#/$defs/current_evidence'
   missing_dimensions:
     type: array
     minItems: 1
     uniqueItems: true
     items:
-      $ref: "#/$defs/evidence_dimension"
-
+      $ref: '#/$defs/evidence_dimension'
   professional_context:
     type: array
     items:
-      $ref: "#/$defs/professional_context_reference"
-
+      $ref: '#/$defs/professional_context_reference'
   facts_not_to_assume:
     type: array
     items:
       type: string
       minLength: 1
-
   investigative_objectives:
     type: array
     minItems: 1
     items:
-      $ref: "#/$defs/investigative_objective"
-
+      $ref: '#/$defs/investigative_objective'
   resolution_conditions:
-    $ref: "#/$defs/resolution_conditions"
-
+    $ref: '#/$defs/resolution_conditions'
   analytical_context:
-    $ref: "#/$defs/analytical_context"
-
+    $ref: '#/$defs/analytical_context'
   related_artifacts:
-    $ref: "#/$defs/related_artifacts"
-
+    $ref: '#/$defs/related_artifacts'
   lineage:
-    $ref: "#/$defs/lineage"
-
+    $ref: '#/$defs/lineage'
 $defs:
-
   origin:
     type: object
     additionalProperties: false
     required:
-      - source_type
-      - related_requirement_ids
+    - source_type
     properties:
-
       source_type:
         type: string
         enum:
-          - jea_evidence_need
-          - evidence_conflict
-          - evidence_custody
-          - other_researcher_factual_issue
-
+        - jea_evidence_need
+        - evidence_conflict
+        - evidence_custody
+        - other_researcher_factual_issue
       source_jea:
         oneOf:
-          - $ref: "#/$defs/versioned_jea_reference"
-          - type: "null"
-
+        - $ref: '#/$defs/versioned_jea_reference'
+        - type: 'null'
       source_evidence_need_id:
-        type: ["string", "null"]
-        pattern: "^EN-[0-9]{3,}$"
-
+        type:
+        - string
+        - 'null'
+        pattern: ^EN-[0-9]{3,}$
       source_jer:
         oneOf:
-          - $ref: "#/$defs/versioned_jer_reference"
-          - type: "null"
-
+        - $ref: '#/$defs/versioned_jer_reference'
+        - type: 'null'
       source_conflict_id:
-        type: ["string", "null"]
-        pattern: "^CONFLICT-[0-9]{4,}-[0-9]{2,}$"
-
-      related_requirement_ids:
-        type: array
-        uniqueItems: true
-        items:
-          type: string
-          pattern: "^REQ-[0-9]{3,}$"
-
+        type:
+        - string
+        - 'null'
+        pattern: ^CONFLICT-[0-9]{4,}-[0-9]{2,}$
       originating_artifact_refs:
         type: array
         uniqueItems: true
         items:
           type: string
-
     allOf:
-
-      - if:
-          properties:
-            source_type:
-              const: jea_evidence_need
-        then:
-          required:
-            - source_jea
-            - source_evidence_need_id
-          properties:
-            source_jea:
-              $ref: "#/$defs/versioned_jea_reference"
-            source_evidence_need_id:
-              type: string
-              pattern: "^EN-[0-9]{3,}$"
-
-      - if:
-          properties:
-            source_type:
-              const: evidence_conflict
-        then:
-          required:
-            - source_jer
-            - source_conflict_id
-          properties:
-            source_jer:
-              $ref: "#/$defs/versioned_jer_reference"
-            source_conflict_id:
-              type: string
-              pattern: "^CONFLICT-[0-9]{4,}-[0-9]{2,}$"
-
+    - if:
+        properties:
+          source_type:
+            const: jea_evidence_need
+        required:
+        - source_type
+      then:
+        required:
+        - source_jea
+        - source_evidence_need_id
+        properties:
+          source_jea:
+            $ref: '#/$defs/versioned_jea_reference'
+          source_evidence_need_id:
+            type: string
+            pattern: ^EN-[0-9]{3,}$
+    - if:
+        properties:
+          source_type:
+            const: evidence_conflict
+        required:
+        - source_type
+      then:
+        required:
+        - source_jer
+        - source_conflict_id
+        properties:
+          source_jer:
+            $ref: '#/$defs/versioned_jer_reference'
+          source_conflict_id:
+            type: string
+            pattern: ^CONFLICT-[0-9]{4,}-[0-9]{2,}$
+  target_context:
+    type: object
+    additionalProperties: false
+    required:
+    - target_job_id
+    - source_jea
+    - related_requirement_ids
+    properties:
+      target_job_id:
+        type: string
+        minLength: 1
+      source_jea:
+        $ref: '#/$defs/versioned_jea_reference'
+      related_requirement_ids:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+          pattern: ^REQ-[0-9]{3,}$
   factual_issue:
     type: object
     additionalProperties: false
     required:
-      - summary
-      - reason_for_request
+    - summary
+    - reason_for_request
     properties:
       summary:
         type: string
@@ -188,153 +183,135 @@ $defs:
         type: string
         minLength: 1
       affected_claim_or_interpretation:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
   current_evidence:
     type: object
     additionalProperties: false
     required:
-      - summary
-      - evidence_refs
+    - summary
+    - evidence_refs
     properties:
-
       summary:
         type: string
         minLength: 1
-
       evidence_refs:
         type: array
         items:
-          $ref: "#/$defs/evidence_reference"
-
+          $ref: '#/$defs/evidence_reference'
       relevant_conflict_refs:
         type: array
         items:
-          $ref: "#/$defs/conflict_reference"
-
+          $ref: '#/$defs/conflict_reference'
       known_limitations:
         type: array
         items:
           type: string
-
   professional_context_reference:
     type: object
     additionalProperties: false
     required:
-      - jer_id
-      - jer_version
-      - rationale
+    - jer_id
+    - jer_version
+    - rationale
     properties:
-
       jer_id:
         type: string
-        pattern: "^JER-[0-9]{4,}$"
-
+        pattern: ^JER-[0-9]{4,}$
       jer_version:
         type: integer
         minimum: 1
-
       experience_point_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^EP-[0-9]{4,}-[0-9]{2,}$"
-
+          pattern: ^EP-[0-9]{4,}-[0-9]{2,}$
       result_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^RES-[0-9]{4,}-[0-9]{2,}$"
-
+          pattern: ^RES-[0-9]{4,}-[0-9]{2,}$
       source_role_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^ROLE-[0-9]{4,}$"
-
+          pattern: ^ROLE-[0-9]{4,}$
       context_summary:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
       rationale:
         type: string
         minLength: 1
-
   investigative_objective:
     type: object
     additionalProperties: false
     required:
-      - objective_id
-      - objective
+    - objective_id
+    - objective
     properties:
-
       objective_id:
         type: string
-        pattern: "^OBJ-[0-9]{3,}$"
-
+        pattern: ^OBJ-[0-9]{3,}$
       objective:
         type: string
         minLength: 1
-
       related_missing_dimensions:
         type: array
         uniqueItems: true
         items:
-          $ref: "#/$defs/evidence_dimension"
-
+          $ref: '#/$defs/evidence_dimension'
       importance:
-        type: ["string", "null"]
+        type:
+        - string
+        - 'null'
         enum:
-          - critical
-          - high
-          - moderate
-          - low
-          - null
-
+        - critical
+        - high
+        - moderate
+        - low
+        - null
   resolution_conditions:
     type: object
     additionalProperties: false
     required:
-      - full
-      - partial
-      - related_capability
-      - unsupported
+    - full
+    - partial
+    - related_capability
+    - unsupported
     properties:
-
       full:
         type: array
         minItems: 1
         items:
-          $ref: "#/$defs/full_resolution_condition"
-
+          $ref: '#/$defs/full_resolution_condition'
       partial:
         type: array
         items:
-          $ref: "#/$defs/partial_resolution_condition"
-
+          $ref: '#/$defs/partial_resolution_condition'
       related_capability:
         type: array
         items:
-          $ref: "#/$defs/related_capability_condition"
-
+          $ref: '#/$defs/related_capability_condition'
       unsupported:
         type: array
         minItems: 1
         items:
-          $ref: "#/$defs/unsupported_resolution_condition"
-
+          $ref: '#/$defs/unsupported_resolution_condition'
   full_resolution_condition:
     type: object
     additionalProperties: false
     required:
-      - condition_id
-      - condition
+    - condition_id
+    - condition
     properties:
       condition_id:
         type: string
-        pattern: "^FULL-[0-9]{3,}$"
+        pattern: ^FULL-[0-9]{3,}$
       condition:
         type: string
         minLength: 1
@@ -343,19 +320,18 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^OBJ-[0-9]{3,}$"
-
+          pattern: ^OBJ-[0-9]{3,}$
   partial_resolution_condition:
     type: object
     additionalProperties: false
     required:
-      - condition_id
-      - condition
-      - remaining_limitation
+    - condition_id
+    - condition
+    - remaining_limitation
     properties:
       condition_id:
         type: string
-        pattern: "^PART-[0-9]{3,}$"
+        pattern: ^PART-[0-9]{3,}$
       condition:
         type: string
         minLength: 1
@@ -367,40 +343,40 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^OBJ-[0-9]{3,}$"
-
+          pattern: ^OBJ-[0-9]{3,}$
   related_capability_condition:
     type: object
     additionalProperties: false
     required:
-      - condition_id
-      - condition
+    - condition_id
+    - condition
     properties:
       condition_id:
         type: string
-        pattern: "^REL-[0-9]{3,}$"
+        pattern: ^REL-[0-9]{3,}$
       condition:
         type: string
         minLength: 1
       direct_experience_limitation:
-        type: ["string", "null"]
+        type:
+        - string
+        - 'null'
       related_objective_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^OBJ-[0-9]{3,}$"
-
+          pattern: ^OBJ-[0-9]{3,}$
   unsupported_resolution_condition:
     type: object
     additionalProperties: false
     required:
-      - condition_id
-      - condition
+    - condition_id
+    - condition
     properties:
       condition_id:
         type: string
-        pattern: "^UNSUP-[0-9]{3,}$"
+        pattern: ^UNSUP-[0-9]{3,}$
       condition:
         type: string
         minLength: 1
@@ -409,96 +385,86 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^OBJ-[0-9]{3,}$"
-
+          pattern: ^OBJ-[0-9]{3,}$
   analytical_context:
     type: object
     additionalProperties: false
     required:
-      - materiality
-      - analytical_impact
-      - current_supported_position
-      - claim_constraints
+    - materiality
+    - analytical_impact
+    - current_supported_position
+    - claim_constraints
     properties:
-
       materiality:
         type: string
         enum:
-          - critical
-          - high
-          - moderate
-          - low
-
+        - critical
+        - high
+        - moderate
+        - low
       analytical_impact:
         type: string
         minLength: 1
-
       current_supported_position:
         type: string
         minLength: 1
-
       claim_constraints:
         type: array
         items:
           type: string
-
       target_fit_impact:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
   related_artifacts:
     type: object
     additionalProperties: false
     required:
-      - prior_evidence_requests
-      - related_jeas
-      - related_jers
+    - prior_evidence_requests
+    - related_jeas
+    - related_jers
     properties:
-
       prior_evidence_requests:
         type: array
         items:
-          $ref: "#/$defs/versioned_evidence_request_reference"
-
+          $ref: '#/$defs/versioned_evidence_request_reference'
       related_jeas:
         type: array
         items:
-          $ref: "#/$defs/versioned_jea_reference"
-
+          $ref: '#/$defs/versioned_jea_reference'
       related_jers:
         type: array
         items:
-          $ref: "#/$defs/versioned_jer_reference"
-
+          $ref: '#/$defs/versioned_jer_reference'
   conflict_reference:
     type: object
     additionalProperties: false
     required:
-      - jer_id
-      - jer_version
-      - conflict_id
+    - jer_id
+    - jer_version
+    - conflict_id
     properties:
       jer_id:
         type: string
-        pattern: "^JER-[0-9]{4,}$"
+        pattern: ^JER-[0-9]{4,}$
       jer_version:
         type: integer
         minimum: 1
       conflict_id:
         type: string
-        pattern: "^CONFLICT-[0-9]{4,}-[0-9]{2,}$"
-
+        pattern: ^CONFLICT-[0-9]{4,}-[0-9]{2,}$
   evidence_reference:
     type: object
     additionalProperties: false
     required:
-      - jer_id
-      - jer_version
-      - experience_point_ids
-      - result_ids
+    - jer_id
+    - jer_version
+    - experience_point_ids
+    - result_ids
     properties:
       jer_id:
         type: string
-        pattern: "^JER-[0-9]{4,}$"
+        pattern: ^JER-[0-9]{4,}$
       jer_version:
         type: integer
         minimum: 1
@@ -507,93 +473,88 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^EP-[0-9]{4,}-[0-9]{2,}$"
+          pattern: ^EP-[0-9]{4,}-[0-9]{2,}$
       result_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^RES-[0-9]{4,}-[0-9]{2,}$"
-
+          pattern: ^RES-[0-9]{4,}-[0-9]{2,}$
   versioned_jer_reference:
     type: object
     additionalProperties: false
     required:
-      - jer_id
-      - jer_version
+    - jer_id
+    - jer_version
     properties:
       jer_id:
         type: string
-        pattern: "^JER-[0-9]{4,}$"
+        pattern: ^JER-[0-9]{4,}$
       jer_version:
         type: integer
         minimum: 1
-
   versioned_jea_reference:
     type: object
     additionalProperties: false
     required:
-      - jea_id
-      - analysis_version
+    - jea_id
+    - analysis_version
     properties:
       jea_id:
         type: string
-        pattern: "^JEA-[0-9]{4,}$"
+        pattern: ^JEA-[0-9]{4,}$
       analysis_version:
         type: integer
         minimum: 1
-
   versioned_evidence_request_reference:
     type: object
     additionalProperties: false
     required:
-      - evidence_request_id
-      - request_version
+    - evidence_request_id
+    - request_version
     properties:
       evidence_request_id:
         type: string
-        pattern: "^ERQ-[0-9]{4,}$"
+        pattern: ^ERQ-[0-9]{4,}$
       request_version:
         type: integer
         minimum: 1
-
   evidence_dimension:
     type: string
     enum:
-      - responsibility
-      - action
-      - ownership
-      - decision_authority
-      - leadership
-      - scope
-      - organizational_scope
-      - user_customer_scope
-      - geographic_scope
-      - budget
-      - systems
-      - tools
-      - complexity
-      - duration
-      - frequency
-      - proficiency
-      - result
-      - baseline
-      - final_state
-      - attribution
-      - business_significance
-      - operational_significance
-      - customer_significance
-      - verification
-      - conflicting_value
-      - directness
-      - other
-
+    - responsibility
+    - action
+    - ownership
+    - decision_authority
+    - leadership
+    - scope
+    - organizational_scope
+    - user_customer_scope
+    - geographic_scope
+    - budget
+    - systems
+    - tools
+    - complexity
+    - duration
+    - frequency
+    - proficiency
+    - result
+    - baseline
+    - final_state
+    - attribution
+    - business_significance
+    - operational_significance
+    - customer_significance
+    - verification
+    - conflicting_value
+    - directness
+    - other
   lineage:
     type: object
     additionalProperties: false
     required:
-      - created_at
-      - updated_at
+    - created_at
+    - updated_at
     properties:
       created_at:
         type: string
@@ -602,7 +563,11 @@ $defs:
         type: string
         format: date-time
       supersedes_version:
-        type: ["integer", "null"]
+        type:
+        - integer
+        - 'null'
         minimum: 1
       material_change_summary:
-        type: ["string", "null"]
+        type:
+        - string
+        - 'null'
