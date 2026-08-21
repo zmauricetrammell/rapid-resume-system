@@ -1,137 +1,117 @@
-$schema: "https://json-schema.org/draft/2020-12/schema"
-$id: "https://rapid-resume-system.local/schemas/resume-evaluation.yaml"
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://rapid-resume-system.local/schemas/resume-evaluation.yaml
+title: Resume Evaluation
+description: 'Professional-state artifact representing the authoritative evaluation of a targeted resume
+  against a target job.
 
-title: "Resume Evaluation"
-description: >
-  Professional-state artifact representing the authoritative evaluation of a
-  targeted resume against a target job.
-
+  '
 type: object
 additionalProperties: false
-
 required:
-  - schema_version
-  - evaluation_id
-  - evaluation_version
-  - status
-  - resume_reference
-  - target_reference
-  - supporting_context
-  - executive_assessment
-  - requirement_assessments
-  - screening_assessments
-  - claim_audit
-  - professional_positioning
-  - strongest_aspects
-  - deficiencies
-  - critical_submission_deficiency_ids
-  - submission_readiness
-  - historical_comparison
-  - lineage
-
+- schema_version
+- evaluation_id
+- evaluation_version
+- status
+- resume_reference
+- target_reference
+- supporting_context
+- executive_assessment
+- requirement_assessments
+- screening_assessments
+- claim_audit
+- professional_positioning
+- strongest_aspects
+- deficiencies
+- critical_submission_deficiency_ids
+- submission_readiness
+- historical_comparison
+- lineage
 properties:
-
   schema_version:
     type: string
-    pattern: "^[0-9]+\\.[0-9]+$"
-
+    pattern: ^[0-9]+\.[0-9]+$
   evaluation_id:
     type: string
-    pattern: "^EVAL-[0-9]{4,}$"
-
+    pattern: ^EVAL-[0-9]{4,}$
   evaluation_version:
     type: integer
     minimum: 1
-
   status:
     type: string
     enum:
-      - active
-      - superseded
-      - deprecated
-
+    - active
+    - superseded
+    - deprecated
   resume_reference:
-    $ref: "#/$defs/resume_reference"
-
+    $ref: '#/$defs/resume_reference'
   target_reference:
-    $ref: "#/$defs/target_reference"
-
+    $ref: '#/$defs/target_reference'
   supporting_context:
-    $ref: "#/$defs/supporting_context"
-
+    $ref: '#/$defs/supporting_context'
   executive_assessment:
-    $ref: "#/$defs/executive_assessment"
-
+    $ref: '#/$defs/executive_assessment'
   requirement_assessments:
     type: array
     minItems: 1
     items:
-      $ref: "#/$defs/requirement_assessment"
-
+      $ref: '#/$defs/requirement_assessment'
   screening_assessments:
-    $ref: "#/$defs/screening_assessments"
-
+    $ref: '#/$defs/screening_assessments'
   claim_audit:
     type: array
     items:
-      $ref: "#/$defs/claim_audit"
-
+      $ref: '#/$defs/claim_audit'
   professional_positioning:
-    $ref: "#/$defs/professional_positioning"
-
+    $ref: '#/$defs/professional_positioning'
   strongest_aspects:
     type: array
     items:
-      $ref: "#/$defs/strongest_aspect"
-
+      $ref: '#/$defs/strongest_aspect'
   deficiencies:
     type: array
     items:
-      $ref: "#/$defs/deficiency"
-
+      $ref: '#/$defs/deficiency'
   critical_submission_deficiency_ids:
     type: array
     uniqueItems: true
     items:
       type: string
-      pattern: "^DEF-[0-9]{3,}$"
-
+      pattern: ^DEF-[0-9]{3,}$
   submission_readiness:
-    $ref: "#/$defs/submission_readiness"
-
+    $ref: '#/$defs/submission_readiness'
   historical_comparison:
-    $ref: "#/$defs/historical_comparison"
-
+    $ref: '#/$defs/historical_comparison'
   lineage:
-    $ref: "#/$defs/lineage"
-
+    $ref: '#/$defs/lineage'
 $defs:
-
   resume_reference:
     type: object
     additionalProperties: false
     required:
-      - resume_id
-      - resume_version
+    - resume_id
+    - resume_version
     properties:
       resume_id:
         type: string
-        pattern: "^RESUME-[0-9]{4,}$"
+        pattern: ^RESUME-[0-9]{4,}$
       resume_version:
         type: integer
         minimum: 1
       resume_file_reference:
-        type: ["string", "null"]
+        type:
+        - string
+        - 'null'
       rendered_resume_reference:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
   target_reference:
     type: object
     additionalProperties: false
     required:
-      - target_job_id
-      - employer
-      - role_title
+    - target_job_id
+    - employer
+    - role_title
     properties:
       target_job_id:
         type: string
@@ -143,76 +123,76 @@ $defs:
         type: string
         minLength: 1
       source_reference:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
   supporting_context:
     type: object
     additionalProperties: false
     required:
-      - internal_verification_scope
-      - verification_confidence
-      - authoritative_evidence_available
-      - rendered_resume_available
+    - manifest_version
+    - manifest_id
+    - internal_verification_scope
+    - verification_confidence
+    - authoritative_evidence_available
+    - rendered_resume_available
     properties:
-
       jea_id:
-        type: ["string", "null"]
-        pattern: "^JEA-[0-9]{4,}$"
-
+        type:
+        - string
+        - 'null'
+        pattern: ^JEA-[0-9]{4,}$
       jea_version:
-        type: ["integer", "null"]
+        type:
+        - integer
+        - 'null'
         minimum: 1
-
       manifest_id:
-        type: ["string", "null"]
-        pattern: "^WCM-[0-9]{4,}$"
-
+        type: string
+        pattern: ^WCM-[0-9]{4,}$
+        description: Writer Content Manifest corresponding to the targeted resume being evaluated. Within
+          RRS, the Targeted Resume and Writer Content Manifest form a coupled product interface.
       manifest_version:
-        type: ["integer", "null"]
+        type: integer
         minimum: 1
-
+        description: Exact version of the Writer Content Manifest corresponding to the targeted resume
+          under evaluation.
       authoritative_evidence_available:
         type: boolean
-
       rendered_resume_available:
         type: boolean
-
       internal_verification_scope:
         type: string
         enum:
-          - full
-          - partial
-          - none
-
+        - full
+        - partial
+        - none
       verification_confidence:
-        $ref: "#/$defs/confidence_scale"
-
+        $ref: '#/$defs/confidence_scale'
       verification_limitations:
         type: array
         items:
           type: string
-
       other_context_refs:
         type: array
         uniqueItems: true
         items:
           type: string
-
   executive_assessment:
     type: object
     additionalProperties: false
     required:
-      - overall_assessment
-      - overall_fit_communicated
-      - confidence
-      - summary
+    - overall_assessment
+    - overall_fit_communicated
+    - confidence
+    - summary
     properties:
       overall_assessment:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       overall_fit_communicated:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       confidence:
-        $ref: "#/$defs/confidence_scale"
+        $ref: '#/$defs/confidence_scale'
       summary:
         type: string
         minLength: 1
@@ -221,202 +201,182 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^STRENGTH-[0-9]{3,}$"
+          pattern: ^STRENGTH-[0-9]{3,}$
       principal_deficiency_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^DEF-[0-9]{3,}$"
-
+          pattern: ^DEF-[0-9]{3,}$
   requirement_assessment:
     type: object
     additionalProperties: false
     required:
-      - requirement_id
-      - source_text
-      - normalized_requirement
-      - importance
-      - potential_knockout
-      - visibility
-      - validity
-      - screening_interpretation
-      - deficiency_ids
+    - requirement_id
+    - source_text
+    - normalized_requirement
+    - importance
+    - potential_knockout
+    - visibility
+    - validity
+    - screening_interpretation
+    - deficiency_ids
     properties:
-
       requirement_id:
         type: string
-        pattern: "^REQ-[0-9]{3,}$"
-
+        pattern: ^REQ-[0-9]{3,}$
       source_text:
         type: string
         minLength: 1
-
       normalized_requirement:
         type: string
         minLength: 1
-
       importance:
         type: string
         enum:
-          - knockout
-          - critical
-          - high
-          - moderate
-          - low
-
+        - knockout
+        - critical
+        - high
+        - moderate
+        - low
       potential_knockout:
         type: boolean
-
       knockout_confidence:
         oneOf:
-          - $ref: "#/$defs/confidence_scale"
-          - type: "null"
-
+        - $ref: '#/$defs/confidence_scale'
+        - type: 'null'
       visibility:
-        $ref: "#/$defs/requirement_visibility"
-
+        $ref: '#/$defs/requirement_visibility'
       validity:
-        $ref: "#/$defs/requirement_validity"
-
+        $ref: '#/$defs/requirement_validity'
       screening_interpretation:
-        $ref: "#/$defs/requirement_screening_interpretation"
-
+        $ref: '#/$defs/requirement_screening_interpretation'
       deficiency_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^DEF-[0-9]{3,}$"
-
+          pattern: ^DEF-[0-9]{3,}$
       notes:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
   requirement_visibility:
     type: object
     additionalProperties: false
     required:
-      - coverage_state
-      - score
-      - resume_content_ids
-      - visible_evidence_summary
-      - inference_required
+    - coverage_state
+    - score
+    - resume_content_ids
+    - visible_evidence_summary
+    - inference_required
     properties:
-
       coverage_state:
         type: string
         enum:
-          - strongly_demonstrated
-          - demonstrated
-          - partially_demonstrated
-          - weakly_demonstrated
-          - mentioned_without_evidence
-          - not_demonstrated
-          - contradicted
-          - unclear
-
+        - strongly_demonstrated
+        - demonstrated
+        - partially_demonstrated
+        - weakly_demonstrated
+        - mentioned_without_evidence
+        - not_demonstrated
+        - contradicted
+        - unclear
       score:
-        type: ["integer", "null"]
+        type:
+        - integer
+        - 'null'
         minimum: 0
         maximum: 5
-
       resume_content_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^CONTENT-[0-9]{3,}$"
-
+          pattern: ^CONTENT-[0-9]{3,}$
       visible_evidence_summary:
         type: string
         minLength: 1
-
       inference_required:
         type: string
         enum:
-          - none
-          - low
-          - moderate
-          - high
-
+        - none
+        - low
+        - moderate
+        - high
       visibility_strength:
-        type: ["string", "null"]
+        type:
+        - string
+        - 'null'
         enum:
-          - exceptional
-          - strong
-          - moderate
-          - weak
-          - poor
-          - null
-
+        - exceptional
+        - strong
+        - moderate
+        - weak
+        - poor
+        - null
       terminology_alignment:
-        type: ["string", "null"]
+        type:
+        - string
+        - 'null'
         enum:
-          - exceptional
-          - strong
-          - moderate
-          - weak
-          - poor
-          - null
-
+        - exceptional
+        - strong
+        - moderate
+        - weak
+        - poor
+        - null
   requirement_validity:
     type: object
     additionalProperties: false
     required:
-      - verification_state
-      - evidence_mapping_ids
-      - evidence_refs
-      - support_summary
+    - verification_state
+    - evidence_mapping_ids
+    - evidence_refs
+    - support_summary
     properties:
-
       verification_state:
         type: string
         enum:
-          - supported
-          - supported_but_underspecified
-          - ambiguous
-          - unsupported
-          - contradicted
-          - unverifiable
-          - not_reviewed
-
+        - supported
+        - supported_but_underspecified
+        - ambiguous
+        - unsupported
+        - contradicted
+        - unverifiable
+        - not_reviewed
       evidence_mapping_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^MAP-[0-9]{3,}-[0-9]{2,}$"
-
+          pattern: ^MAP-[0-9]{3,}-[0-9]{2,}$
       evidence_refs:
         type: array
         items:
-          $ref: "#/$defs/evidence_reference"
-
+          $ref: '#/$defs/evidence_reference'
       support_summary:
         type: string
         minLength: 1
-
       supporting_claim_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^CLAIM-[0-9]{3,}$"
-
+          pattern: ^CLAIM-[0-9]{3,}$
       relevant_prohibited_claim_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^PCLAIM-[0-9]{3,}$"
-
+          pattern: ^PCLAIM-[0-9]{3,}$
   requirement_screening_interpretation:
     type: object
     additionalProperties: false
     required:
-      - ats
-      - recruiter
-      - hiring_manager
+    - ats
+    - recruiter
+    - hiring_manager
     properties:
       ats:
         type: string
@@ -427,47 +387,45 @@ $defs:
       hiring_manager:
         type: string
         minLength: 1
-
   screening_assessments:
     type: object
     additionalProperties: false
     required:
-      - ats
-      - recruiter
-      - hiring_manager
+    - ats
+    - recruiter
+    - hiring_manager
     properties:
       ats:
-        $ref: "#/$defs/ats_assessment"
+        $ref: '#/$defs/ats_assessment'
       recruiter:
-        $ref: "#/$defs/recruiter_assessment"
+        $ref: '#/$defs/recruiter_assessment'
       hiring_manager:
-        $ref: "#/$defs/hiring_manager_assessment"
-
+        $ref: '#/$defs/hiring_manager_assessment'
   ats_assessment:
     type: object
     additionalProperties: false
     required:
-      - assessment
-      - confidence
-      - explicit_requirement_alignment
-      - keyword_alignment
-      - parseability
-      - knockout_risk
-      - strengths
-      - concerns
+    - assessment
+    - confidence
+    - explicit_requirement_alignment
+    - keyword_alignment
+    - parseability
+    - knockout_risk
+    - strengths
+    - concerns
     properties:
       assessment:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       confidence:
-        $ref: "#/$defs/confidence_scale"
+        $ref: '#/$defs/confidence_scale'
       explicit_requirement_alignment:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       keyword_alignment:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       parseability:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       knockout_risk:
-        $ref: "#/$defs/risk_scale"
+        $ref: '#/$defs/risk_scale'
       strengths:
         type: array
         items:
@@ -476,43 +434,42 @@ $defs:
         type: array
         items:
           type: string
-
   recruiter_assessment:
     type: object
     additionalProperties: false
     required:
-      - assessment
-      - confidence
-      - professional_identity_clarity
-      - fit_clarity
-      - credibility
-      - scanability
-      - seniority_alignment
-      - inference_burden
-      - strengths
-      - concerns
+    - assessment
+    - confidence
+    - professional_identity_clarity
+    - fit_clarity
+    - credibility
+    - scanability
+    - seniority_alignment
+    - inference_burden
+    - strengths
+    - concerns
     properties:
       assessment:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       confidence:
-        $ref: "#/$defs/confidence_scale"
+        $ref: '#/$defs/confidence_scale'
       professional_identity_clarity:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       fit_clarity:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       credibility:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       scanability:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       seniority_alignment:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       inference_burden:
         type: string
         enum:
-          - none
-          - low
-          - moderate
-          - high
+        - none
+        - low
+        - moderate
+        - high
       strengths:
         type: array
         items:
@@ -521,44 +478,43 @@ $defs:
         type: array
         items:
           type: string
-
   hiring_manager_assessment:
     type: object
     additionalProperties: false
     required:
-      - assessment
-      - confidence
-      - relevant_depth
-      - ownership
-      - scope
-      - results
-      - technical_credibility
-      - leadership_credibility
-      - operational_credibility
-      - central_mandate_confidence
-      - strengths
-      - concerns
+    - assessment
+    - confidence
+    - relevant_depth
+    - ownership
+    - scope
+    - results
+    - technical_credibility
+    - leadership_credibility
+    - operational_credibility
+    - central_mandate_confidence
+    - strengths
+    - concerns
     properties:
       assessment:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       confidence:
-        $ref: "#/$defs/confidence_scale"
+        $ref: '#/$defs/confidence_scale'
       relevant_depth:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       ownership:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       scope:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       results:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       technical_credibility:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       leadership_credibility:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       operational_credibility:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       central_mandate_confidence:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       strengths:
         type: array
         items:
@@ -567,154 +523,140 @@ $defs:
         type: array
         items:
           type: string
-
   claim_audit:
     type: object
     additionalProperties: false
     required:
-      - claim_audit_id
-      - content_ids
-      - claim_text
-      - credibility_state
-      - capability_state
-      - responsibility_state
-      - action_state
-      - ownership_state
-      - scope_state
-      - result_state
-      - attribution_state
-      - terminology_state
-      - evidence_refs
-      - finding
-      - deficiency_ids
+    - claim_audit_id
+    - content_ids
+    - claim_text
+    - credibility_state
+    - capability_state
+    - responsibility_state
+    - action_state
+    - ownership_state
+    - scope_state
+    - result_state
+    - attribution_state
+    - terminology_state
+    - evidence_refs
+    - finding
+    - deficiency_ids
     properties:
-
       claim_audit_id:
         type: string
-        pattern: "^AUDIT-[0-9]{3,}$"
-
+        pattern: ^AUDIT-[0-9]{3,}$
       content_ids:
         type: array
         minItems: 1
         uniqueItems: true
         items:
           type: string
-          pattern: "^CONTENT-[0-9]{3,}$"
-
+          pattern: ^CONTENT-[0-9]{3,}$
       claim_text:
         type: string
         minLength: 1
-
       credibility_state:
         type: string
         enum:
-          - supported
-          - supported_but_underspecified
-          - ambiguous
-          - overstated_appearance
-          - unsupported
-          - contradicted
-          - unverifiable_from_supplied_context
-
+        - supported
+        - supported_but_underspecified
+        - ambiguous
+        - overstated_appearance
+        - unsupported
+        - contradicted
+        - unverifiable_from_supplied_context
       capability_state:
-        $ref: "#/$defs/claim_dimension_state"
+        $ref: '#/$defs/claim_dimension_state'
       responsibility_state:
-        $ref: "#/$defs/claim_dimension_state"
+        $ref: '#/$defs/claim_dimension_state'
       action_state:
-        $ref: "#/$defs/claim_dimension_state"
+        $ref: '#/$defs/claim_dimension_state'
       ownership_state:
-        $ref: "#/$defs/claim_dimension_state"
+        $ref: '#/$defs/claim_dimension_state'
       scope_state:
-        $ref: "#/$defs/claim_dimension_state"
+        $ref: '#/$defs/claim_dimension_state'
       result_state:
-        $ref: "#/$defs/claim_dimension_state"
+        $ref: '#/$defs/claim_dimension_state'
       attribution_state:
-        $ref: "#/$defs/claim_dimension_state"
+        $ref: '#/$defs/claim_dimension_state'
       terminology_state:
-        $ref: "#/$defs/claim_dimension_state"
-
+        $ref: '#/$defs/claim_dimension_state'
       supported_claim_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^CLAIM-[0-9]{3,}$"
-
+          pattern: ^CLAIM-[0-9]{3,}$
       prohibited_claim_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^PCLAIM-[0-9]{3,}$"
-
+          pattern: ^PCLAIM-[0-9]{3,}$
       evidence_mapping_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^MAP-[0-9]{3,}-[0-9]{2,}$"
-
+          pattern: ^MAP-[0-9]{3,}-[0-9]{2,}$
       evidence_refs:
         type: array
         items:
-          $ref: "#/$defs/evidence_reference"
-
+          $ref: '#/$defs/evidence_reference'
       finding:
         type: string
         minLength: 1
-
       deficiency_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^DEF-[0-9]{3,}$"
-
+          pattern: ^DEF-[0-9]{3,}$
   claim_dimension_state:
     type: string
     enum:
-      - supported
-      - supported_with_qualification
-      - ambiguous
-      - unsupported
-      - contradicted
-      - not_applicable
-      - unverifiable
-
+    - supported
+    - supported_with_qualification
+    - ambiguous
+    - unsupported
+    - contradicted
+    - not_applicable
+    - unverifiable
   professional_positioning:
     type: object
     additionalProperties: false
     required:
-      - visible_identity
-      - target_alignment
-      - seniority_alignment
-      - functional_role_clarity
-      - technical_management_balance
-      - overqualification_risk
-      - underqualification_risk
-      - chronology_clarity
-      - provenance_clarity
-      - findings
+    - visible_identity
+    - target_alignment
+    - seniority_alignment
+    - functional_role_clarity
+    - technical_management_balance
+    - overqualification_risk
+    - underqualification_risk
+    - chronology_clarity
+    - provenance_clarity
+    - findings
     properties:
       visible_identity:
         type: string
         minLength: 1
       target_alignment:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       seniority_alignment:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       functional_role_clarity:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       technical_management_balance:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       overqualification_risk:
-        $ref: "#/$defs/risk_scale"
+        $ref: '#/$defs/risk_scale'
       underqualification_risk:
-        $ref: "#/$defs/risk_scale"
+        $ref: '#/$defs/risk_scale'
       chronology_clarity:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       provenance_clarity:
-        $ref: "#/$defs/assessment_scale"
+        $ref: '#/$defs/assessment_scale'
       findings:
         type: array
         items:
@@ -724,39 +666,38 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^DEF-[0-9]{3,}$"
-
+          pattern: ^DEF-[0-9]{3,}$
   strongest_aspect:
     type: object
     additionalProperties: false
     required:
-      - strength_id
-      - strength_type
-      - description
-      - requirement_ids
-      - content_ids
-      - evidence_refs
+    - strength_id
+    - strength_type
+    - description
+    - requirement_ids
+    - content_ids
+    - evidence_refs
     properties:
       strength_id:
         type: string
-        pattern: "^STRENGTH-[0-9]{3,}$"
+        pattern: ^STRENGTH-[0-9]{3,}$
       strength_type:
         type: string
         enum:
-          - requirement_alignment
-          - quantified_result
-          - ownership
-          - technical_depth
-          - leadership
-          - civilian_translation
-          - professional_positioning
-          - ats_alignment
-          - scope
-          - functional_role_presentation
-          - readability
-          - credibility
-          - differentiation
-          - other
+        - requirement_alignment
+        - quantified_result
+        - ownership
+        - technical_depth
+        - leadership
+        - civilian_translation
+        - professional_positioning
+        - ats_alignment
+        - scope
+        - functional_role_presentation
+        - readability
+        - credibility
+        - differentiation
+        - other
       description:
         type: string
         minLength: 1
@@ -765,147 +706,133 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^REQ-[0-9]{3,}$"
+          pattern: ^REQ-[0-9]{3,}$
       content_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^CONTENT-[0-9]{3,}$"
+          pattern: ^CONTENT-[0-9]{3,}$
       evidence_refs:
         type: array
         items:
-          $ref: "#/$defs/evidence_reference"
+          $ref: '#/$defs/evidence_reference'
       stability_note:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
   deficiency:
     type: object
     additionalProperties: false
     required:
-      - deficiency_id
-      - deficiency_type
-      - severity
-      - requirement_ids
-      - content_ids
-      - observation
-      - rationale
-      - screening_impact
-      - evidence_state
-      - successful_future_state
+    - deficiency_id
+    - deficiency_type
+    - severity
+    - requirement_ids
+    - content_ids
+    - observation
+    - rationale
+    - screening_impact
+    - evidence_state
+    - successful_future_state
     properties:
-
       deficiency_id:
         type: string
-        pattern: "^DEF-[0-9]{3,}$"
-
+        pattern: ^DEF-[0-9]{3,}$
       deficiency_type:
         type: string
         enum:
-          - factual_integrity
-          - claim_credibility
-          - evidence_visibility
-          - evidence_support
-          - requirement_coverage
-          - professional_positioning
-          - scope_alignment
-          - structural_compliance
-          - readability
-          - genuine_capability_limitation
-          - non_material_preference
-
+        - factual_integrity
+        - claim_credibility
+        - evidence_visibility
+        - evidence_support
+        - requirement_coverage
+        - professional_positioning
+        - scope_alignment
+        - structural_compliance
+        - readability
+        - genuine_capability_limitation
+        - non_material_preference
       severity:
         type: string
         enum:
-          - critical
-          - major
-          - moderate
-          - minor
-          - non_material
-
+        - critical
+        - major
+        - moderate
+        - minor
+        - non_material
       requirement_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^REQ-[0-9]{3,}$"
-
+          pattern: ^REQ-[0-9]{3,}$
       content_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^CONTENT-[0-9]{3,}$"
-
+          pattern: ^CONTENT-[0-9]{3,}$
       claim_audit_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^AUDIT-[0-9]{3,}$"
-
+          pattern: ^AUDIT-[0-9]{3,}$
       observation:
         type: string
         minLength: 1
-
       rationale:
         type: string
         minLength: 1
-
       screening_impact:
         type: string
         minLength: 1
-
       evidence_state:
         type: string
         enum:
-          - visible_and_supported
-          - visible_but_unsupported
-          - supported_but_insufficiently_visible
-          - partially_supported
-          - ambiguous
-          - contradicted
-          - unsupported
-          - unverifiable
-          - not_applicable
-
+        - visible_and_supported
+        - visible_but_unsupported
+        - supported_but_insufficiently_visible
+        - partially_supported
+        - ambiguous
+        - contradicted
+        - unsupported
+        - unverifiable
+        - not_applicable
       evidence_mapping_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^MAP-[0-9]{3,}-[0-9]{2,}$"
-
+          pattern: ^MAP-[0-9]{3,}-[0-9]{2,}$
       evidence_refs:
         type: array
         items:
-          $ref: "#/$defs/evidence_reference"
-
+          $ref: '#/$defs/evidence_reference'
       successful_future_state:
         type: string
         minLength: 1
-
       confidence:
         oneOf:
-          - $ref: "#/$defs/confidence_scale"
-          - type: "null"
-
+        - $ref: '#/$defs/confidence_scale'
+        - type: 'null'
   submission_readiness:
     type: object
     additionalProperties: false
     required:
-      - state
-      - rationale
-      - principal_strength_ids
-      - principal_deficiency_ids
-      - confidence
+    - state
+    - rationale
+    - principal_strength_ids
+    - principal_deficiency_ids
+    - confidence
     properties:
       state:
         type: string
         enum:
-          - ready_to_submit
-          - not_ready_to_submit
-          - weak_fit_reconsider_application
+        - ready_to_submit
+        - not_ready_to_submit
+        - weak_fit_reconsider_application
       rationale:
         type: string
         minLength: 1
@@ -914,92 +841,82 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^STRENGTH-[0-9]{3,}$"
+          pattern: ^STRENGTH-[0-9]{3,}$
       principal_deficiency_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^DEF-[0-9]{3,}$"
+          pattern: ^DEF-[0-9]{3,}$
       confidence:
-        $ref: "#/$defs/confidence_scale"
-
+        $ref: '#/$defs/confidence_scale'
   historical_comparison:
     type: object
     additionalProperties: false
     required:
-      - performed
-      - improvements
-      - regressions
-      - resolved_deficiency_ids
-      - persistent_deficiency_ids
-      - new_deficiency_ids
+    - performed
+    - improvements
+    - regressions
+    - resolved_deficiency_ids
+    - persistent_deficiency_ids
+    - new_deficiency_ids
     properties:
-
       performed:
         type: boolean
-
       prior_resume_reference:
         oneOf:
-          - $ref: "#/$defs/prior_resume_reference"
-          - type: "null"
-
+        - $ref: '#/$defs/prior_resume_reference'
+        - type: 'null'
       prior_evaluation_reference:
         oneOf:
-          - $ref: "#/$defs/prior_evaluation_reference"
-          - type: "null"
-
+        - $ref: '#/$defs/prior_evaluation_reference'
+        - type: 'null'
       improvements:
         type: array
         items:
-          $ref: "#/$defs/comparison_item"
-
+          $ref: '#/$defs/comparison_item'
       regressions:
         type: array
         items:
-          $ref: "#/$defs/regression"
-
+          $ref: '#/$defs/regression'
       resolved_deficiency_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^DEF-[0-9]{3,}$"
-
+          pattern: ^DEF-[0-9]{3,}$
       persistent_deficiency_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^DEF-[0-9]{3,}$"
-
+          pattern: ^DEF-[0-9]{3,}$
       new_deficiency_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^DEF-[0-9]{3,}$"
-
+          pattern: ^DEF-[0-9]{3,}$
       readiness_change:
         oneOf:
-          - $ref: "#/$defs/readiness_change"
-          - type: "null"
-
+        - $ref: '#/$defs/readiness_change'
+        - type: 'null'
       comparison_summary:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
   comparison_item:
     type: object
     additionalProperties: false
     required:
-      - comparison_id
-      - description
-      - related_requirement_ids
-      - related_content_ids
+    - comparison_id
+    - description
+    - related_requirement_ids
+    - related_content_ids
     properties:
       comparison_id:
         type: string
-        pattern: "^COMP-[0-9]{3,}$"
+        pattern: ^COMP-[0-9]{3,}$
       description:
         type: string
         minLength: 1
@@ -1008,51 +925,52 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^REQ-[0-9]{3,}$"
+          pattern: ^REQ-[0-9]{3,}$
       related_content_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^CONTENT-[0-9]{3,}$"
+          pattern: ^CONTENT-[0-9]{3,}$
       impact:
-        type: ["string", "null"]
+        type:
+        - string
+        - 'null'
         enum:
-          - high
-          - moderate
-          - low
-          - non_material
-          - null
-
+        - high
+        - moderate
+        - low
+        - non_material
+        - null
   regression:
     type: object
     additionalProperties: false
     required:
-      - regression_id
-      - regression_type
-      - description
-      - affected_requirement_ids
-      - affected_content_ids
-      - impact
+    - regression_id
+    - regression_type
+    - description
+    - affected_requirement_ids
+    - affected_content_ids
+    - impact
     properties:
       regression_id:
         type: string
-        pattern: "^REG-[0-9]{3,}$"
+        pattern: ^REG-[0-9]{3,}$
       regression_type:
         type: string
         enum:
-          - lost_requirement_coverage
-          - lost_high_value_evidence
-          - weaker_factual_precision
-          - weaker_attribution
-          - weaker_provenance_clarity
-          - excessive_understatement
-          - increased_overqualification_risk
-          - reduced_readability
-          - keyword_overoptimization
-          - functional_role_confusion
-          - structural_regression
-          - other
+        - lost_requirement_coverage
+        - lost_high_value_evidence
+        - weaker_factual_precision
+        - weaker_attribution
+        - weaker_provenance_clarity
+        - excessive_understatement
+        - increased_overqualification_risk
+        - reduced_readability
+        - keyword_overoptimization
+        - functional_role_confusion
+        - structural_regression
+        - other
       description:
         type: string
         minLength: 1
@@ -1061,83 +979,81 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^REQ-[0-9]{3,}$"
+          pattern: ^REQ-[0-9]{3,}$
       affected_content_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^CONTENT-[0-9]{3,}$"
+          pattern: ^CONTENT-[0-9]{3,}$
       impact:
         type: string
         enum:
-          - critical
-          - high
-          - moderate
-          - low
-
+        - critical
+        - high
+        - moderate
+        - low
   readiness_change:
     type: object
     additionalProperties: false
     required:
-      - prior
-      - current
+    - prior
+    - current
     properties:
       prior:
         type: string
         enum:
-          - ready_to_submit
-          - not_ready_to_submit
-          - weak_fit_reconsider_application
+        - ready_to_submit
+        - not_ready_to_submit
+        - weak_fit_reconsider_application
       current:
         type: string
         enum:
-          - ready_to_submit
-          - not_ready_to_submit
-          - weak_fit_reconsider_application
+        - ready_to_submit
+        - not_ready_to_submit
+        - weak_fit_reconsider_application
       explanation:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
   prior_resume_reference:
     type: object
     additionalProperties: false
     required:
-      - resume_id
-      - resume_version
+    - resume_id
+    - resume_version
     properties:
       resume_id:
         type: string
-        pattern: "^RESUME-[0-9]{4,}$"
+        pattern: ^RESUME-[0-9]{4,}$
       resume_version:
         type: integer
         minimum: 1
-
   prior_evaluation_reference:
     type: object
     additionalProperties: false
     required:
-      - evaluation_id
-      - evaluation_version
+    - evaluation_id
+    - evaluation_version
     properties:
       evaluation_id:
         type: string
-        pattern: "^EVAL-[0-9]{4,}$"
+        pattern: ^EVAL-[0-9]{4,}$
       evaluation_version:
         type: integer
         minimum: 1
-
   evidence_reference:
     type: object
     additionalProperties: false
     required:
-      - jer_id
-      - jer_version
-      - experience_point_ids
-      - result_ids
+    - jer_id
+    - jer_version
+    - experience_point_ids
+    - result_ids
     properties:
       jer_id:
         type: string
-        pattern: "^JER-[0-9]{4,}$"
+        pattern: ^JER-[0-9]{4,}$
       jer_version:
         type: integer
         minimum: 1
@@ -1146,45 +1062,41 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^EP-[0-9]{4,}-[0-9]{2,}$"
+          pattern: ^EP-[0-9]{4,}-[0-9]{2,}$
       result_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^RES-[0-9]{4,}-[0-9]{2,}$"
-
+          pattern: ^RES-[0-9]{4,}-[0-9]{2,}$
   assessment_scale:
     type: string
     enum:
-      - exceptional
-      - strong
-      - moderate
-      - weak
-      - poor
-
+    - exceptional
+    - strong
+    - moderate
+    - weak
+    - poor
   confidence_scale:
     type: string
     enum:
-      - high
-      - moderate
-      - low
-
+    - high
+    - moderate
+    - low
   risk_scale:
     type: string
     enum:
-      - none
-      - low
-      - moderate
-      - high
-      - critical
-
+    - none
+    - low
+    - moderate
+    - high
+    - critical
   lineage:
     type: object
     additionalProperties: false
     required:
-      - created_at
-      - updated_at
+    - created_at
+    - updated_at
     properties:
       created_at:
         type: string
@@ -1193,7 +1105,11 @@ $defs:
         type: string
         format: date-time
       supersedes_version:
-        type: ["integer", "null"]
+        type:
+        - integer
+        - 'null'
         minimum: 1
       material_change_summary:
-        type: ["string", "null"]
+        type:
+        - string
+        - 'null'
