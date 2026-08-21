@@ -9,106 +9,112 @@
 
 # 1. TASK
 
-Generate the best current Job Experience Analysis from all relevant currently supplied artifacts.
+Generate the best current Job Experience Analysis from all relevant supplied artifacts and available authoritative professional evidence.
 
-This is the Researcher's primary analytical task.
+This is the Researcher's primary analytical production task.
 
-The same task is used whether:
+Use the same task whether:
 
 - This is the first analysis.
-- A previous Job Experience Analysis exists.
-- New Job Experience Records exist.
-- New Evidence Responses exist.
-- Writer feedback has been supplied.
-- Evaluator feedback has been supplied.
-- Corrected evidence has been supplied.
-- Additional supporting artifacts have been supplied.
-- The task has already been performed previously on the same target job.
+- New professional evidence has been added.
+- Existing professional evidence has changed.
+- New human-investigation results have been supplied.
+- New product feedback has been supplied.
+- A previous Job Experience Analysis already exists.
+- The task has been performed previously using an earlier artifact state.
 
-Do not create separate analysis modes for:
+Do not treat these situations as separate task types.
 
-- Initial analysis.
-- Reanalysis.
-- Recheck.
-- Reassessment.
-- Analysis after feedback.
-- Analysis after new evidence.
+Each invocation evaluates the complete current state and produces the strongest current analysis supported by available authoritative evidence.
 
-Each invocation must evaluate the complete current artifact set and produce the strongest current analysis supported by the authoritative professional evidence state.
+The task is:
 
-The task is idempotent in intent:
+> Analyze the current professional evidence against the target job.
 
-> Given materially identical evidence, target requirements, feedback, and constraints, repeated execution should converge on materially the same analytical conclusions rather than producing unnecessary variation.
+Repeated execution changes the available context.
+
+It does not change the professional operation.
 
 ---
 
 # 2. OBJECTIVE
 
-Determine how the job hunter's authoritative professional evidence demonstrates the requirements of the target job.
+Determine how the job hunter's verified professional experience demonstrates the requirements of the target job.
 
 Produce an analysis that establishes:
 
-1. What the employer cares about most.
-2. What requirements are likely to materially affect screening or hiring decisions.
+1. What the employer appears to care about most.
+2. What material requirements define the target role.
 3. What evidence most strongly demonstrates each important requirement.
 4. What civilian professional function each selected experience represents.
-5. What results most strongly demonstrate successful application of relevant capabilities.
+5. How the evidence can be conceptually organized for the target application.
 6. What claims are supported.
 7. What claims are not supported.
-8. What evidence is direct.
-9. What evidence is transferable.
-10. What evidence remains incomplete.
-11. What genuine gaps exist.
-12. What additional factual evidence should be requested when material uncertainty remains.
-13. What Functional Role Architecture best organizes the authorized evidence for Writer use.
+8. What claims require qualification.
+9. Where evidence remains partial or ambiguous.
+10. Where factual evidence remains insufficient.
+11. What additional factual evidence would materially improve the professional state.
+12. Where reasonable research indicates a genuine unsupported requirement.
 
-The output must represent the Researcher's best current judgment based on all relevant supplied artifacts and the current authoritative professional evidence state.
+The output must represent the Researcher's best current analytical judgment based on the complete relevant artifact and evidence set.
+
+The Researcher does not optimize for a particular runtime consumer.
+
+It produces a self-contained authoritative analysis of target-job requirements and professional evidence.
 
 ---
 
 # 3. INPUT MODEL
 
-The Researcher must consider all relevant artifacts supplied with the current invocation.
+The Researcher must consider all relevant artifacts supplied with the task.
 
-Do not require a fixed artifact set beyond the minimum information necessary to perform meaningful analysis.
+Do not require a fixed artifact history beyond the minimum information necessary to perform meaningful analysis.
 
 ## Minimum Required Inputs
 
 - Target Job Description.
-- Available professional evidence sufficient to begin meaningful analysis.
+- Available authoritative professional evidence sufficient to begin analysis.
 
 Professional evidence may include:
 
 - Job Experience Records.
 - Atomic Experience Points.
-- Employment records.
-- Role records.
-- Supporting professional source materials.
+- Employment provenance records.
+- Approved career-evidence sources.
+- Confirmed factual corrections.
+- Confirmed human-investigation results.
 
 ## Contextual Inputs
 
-When available, also consider:
+When available and relevant, also consider:
 
 - Existing Job Experience Analysis.
-- Previous Job Experience Analyses.
-- New Job Experience Records.
-- Updated Job Experience Records.
+- New professional evidence.
+- Updated professional evidence.
+- Evidence Requests.
 - Evidence Responses.
-- Previous Evidence Requests.
-- Writer feedback.
-- Evaluator feedback.
+- Resume Evaluation.
+- Targeted Resume.
 - Writer Content Manifest.
-- Existing targeted resume.
-- Confirmed corrections.
-- Employment provenance records.
-- Functional-role classifications.
+- Functional Role Architecture.
+- Permitted Claim Guidance.
+- Prohibited Claim Guidance.
 - Supporting source materials.
-- Previous gap dispositions.
-- Other relevant artifacts supplied with the current invocation.
+- Previous analysis versions.
+- Process Feedback relevant to evidence analysis.
+- Other relevant supplied professional artifacts.
 
 The presence of additional artifacts does not change the task.
 
-It changes the current information available to the Researcher.
+It changes the current analytical context.
+
+Do not require knowledge of:
+
+- Who produced an artifact.
+- Who will consume the analysis.
+- Why the task was invoked.
+- Where the analysis will be routed.
+- What task will occur next.
 
 ---
 
@@ -116,13 +122,17 @@ It changes the current information available to the Researcher.
 
 Treat all supplied artifacts according to the authority and precedence rules defined in the Researcher Contract.
 
+Different artifacts describe different professional states.
+
+Do not collapse those states into one authority.
+
 ## Previous Analysis
 
 A previous Job Experience Analysis is historical analytical context.
 
 It is not a fixed conclusion.
 
-The Researcher must reconsider previous:
+Reconsider previous:
 
 - Requirement priorities.
 - Evidence selections.
@@ -130,102 +140,86 @@ The Researcher must reconsider previous:
 - Transferability judgments.
 - Functional-role classifications.
 - Gap classifications.
-- Writer guidance.
+- Permitted claims.
+- Prohibited claims.
+- Cautions.
+- Functional Role Architecture.
 
-when current evidence or feedback provides a reason to do so.
+when current evidence or supplied professional state provides a material reason to do so.
 
 Preserve stable identifiers where practical.
 
-Do not preserve a weak conclusion merely because it appeared in an earlier analysis.
+Preserve stable conclusions when they remain optimal.
 
-## Evidence Responses
+Do not preserve a weaker conclusion merely for consistency.
 
-An Evidence Response records newly acquired and confirmed human evidence.
+Do not change a strong conclusion merely because the task has been invoked again.
 
-Before relying on an Evidence Response analytically, determine how it affects the authoritative professional evidence model.
+---
 
-The Researcher may determine that the response:
+## Supplied Product Feedback
 
-- Adds detail to an existing Job Experience Record.
-- Corrects an existing fact.
-- Qualifies an existing fact.
-- Conflicts with an existing fact.
-- Clarifies different scopes, periods, populations, or definitions.
-- Represents a distinct professional episode.
-- Supports creation of a new Job Experience Record.
-- Requires no authoritative record change.
-- Requires additional human clarification.
+A supplied product evaluation may establish professional state concerning the current resume.
 
-Do not automatically overwrite existing evidence merely because a newer statement exists.
+Examples include:
 
-The Researcher owns authoritative integration and reconciliation.
+- A requirement is insufficiently visible.
+- A capability appears ambiguous.
+- A claim creates credibility risk.
+- Professional positioning is unclear.
+- A critical requirement is not sufficiently demonstrated.
+- A visible claim may exceed current support.
 
-## Downstream Feedback
+Treat such findings as relevant current state.
 
-Writer or Evaluator feedback identifies a deficiency that must be addressed when the deficiency falls within that agent's authoritative domain.
+Do not reinterpret the task as determining whether the product evaluation was "right" or "wrong."
 
-Do not interpret downstream feedback as a request to determine whether the downstream agent was correct.
+Instead ask:
 
-Treat the deficiency as requiring Researcher action.
+> Given this observed product state, what does the complete authoritative evidence currently support?
 
 The Researcher retains authority over:
 
 - Evidence retrieval.
+- Evidence integration.
 - Evidence reconciliation.
 - Evidence selection.
 - Evidence ranking.
+- Evidence strength.
 - Transferability.
-- Functional-role classification.
+- Functional classification.
 - Requirement prioritization.
-- Gap determination.
 - Evidence sufficiency.
-- Whether new human evidence is necessary.
+- Gap determination.
+- Permitted claims.
+- Prohibited claims.
 
 For example:
 
-    Evaluator:
+    Supplied product state:
     The current resume does not sufficiently demonstrate vendor management.
 
-    Researcher:
-    Reassess all authoritative evidence for vendor management and determine
-    the strongest evidence solution.
+    Researcher reasoning:
+    Reassess the complete available evidence for vendor management.
 
-The Researcher must not simply return the prior analysis unchanged because it personally considers the prior evidence adequate.
+    Possible analytical outcomes:
+    - Stronger existing evidence is identified.
+    - Existing evidence is sufficient but should receive greater analytical priority.
+    - Existing evidence is only partially transferable.
+    - Additional factual evidence would materially improve the analysis.
+    - Reasonable research confirms that the requirement remains unsupported.
+
+The Researcher must respond to the professional state through its own authority.
+
+It must not simply dismiss the state because an earlier analytical conclusion appeared adequate.
+
+It must not blindly adopt another artifact's conclusion outside that artifact's authority.
 
 ---
 
 # 5. PROCESS
 
-## Phase 1 — Integrate Current Evidence
-
-Before performing target-job analysis, reconcile any newly supplied Evidence Responses, corrections, or other confirmed factual information with the authoritative professional evidence model.
-
-For each new factual input:
-
-1. Identify relevant existing Job Experience Records.
-2. Determine whether the new information:
-   - Adds detail.
-   - Corrects a fact.
-   - Qualifies a fact.
-   - Conflicts with a fact.
-   - Describes a different scope or timeframe.
-   - Represents a new professional episode.
-3. Evaluate provenance and confirmation status.
-4. Determine whether apparently conflicting statements can both be true.
-5. Create, modify, merge, split, qualify, or preserve records as appropriate.
-6. Preserve factual provenance.
-7. Preserve prior evidence history when materially relevant.
-8. Preserve unresolved conflicts explicitly.
-9. Do not select whichever interpretation creates stronger job fit.
-10. Generate an Evidence Request if material reconciliation requires additional human clarification.
-
-Evidence integration is part of the Researcher's normal authoritative custody responsibilities.
-
-It is not a separate task.
-
----
-
-## Phase 2 — Establish the Target Standard
+## Phase 1 — Establish the Target Standard
 
 Analyze the complete Target Job Description.
 
@@ -242,38 +236,80 @@ Identify:
 - Scope expectations.
 - Leadership expectations.
 - Technical expectations.
-- Likely recruiter priorities.
+- Likely screening priorities.
 - Likely hiring-manager priorities.
 - Potential knockout requirements.
 
-Preserve the original source language for each material requirement.
+Normalize each material requirement while preserving its original source meaning.
 
-Normalize each requirement into a clear professional capability, responsibility, qualification, system, domain, or scope expectation.
+Prioritize:
 
-Prioritize required and critical requirements before preferred or differentiating requirements.
+1. Apparent knockout requirements.
+2. Critical required capabilities.
+3. Required qualifications and responsibilities.
+4. Materially implied requirements.
+5. Preferred qualifications.
+6. Differentiating capabilities.
+
+Do not allow impressive but low-priority evidence to distort target-job priorities.
 
 ---
 
-## Phase 3 — Review Current Analytical Context
+## Phase 2 — Establish Current Analytical State
 
-Review all relevant current artifacts before selecting evidence.
+Review all relevant supplied artifacts before selecting evidence.
 
 Identify:
 
-- Newly integrated evidence.
-- Downstream deficiencies.
-- Previously unresolved gaps.
+- Current authoritative evidence.
+- New evidence since any previous analysis.
+- Updated evidence.
 - Corrected facts.
 - Newly confirmed facts.
-- Existing evidence conflicts.
-- Previously selected evidence that may now be weak or redundant.
-- Requirements that need stronger support.
-- Requirements whose priority should be reconsidered.
-- Existing analysis assumptions that may need revision.
+- Resolved factual questions.
+- Unresolved factual questions.
+- Supplied product deficiencies.
+- Previously unresolved gaps.
+- Previously selected evidence.
+- Previously unsupported requirements.
+- Existing Functional Role Architecture.
+- Existing permitted and prohibited claims.
+- Material limitations.
+- Analytical assumptions that may warrant reconsideration.
 
-Do not assume the previous analysis remains optimal.
+Do not assume a previous analysis remains optimal.
 
-Do not create new conclusions merely because another invocation occurred.
+Do not assume it requires change merely because newer contextual artifacts exist.
+
+---
+
+## Phase 3 — Integrate Current Professional Evidence
+
+Maintain authoritative understanding of the supplied professional evidence set.
+
+When new or updated evidence is supplied:
+
+1. Determine what professional facts it establishes.
+2. Determine whether it supplements existing evidence.
+3. Determine whether it clarifies existing evidence.
+4. Determine whether it corrects existing evidence.
+5. Determine whether it conflicts with existing evidence.
+6. Reconcile the evidence when the Researcher has sufficient authority and information to do so.
+7. Preserve uncertainty when reconciliation is not supportable.
+8. Preserve source provenance.
+9. Preserve employment provenance.
+10. Preserve attribution.
+11. Preserve qualifications and limitations.
+
+Do not create duplicate professional facts merely because the same experience appears in multiple artifacts.
+
+Do not discard older authoritative evidence merely because newer evidence exists.
+
+Integrate evidence into the complete current professional context.
+
+Evidence integration is part of maintaining analytical authority over professional evidence.
+
+It is not a separate task.
 
 ---
 
@@ -281,16 +317,18 @@ Do not create new conclusions merely because another invocation occurred.
 
 For every material target requirement:
 
-1. Search the complete authoritative career evidence set.
+1. Search the complete available authoritative career evidence set.
 2. Search by demonstrated capability rather than source job title.
 3. Search relevant terminology variants.
 4. Search functional-role classifications.
 5. Search adjacent responsibilities.
-6. Search relevant results.
-7. Search potentially transferable evidence.
-8. Review previously selected evidence.
-9. Review newly integrated evidence.
-10. Consider supplied Writer or Evaluator feedback identifying weak or missing coverage.
+6. Search relevant actions.
+7. Search relevant systems and methods.
+8. Search relevant results.
+9. Search potentially transferable evidence.
+10. Review previously selected evidence.
+11. Review newly supplied evidence.
+12. Consider supplied professional-state findings identifying weak, ambiguous, or missing visible coverage.
 
 Do not restrict retrieval based on:
 
@@ -302,6 +340,10 @@ Do not restrict retrieval based on:
 - Internal terminology.
 
 Preserve provenance while searching across the complete career.
+
+Search broadly.
+
+Select narrowly.
 
 ---
 
@@ -316,7 +358,7 @@ Prefer evidence with:
 3. Specific action or decision.
 4. Relevant scope.
 5. Relevant systems or methods.
-6. Appropriate proficiency.
+6. Appropriate demonstrated proficiency.
 7. Credible result or observable effect.
 8. Strong differentiation.
 
@@ -332,7 +374,16 @@ Distinguish:
 
 Do not inflate transferable evidence into direct experience.
 
-Do not attach a result unless the evidence establishes a defensible relationship between the action and result.
+Do not inflate:
+
+- Participation into ownership.
+- Team results into individual results.
+- Exposure into proficiency.
+- Adjacent tools into direct tool experience.
+- Qualitative evidence into invented metrics.
+- Functional similarity into factual equivalence.
+
+Rank evidence according to usefulness for the target requirement, not according to prestige of the source role.
 
 ---
 
@@ -346,7 +397,7 @@ Preserve the distinction between:
     = where and when the work occurred.
 
     Professional capability
-    = what the job hunter demonstrated they could do.
+    = what the person demonstrated they could do.
 
     Functional role
     = what recognizable civilian professional function the work represents.
@@ -360,100 +411,183 @@ Assign functional-role classifications only when supported by the underlying:
 - Capability.
 - Result.
 
-Do not assign a role merely because it appears in the target job description.
+Do not assign a professional function merely because:
 
-An evidence point may support multiple functional roles when the work genuinely spans multiple professional functions.
+- It appears in the target job description.
+- It creates a more attractive narrative.
+- The source title sounds similar.
+- Another artifact would benefit from the classification.
+
+Classify the work according to what the evidence actually demonstrates.
 
 ---
 
-## Phase 7 — Reassess Priority and Functional Role Architecture
+## Phase 7 — Reassess Priority and Functional Architecture
 
-Using all current evidence and feedback:
+Using the complete current evidence and professional state:
 
 - Re-rank requirements when justified.
 - Re-rank selected evidence when justified.
 - Replace weaker evidence with stronger evidence.
 - Remove redundant evidence.
-- Reassess evidence priority for areas identified as insufficient.
+- Increase analytical emphasis where supplied product state demonstrates insufficient visibility or ambiguity.
 - Preserve genuine strengths that remain important.
-- Reconsider the recommended Functional Role Architecture.
+- Reconsider the Functional Role Architecture when justified.
+- Reconsider permitted and prohibited claims when evidence materially changes.
+- Reconsider gap classifications when new evidence exists.
 
-Determine the simplest supported Functional Role Architecture that allows the Writer to understand how relevant evidence can be grouped into recognizable civilian professional functions.
+Determine the simplest supported professional architecture for communicating the candidate's relevant professional capability.
 
-For each recommended functional role, identify as applicable:
+Do not preserve previous weighting merely because it appeared in an earlier analysis.
 
-- Functional role name.
-- Capabilities represented.
-- Requirements supported.
-- Supporting evidence.
-- Supporting results.
-- Classification strength.
-- Limitations or cautions.
-
-The Researcher defines evidence architecture.
-
-The Writer owns final narrative, placement, phrasing, and presentation.
+Do not change previous weighting without a material analytical reason.
 
 ---
 
 ## Phase 8 — Determine Evidence Sufficiency
 
-For every material requirement, determine whether the current authoritative evidence is sufficient.
+For every material requirement, determine the current evidence state.
 
-### If Evidence Is Sufficient
+### Sufficient Evidence
 
-Include in the Job Experience Analysis:
+When evidence sufficiently supports the requirement, document:
 
+- Requirement.
 - Strongest evidence.
 - Relevant results.
 - Functional-role classification.
 - Transferability status.
 - Evidence strength.
-- Writer guidance.
 - Permitted claims.
 - Prohibited claims.
 - Relevant cautions.
+- Provenance.
+- Material presentation considerations when appropriate.
 
-### If Existing Evidence Is Partial
+---
 
-Document:
+### Partial Evidence
+
+When evidence provides meaningful but incomplete support, document:
 
 - What is supported.
+- What is not supported.
 - What remains unclear.
+- Transferability limitations.
 - Whether the limitation is material.
-- Whether additional factual evidence could materially improve the analysis.
-- What claims remain safe.
-- What claims remain unsafe.
+- Whether additional factual evidence could materially change the analysis.
 
-### If Additional Factual Evidence May Exist
+Do not classify partial evidence as direct evidence.
 
-Produce an Evidence Request.
+---
 
-The request should identify:
+### Additional Factual Evidence Could Materially Improve the State
 
-- Requirement or factual issue.
-- Current evidence.
+When reasonable career-wide research cannot resolve a material factual question but additional human evidence may exist, produce an Evidence Request.
+
+The Evidence Request should establish:
+
+- Target requirement or analytical question.
+- Current known evidence.
 - Missing evidence dimensions.
-- Adjacent experience worth exploring.
+- Adjacent experience worth investigating.
 - Facts that must not be assumed.
-- What would fully resolve the issue.
-- What would partially resolve it.
-- What would establish transferable evidence.
-- What would confirm a true gap.
+- What evidence would fully resolve the question.
+- What evidence would partially resolve the question.
+- What evidence would confirm a genuine gap.
+- Why the unresolved question is material.
 
-### If Reasonable Research Finds No Support
+The Evidence Request must be partner-independent.
 
-Mark the requirement unsupported.
+It describes the factual information needed.
+
+It does not specify:
+
+- Who must investigate it.
+- Where it must be sent.
+- What runtime action occurs next.
+- Whether workflow should stop.
+
+---
+
+### Reasonable Research Finds No Support
+
+When reasonable career-wide research finds no support:
+
+- Mark the requirement unsupported.
+- Preserve relevant adjacent or transferable evidence separately.
+- Identify prohibited claims.
+- Preserve the genuine limitation.
 
 Do not manufacture evidence merely because the requirement is important.
 
-Do not repeatedly request evidence for a confirmed gap unless new information creates a genuinely different factual question.
+An unsupported requirement is a valid analytical result.
+
+---
+
+## Phase 9 — Construct the Current Job Experience Analysis
+
+Produce a coherent analytical artifact that establishes:
+
+### Target Role Analysis
+
+- Central mandate.
+- Ranked requirements.
+- Apparent knockout conditions.
+- Critical capabilities.
+- Relevant scope and seniority expectations.
+
+### Requirement-to-Evidence Analysis
+
+For each material requirement:
+
+- Requirement.
+- Priority.
+- Evidence status.
+- Strongest evidence.
+- Relevant results.
+- Evidence strength.
+- Transferability.
+- Functional classification.
+- Provenance.
+- Permitted claims.
+- Prohibited claims.
+- Cautions.
+- Material gaps.
+
+### Functional Role Architecture
+
+Establish:
+
+- Primary supported professional function.
+- Secondary supported functions when material.
+- Supported civilian role labels.
+- Evidence associated with each function.
+- Strongest results.
+- Concurrent functions when relevant.
+- Functional progression when supported.
+- Title cautions.
+- Provenance limitations.
+
+### Overall Fit
+
+Assess:
+
+- Strongest fit areas.
+- Moderate fit areas.
+- Weak fit areas.
+- Genuine gaps.
+- Differentiators.
+- Material risks.
+- Overall evidence-supported fit.
+
+The Job Experience Analysis should be sufficiently self-contained that another professional function does not need to independently perform career-wide evidence retrieval, transferability analysis, or functional classification to understand the candidate's support for the target role.
 
 ---
 
 # 6. OUTPUTS
 
-The Researcher may produce one or more outputs from the same task invocation.
+The Researcher may produce one or more professional artifacts from the same task invocation.
 
 ## Primary Output
 
@@ -461,17 +595,20 @@ The Researcher may produce one or more outputs from the same task invocation.
 
 Produce the best current Job Experience Analysis.
 
-If an earlier analysis exists, produce a newer version of the same artifact type rather than a separate reanalysis or reassessment artifact.
+If an earlier analysis exists, produce the current version of the same artifact type rather than a separate:
 
-Example:
+- Reanalysis.
+- Reevaluation.
+- Revision analysis.
+- Post-evaluation analysis.
 
-    JEA-001 v1.0
-        ↓
-    JEA-001 v1.1
-        ↓
-    JEA-001 v1.2
+Conceptually:
 
-The current version represents the Researcher's best current analytical state.
+    JEA(current professional state)
+
+Every invocation performs the same professional operation.
+
+The current analysis supersedes obsolete analytical conclusions while preserving stable identifiers and useful provenance where appropriate.
 
 Use the authoritative Job Experience Analysis schema under `/schemas/` when available.
 
@@ -479,33 +616,24 @@ Use the authoritative Job Experience Analysis schema under `/schemas/` when avai
 
 ## Conditional Output
 
-### Authoritative Evidence Updates
-
-When new evidence requires authoritative integration, the Researcher may create or update:
-
-- Job Experience Records.
-- Atomic Experience Points.
-- Provenance relationships.
-- Evidence qualifications.
-- Evidence conflict status.
-
-These are part of normal Researcher evidence custody.
-
-They are not a separate task output mode.
-
----
-
-## Conditional Output
-
 ### Evidence Request
 
-Produce an Evidence Request when additional human factual investigation could materially resolve or clarify a professional evidence deficiency.
+Produce an Evidence Request when additional factual investigation could materially improve or resolve an analytical question.
 
-Intended consumer:
+The Evidence Request must:
 
-    Interviewer
+- Describe the professional evidence need.
+- Preserve known evidence.
+- Identify unresolved dimensions.
+- Identify facts that must not be assumed.
+- Define useful resolution criteria.
+- Remain independent of runtime routing.
 
 Use the authoritative Evidence Request schema under `/schemas/` when available.
+
+The existence of an Evidence Request does not make the Job Experience Analysis incomplete.
+
+The current analysis should still represent the strongest current analytical state.
 
 ---
 
@@ -513,149 +641,108 @@ Use the authoritative Evidence Request schema under `/schemas/` when available.
 
 ### Process Feedback
 
-Produce Process Feedback when the Researcher identifies recurring or material system friction concerning:
+Produce Process Feedback when recurring or material system-level friction is identified concerning:
 
-- Agent contract ambiguity.
+- Contract ambiguity.
 - Task instruction ambiguity.
 - Schema weakness.
 - Missing fields.
-- Repeated bad artifact interfaces.
+- Repeated interface problems.
 - Repeated unavailable context.
-- Recurring evidence-model deficiencies.
-- Structural problems outside normal Researcher authority.
+- Authority-boundary ambiguity.
+- Structural problems outside normal evidence analysis.
 
-Intended consumer:
+Process Feedback is for system improvement.
 
-    Supervisor
+It must not replace normal professional outputs.
 
-Process Feedback is secondary to the Researcher's normal production outputs.
-
----
-
-# 7. OUTPUT INTERPRETATION
-
-The task does not control transport or workflow.
-
-It produces the artifacts justified by the current analytical state.
-
-## When Current Evidence Is Sufficient
-
-Produce:
-
-- Current Job Experience Analysis.
-- Any necessary authoritative evidence updates.
-
-The analysis should be sufficient for Writer use.
-
-## When Additional Human Evidence Is Required
-
-Produce:
-
-- Current Job Experience Analysis.
-- Evidence Request.
-- Any authoritative evidence updates that can already be made safely.
-
-The Evidence Request identifies the unresolved factual question.
-
-## When a Requirement Is a Genuine Gap
-
-Produce:
-
-- Current Job Experience Analysis.
-- Explicit unsupported-requirement finding.
-
-Do not generate additional Evidence Requests merely to avoid acknowledging a genuine gap.
-
-## When a System-Level Problem Is Identified
-
-Optionally also produce:
-
-- Process Feedback.
-
-The agent's responsibility is to produce the correct artifacts.
-
-How those artifacts are transferred is outside this task instruction.
+It must not specify a runtime destination.
 
 ---
 
-# 8. CURRENT-STATE AND IDEMPOTENT BEHAVIOR
+# 7. IDEMPOTENT BEHAVIOR
 
 This task is designed for repeated execution.
 
-The Researcher always performs the same professional operation against the current supplied artifacts.
+Every invocation performs:
 
-For example:
-
-    Initial invocation:
-
-    Target Job
-    + Authoritative Evidence
+    Current Target Job
+    + Current Authoritative Evidence
+    + Relevant Current Artifacts
             ↓
-    generate_analysis
+    Generate Analysis
             ↓
-    Job Experience Analysis
+    Current Job Experience Analysis
+    + Conditional Evidence Requests
+    + Conditional Process Feedback
 
-Later:
+There is no separate:
 
-    Target Job
-    + Authoritative Evidence
-    + Prior Analysis
-    + Evaluator Feedback
-            ↓
-    generate_analysis
-            ↓
-    Best Current Job Experience Analysis
+- Reanalysis task.
+- Reevaluation task.
+- Revision task.
+- Feedback-response task.
+- Evidence-integration task.
 
-Later still:
+New professional state becomes additional input to the same analytical operation.
 
-    Target Job
-    + Authoritative Evidence
-    + Prior Analysis
-    + Evaluator Feedback
-    + Evidence Response
-            ↓
-    Integrate Evidence Response
-            ↓
-    generate_analysis
-            ↓
-    Best Current Job Experience Analysis
+---
 
-There is no separate re-evaluation task.
+## Stable State
 
-There is no separate evidence-integration task.
+When materially identical inputs are supplied:
 
-Evidence integration is an implied part of maintaining authoritative evidence custody whenever new evidence is supplied.
+- Preserve stable requirement priorities.
+- Preserve stable evidence rankings.
+- Preserve stable classifications.
+- Preserve stable gap determinations.
+- Preserve stable permitted and prohibited claims.
+- Preserve stable Functional Role Architecture.
+- Preserve stable overall-fit conclusions.
 
-## When Material Information Changes
+Do not manufacture analytical change merely because the task is invoked again.
 
-New information may justify:
+---
 
-- Evidence-model updates.
-- Changed requirement weighting.
-- Stronger evidence selection.
-- Revised functional-role classification.
-- Changed gap status.
-- Changed Writer guidance.
-- New Evidence Requests.
+## Changed State
 
-## When Nothing Material Changes
+When material new information is supplied:
 
-If:
+- Reconsider affected conclusions.
+- Reconsider dependent conclusions.
+- Preserve unaffected conclusions when they remain optimal.
+- Update only what the new state justifies.
 
-- The target job is unchanged.
-- Authoritative evidence is unchanged.
-- Feedback is unchanged.
-- Constraints are unchanged.
+The objective is convergence toward the strongest current analysis.
 
-then:
+Not perpetual analytical churn.
 
-- Preserve stable requirement interpretation.
-- Preserve strong evidence selections.
-- Preserve supported functional-role classifications.
-- Preserve material gap determinations.
-- Avoid analytical novelty for novelty's sake.
+---
 
-The goal is convergence on the strongest supported analysis.
+# 8. PARTNER INDEPENDENCE
+
+The Researcher operates from:
+
+- Its contract.
+- This task instruction.
+- The Target Job Description.
+- Supplied professional artifacts.
+- Available authoritative professional evidence.
+
+The Researcher does not need to know:
+
+- Which runtime component invoked the task.
+- Which runtime component produced contextual feedback.
+- Which runtime component will consume the analysis.
+- Which runtime component will investigate an Evidence Request.
+- What happens after the task completes.
+- Whether the task is part of a first pass or later iteration.
+
+Interpret artifacts according to their professional meaning and authority.
+
+Produce outputs according to Researcher authority.
+
+Do not perform workflow reasoning.
 
 ---
 
@@ -663,84 +750,112 @@ The goal is convergence on the strongest supported analysis.
 
 Before completing the task, verify:
 
-## Evidence Custody
-
-- [ ] All newly supplied Evidence Responses were considered.
-- [ ] Newly supplied confirmed facts were reconciled with authoritative evidence.
-- [ ] Existing records were not automatically overwritten.
-- [ ] Record creation was used only when justified.
-- [ ] Record modification preserved traceability.
-- [ ] Merge or split decisions preserved material distinctions.
-- [ ] Evidence conflicts were resolved or explicitly preserved.
-- [ ] Additional clarification was requested when material reconciliation could not be completed safely.
-
 ## Target Analysis
 
-- [ ] Every required target requirement has been accounted for.
-- [ ] Preferred and materially implied requirements were considered after required requirements.
-- [ ] Every critical requirement was searched across the complete career evidence set.
-- [ ] Search was not restricted by historical role or billet.
+- [ ] The complete Target Job Description was reviewed.
+- [ ] Every material required requirement has been accounted for.
+- [ ] Critical requirements have been prioritized.
+- [ ] Potential knockout requirements have been identified.
+- [ ] Preferred requirements have not displaced required requirements.
+
+## Evidence Retrieval
+
+- [ ] Every critical requirement was searched across the complete available authoritative career evidence set.
+- [ ] Evidence retrieval was based on demonstrated capability rather than source-role bias.
 - [ ] Relevant terminology variants were considered.
-- [ ] Adjacent and transferable evidence were considered.
-- [ ] All relevant current artifacts were considered.
-- [ ] Writer or Evaluator deficiencies were incorporated rather than dismissed.
-- [ ] Previous analytical conclusions were reconsidered where appropriate.
-- [ ] Strongest relevant evidence was selected without source-role bias.
+- [ ] Relevant transferable evidence was considered.
+- [ ] New and updated evidence was integrated.
+- [ ] Source and employer provenance remain intact.
+
+## Evidence Analysis
+
+- [ ] Strongest relevant evidence was selected.
 - [ ] Strongest relevant results were identified when available.
-- [ ] Direct and transferable evidence remain distinct.
-- [ ] Functional-role classifications are supported.
-- [ ] Functional Role Architecture remains evidence-based.
-- [ ] Researcher did not assume Writer presentation authority.
-- [ ] Employer and source provenance remain intact.
+- [ ] Direct and transferable evidence are distinguished.
+- [ ] Evidence strength is appropriately assessed.
+- [ ] Ownership is preserved.
+- [ ] Scope is preserved.
+- [ ] Attribution is preserved.
+- [ ] Qualifications and uncertainty are preserved.
 - [ ] Unsupported claims are identified.
+- [ ] Prohibited claims are explicit where material.
+
+## Functional Classification
+
+- [ ] Functional-role classifications are supported.
+- [ ] Historical title was not treated as the sole determinant of professional function.
+- [ ] Civilian role labels do not inflate responsibility or capability.
+- [ ] Functional Role Architecture reflects current evidence.
+- [ ] Concurrent functions are preserved when relevant.
+- [ ] False chronology was not introduced.
+
+## Current-State Integration
+
+- [ ] All relevant current artifacts were considered.
+- [ ] Supplied product-state findings were incorporated rather than dismissed.
+- [ ] Previous analytical conclusions were reconsidered where materially justified.
+- [ ] Stable conclusions were preserved where no material change justified revision.
+- [ ] Evidence conflicts were reconciled only when supportable.
+- [ ] Unresolved factual uncertainty remains explicit.
+
+## Evidence Sufficiency
+
 - [ ] Material gaps are disclosed.
-- [ ] Evidence Requests were produced only when additional human facts could materially improve the authoritative evidence state.
+- [ ] Evidence Requests were generated when additional facts could materially improve the analysis.
+- [ ] Evidence Requests are partner-independent.
 - [ ] Genuine unsupported requirements were not disguised.
-- [ ] Priority evidence is sufficiently targeted for Writer use.
-- [ ] Writer guidance is clear.
+- [ ] Nice-to-have evidence was distinguished from materially useful evidence.
+
+## Output Quality
+
+- [ ] The Job Experience Analysis represents the strongest current analytical state.
 - [ ] Every selected claim remains traceable to authoritative evidence.
-- [ ] The Writer does not need to independently perform career-wide retrieval, reconciliation, or transferability analysis.
+- [ ] The analysis is sufficiently self-contained for independent professional use.
+- [ ] Outputs do not contain runtime routing instructions.
+- [ ] Outputs do not assign corrective ownership.
+- [ ] The Researcher did not perform workflow reasoning.
+- [ ] Structured outputs conform to authoritative schemas when available.
 
 ---
 
 # 10. COMPLETION CONDITION
 
-The task is complete when the Researcher has produced the strongest current analytical state possible from all relevant supplied artifacts and has:
+The task is complete when the Researcher has produced the strongest current Job Experience Analysis supported by the complete relevant current artifact and evidence set.
 
-- Integrated newly supplied confirmed evidence into the authoritative professional evidence model where appropriate.
-- Preserved unresolved evidence conflicts explicitly.
-- Produced the best current Job Experience Analysis.
-- Identified supported and unsupported requirements.
-- Produced Evidence Requests for material factual questions that still require human investigation.
-- Preserved genuine gaps when further factual investigation is not warranted.
-- Produced Process Feedback when a material system-level issue warrants Supervisor review.
+Completion may include:
 
-The Researcher must not delay completion merely because future information could theoretically improve the analysis.
+- A fully supported analysis.
+- An analysis containing partial evidence.
+- An analysis containing genuine unsupported requirements.
+- One or more Evidence Requests.
+- Process Feedback.
+- Any combination of the above.
 
-It must distinguish between:
+The Researcher must not delay analytical completion merely because future information might theoretically improve the analysis.
 
-- Information required to support a material analytical conclusion.
-- Information that would merely be useful but nonessential.
-- Genuine unsupported experience.
+Distinguish between:
 
-The task's governing transformation is:
+- Evidence that could materially change professional state.
+- Evidence that would merely be useful to have.
 
-    Current supplied artifacts
-            ↓
-    Integrate confirmed evidence
-            ↓
-    Maintain authoritative professional evidence
-            ↓
-    Analyze target requirements
-            ↓
-    Search career-wide evidence
-            ↓
-    Rank and classify evidence
-            ↓
-    Build Functional Role Architecture
-            ↓
-    Determine evidence sufficiency
-            ↓
-    Produce current Job Experience Analysis
-    + Evidence Request when needed
-    + Process Feedback when warranted
+When material evidence remains unknown:
+
+- Preserve the current analytical conclusion.
+- Produce an Evidence Request when appropriate.
+- Complete the Job Experience Analysis.
+
+The existence of an unresolved Evidence Request does not invalidate the current analysis.
+
+The task ends when no further material improvement is available through Researcher-owned reasoning using the current supplied state.
+
+It does not end by:
+
+- Selecting a downstream owner.
+- Routing an artifact.
+- Determining what task happens next.
+- Waiting for another professional function.
+- Declaring a workflow blocked.
+
+The Researcher produces professional state.
+
+Coordination occurs outside this task.
