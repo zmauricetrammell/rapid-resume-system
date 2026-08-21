@@ -3,16 +3,10 @@ $id: "https://rapid-resume-system.local/schemas/evidence-response.yaml"
 
 title: "Evidence Response"
 description: >
-  Professional-state artifact representing the factual results of a human
-  investigation against a defined Evidence Request. An Evidence Response
-  preserves what the investigation established, what remains uncertain,
-  what was explicitly not supported, and what contradictions were discovered
-  or clarified. It does not classify target-job evidence strength, determine
-  requirement satisfaction, modify authoritative Job Experience Records, or
-  define runtime workflow.
+  Professional-state artifact representing factual results of human
+  investigation against a defined Evidence Request.
 
 type: object
-
 additionalProperties: false
 
 required:
@@ -38,33 +32,18 @@ properties:
 
   schema_version:
     type: string
-    description: >
-      Version of this schema against which the Evidence Response was created.
     pattern: "^[0-9]+\\.[0-9]+$"
-    examples:
-      - "2.0"
 
   evidence_response_id:
     type: string
-    description: >
-      Stable human-readable identifier for this factual investigation response.
-      The identifier should remain stable across ordinary revisions of the
-      same response.
     pattern: "^ERESP-[0-9]{4,}$"
-    examples:
-      - "ERESP-0001"
 
   response_version:
     type: integer
     minimum: 1
-    description: >
-      Monotonically increasing version number for this Evidence Response.
 
   artifact_status:
     type: string
-    description: >
-      Lifecycle state of the Evidence Response artifact itself. This is distinct
-      from investigation completeness and does not represent workflow state.
     enum:
       - active
       - superseded
@@ -78,70 +57,43 @@ properties:
 
   objective_results:
     type: array
-    description: >
-      Objective-by-objective factual outcome corresponding to investigative
-      objectives defined by the originating Evidence Request.
+    minItems: 1
     items:
       $ref: "#/$defs/objective_result"
 
   dimension_results:
     type: array
-    description: >
-      Factual investigation results for requested evidence dimensions such as
-      ownership, scope, result, attribution, or proficiency.
+    minItems: 1
     items:
       $ref: "#/$defs/dimension_result"
 
   professional_episode_context:
     type: array
-    description: >
-      Professional episodes or source-role contexts materially involved in the
-      investigation.
     items:
       $ref: "#/$defs/professional_episode_context"
 
   factual_findings:
     type: array
-    description: >
-      Individually addressable factual findings established through human
-      investigation. These findings are not automatically authoritative Job
-      Experience Record elements until integrated through evidence custody.
     items:
       $ref: "#/$defs/factual_finding"
 
   results:
     type: array
-    description: >
-      Individually addressable outcomes or results reported or confirmed during
-      the investigation. These are response-level factual findings and are not
-      automatically authoritative JER result objects.
     items:
       $ref: "#/$defs/investigation_result"
 
   negative_evidence:
     type: array
-    description: >
-      Explicit factual findings that the requested experience, responsibility,
-      authority, scope, metric, system, or other professional fact did not exist
-      or cannot be supported. Negative evidence is preserved separately to reduce
-      repeated investigation and prevent optimistic reinterpretation.
     items:
       $ref: "#/$defs/negative_evidence"
 
   contradictions:
     type: array
-    description: >
-      Apparent conflicts between current human evidence and supplied factual
-      context, including explanations provided during investigation. Clarification
-      does not itself constitute authoritative evidence reconciliation.
     items:
       $ref: "#/$defs/contradiction"
 
   unresolved_dimensions:
     type: array
-    description: >
-      Material factual dimensions that could not be established through the
-      investigation.
     items:
       $ref: "#/$defs/unresolved_dimension"
 
@@ -150,26 +102,20 @@ properties:
 
   source_context:
     type: array
-    description: >
-      Human statements or supplied contextual artifacts materially used during
-      the investigation.
     items:
       $ref: "#/$defs/source_context"
 
   lineage:
     $ref: "#/$defs/lineage"
 
-
 $defs:
 
   request_reference:
     type: object
     additionalProperties: false
-
     required:
       - evidence_request_id
       - evidence_request_version
-
     properties:
 
       evidence_request_id:
@@ -180,67 +126,37 @@ $defs:
         type: integer
         minimum: 1
 
-      source_jea_id:
-        type:
-          - string
-          - "null"
-        pattern: "^JEA-[0-9]{4,}$"
-        description: >
-          Job Experience Analysis associated with the originating request when
-          applicable.
+      source_jea:
+        oneOf:
+          - $ref: "#/$defs/versioned_jea_reference"
+          - type: "null"
 
       source_evidence_need_id:
-        type:
-          - string
-          - "null"
+        type: ["string", "null"]
         pattern: "^EN-[0-9]{3,}$"
-        description: >
-          JEA-local Material Evidence Need associated with the request when
-          applicable.
-
 
   investigation_status:
     type: object
     additionalProperties: false
-
     required:
       - status
       - summary
-
     properties:
-
       status:
         type: string
         enum:
           - complete
           - partially_complete
           - unable_to_resolve
-        description: >
-          Completeness of the factual investigation. This is professional
-          investigation state, not runtime workflow state.
-
       summary:
         type: string
         minLength: 1
-        description: >
-          Concise factual summary of what the investigation accomplished and
-          any important remaining limitations.
-
       completion_basis:
-        type:
-          - string
-          - "null"
-        description: >
-          Why further questioning was not materially useful, such as all
-          objectives being addressed, the human lacking further reliable recall,
-          or remaining uncertainty being irreducible through additional
-          conversation.
-
+        type: ["string", "null"]
 
   objective_result:
     type: object
     additionalProperties: false
-
     required:
       - objective_id
       - status
@@ -248,14 +164,11 @@ $defs:
       - factual_finding_ids
       - result_ids
       - negative_evidence_ids
-
     properties:
 
       objective_id:
         type: string
         pattern: "^OBJ-[0-9]{3,}$"
-        description: >
-          Objective ID defined by the originating Evidence Request.
 
       status:
         type: string
@@ -268,9 +181,6 @@ $defs:
       finding_summary:
         type: string
         minLength: 1
-        description: >
-          Neutral summary of what the investigation established regarding this
-          objective.
 
       factual_finding_ids:
         type: array
@@ -294,24 +204,17 @@ $defs:
           pattern: "^NEG-[0-9]{3,}$"
 
       unresolved_reason:
-        type:
-          - string
-          - "null"
-        description: >
-          Why the objective remains partially established or unable to resolve.
-
+        type: ["string", "null"]
 
   dimension_result:
     type: object
     additionalProperties: false
-
     required:
       - dimension
       - status
       - factual_finding_ids
       - result_ids
       - negative_evidence_ids
-
     properties:
 
       dimension:
@@ -348,30 +251,24 @@ $defs:
           pattern: "^NEG-[0-9]{3,}$"
 
       notes:
-        type:
-          - string
-          - "null"
-
+        type: ["string", "null"]
 
   professional_episode_context:
     type: object
     additionalProperties: false
-
     required:
       - context_id
       - context_summary
-
     properties:
 
       context_id:
         type: string
         pattern: "^CTX-[0-9]{3,}$"
 
-      jer_id:
-        type:
-          - string
-          - "null"
-        pattern: "^JER-[0-9]{4,}$"
+      jer_reference:
+        oneOf:
+          - $ref: "#/$defs/versioned_jer_reference"
+          - type: "null"
 
       source_role_ids:
         type: array
@@ -397,9 +294,6 @@ $defs:
       context_summary:
         type: string
         minLength: 1
-        description: >
-          Factual professional context identified or clarified during
-          investigation.
 
       source_context_ids:
         type: array
@@ -408,11 +302,9 @@ $defs:
           type: string
           pattern: "^ECTX-[0-9]{3,}$"
 
-
   factual_finding:
     type: object
     additionalProperties: false
-
     required:
       - finding_id
       - finding_type
@@ -428,14 +320,11 @@ $defs:
       - related_dimensions
       - source_context_ids
       - qualifications
-
     properties:
 
       finding_id:
         type: string
         pattern: "^FIND-[0-9]{3,}$"
-        description: >
-          Human-readable finding identifier local to this Evidence Response.
 
       finding_type:
         type: string
@@ -462,9 +351,6 @@ $defs:
       statement:
         type: string
         minLength: 1
-        description: >
-          Neutral factual statement describing what the human investigation
-          established.
 
       factual_status:
         $ref: "#/$defs/factual_status"
@@ -477,9 +363,6 @@ $defs:
           - contributory
           - support
           - unknown
-        description: >
-          Factual degree of ownership when applicable. Use unknown when ownership
-          is not established or not relevant.
 
       attribution:
         type: string
@@ -544,26 +427,20 @@ $defs:
 
       qualifications:
         type: array
-        description: >
-          Material caveats that must remain attached to this factual finding.
         items:
           type: string
 
       human_confirmation:
-        type:
-          - string
-          - "null"
+        type: ["string", "null"]
         enum:
           - confirmed
           - confirmed_with_qualification
           - not_individually_confirmed
           - null
 
-
   investigation_result:
     type: object
     additionalProperties: false
-
     required:
       - response_result_id
       - statement
@@ -575,15 +452,11 @@ $defs:
       - related_objective_ids
       - source_context_ids
       - qualifications
-
     properties:
 
       response_result_id:
         type: string
         pattern: "^ERES-[0-9]{3,}$"
-        description: >
-          Response-local result identifier. This is distinct from authoritative
-          JER result IDs using the RES-* namespace.
 
       statement:
         type: string
@@ -616,26 +489,16 @@ $defs:
           - type: "null"
 
       qualitative:
-        type:
-          - string
-          - "null"
+        type: ["string", "null"]
 
       baseline:
-        type:
-          - string
-          - number
-          - "null"
+        type: ["string", "number", "null"]
 
       final_state:
-        type:
-          - string
-          - number
-          - "null"
+        type: ["string", "number", "null"]
 
       timeframe:
-        type:
-          - string
-          - "null"
+        type: ["string", "null"]
 
       attribution:
         type: string
@@ -684,11 +547,9 @@ $defs:
         items:
           type: string
 
-
   negative_evidence:
     type: object
     additionalProperties: false
-
     required:
       - negative_evidence_id
       - statement
@@ -696,22 +557,15 @@ $defs:
       - related_objective_ids
       - related_dimensions
       - source_context_ids
-
     properties:
 
       negative_evidence_id:
         type: string
         pattern: "^NEG-[0-9]{3,}$"
-        description: >
-          Human-readable negative-evidence identifier local to this response.
 
       statement:
         type: string
         minLength: 1
-        description: >
-          Explicit factual statement describing experience, authority, scope,
-          result, metric, tool use, or other requested information that did not
-          occur or cannot be supported.
 
       confidence:
         type: string
@@ -748,18 +602,11 @@ $defs:
           pattern: "^ECTX-[0-9]{3,}$"
 
       qualification:
-        type:
-          - string
-          - "null"
-        description: >
-          Limitation on the negative finding, such as uncertainty caused by
-          incomplete memory.
-
+        type: ["string", "null"]
 
   contradiction:
     type: object
     additionalProperties: false
-
     required:
       - contradiction_id
       - description
@@ -767,7 +614,6 @@ $defs:
       - current_value
       - status
       - source_context_ids
-
     properties:
 
       contradiction_id:
@@ -779,41 +625,22 @@ $defs:
         minLength: 1
 
       prior_value:
-        type:
-          - string
-          - number
-          - boolean
+        type: ["string", "number", "boolean"]
 
       current_value:
-        type:
-          - string
-          - number
-          - boolean
+        type: ["string", "number", "boolean"]
 
       possible_explanation:
-        type:
-          - string
-          - "null"
-        description: >
-          Human-provided or investigation-developed explanation for why both
-          values may appear inconsistent.
+        type: ["string", "null"]
 
       status:
         type: string
         enum:
           - clarified
           - unresolved
-        description: >
-          Whether the human investigation produced a plausible factual
-          clarification. Clarified does not mean authoritative evidence records
-          have been reconciled.
 
       clarification:
-        type:
-          - string
-          - "null"
-        description: >
-          Factual explanation established during investigation when available.
+        type: ["string", "null"]
 
       related_objective_ids:
         type: array
@@ -836,20 +663,15 @@ $defs:
           pattern: "^ECTX-[0-9]{3,}$"
 
       unresolved_reason:
-        type:
-          - string
-          - "null"
-
+        type: ["string", "null"]
 
   unresolved_dimension:
     type: object
     additionalProperties: false
-
     required:
       - dimension
       - reason
       - related_objective_ids
-
     properties:
 
       dimension:
@@ -858,8 +680,6 @@ $defs:
       reason:
         type: string
         minLength: 1
-        description: >
-          Why the factual dimension could not be established.
 
       related_objective_ids:
         type: array
@@ -869,30 +689,20 @@ $defs:
           pattern: "^OBJ-[0-9]{3,}$"
 
       attempted_clarification:
-        type:
-          - string
-          - "null"
-        description: >
-          Concise description of the factual clarification attempted before the
-          dimension was left unresolved.
+        type: ["string", "null"]
 
       residual_uncertainty:
-        type:
-          - string
-          - "null"
-
+        type: ["string", "null"]
 
   human_confirmation:
     type: object
     additionalProperties: false
-
     required:
       - status
       - confirmed_finding_ids
       - corrected_finding_ids
       - confirmed_result_ids
       - confirmed_negative_evidence_ids
-
     properties:
 
       status:
@@ -932,27 +742,19 @@ $defs:
           pattern: "^NEG-[0-9]{3,}$"
 
       confirmation_summary:
-        type:
-          - string
-          - "null"
-        description: >
-          Concise summary of material human confirmation, corrections, or
-          remaining confirmation limitations.
+        type: ["string", "null"]
 
       unconfirmed_material_items:
         type: array
         items:
           type: string
 
-
   source_context:
     type: object
     additionalProperties: false
-
     required:
       - source_context_id
       - source_type
-
     properties:
 
       source_context_id:
@@ -970,36 +772,22 @@ $defs:
           - other
 
       reference:
-        type:
-          - string
-          - "null"
-        description: >
-          Stable reference to a source artifact, document, JER, prior Evidence
-          Response, or other contextual source when available.
+        type: ["string", "null"]
 
       summary:
-        type:
-          - string
-          - "null"
-        description: >
-          Brief description of the contextual information used.
+        type: ["string", "null"]
 
       notes:
-        type:
-          - string
-          - "null"
-
+        type: ["string", "null"]
 
   scope_item:
     type: object
     additionalProperties: false
-
     required:
       - dimension
       - value
       - precision
       - factual_status
-
     properties:
 
       dimension:
@@ -1037,14 +825,10 @@ $defs:
           - other
 
       value:
-        type:
-          - string
-          - number
+        type: ["string", "number"]
 
       unit:
-        type:
-          - string
-          - "null"
+        type: ["string", "null"]
 
       precision:
         $ref: "#/$defs/precision"
@@ -1053,75 +837,39 @@ $defs:
         $ref: "#/$defs/factual_status"
 
       qualification:
-        type:
-          - string
-          - "null"
-
+        type: ["string", "null"]
 
   duration_frequency:
     type: object
     additionalProperties: false
-
     properties:
-
       duration:
-        type:
-          - string
-          - "null"
-
+        type: ["string", "null"]
       frequency:
-        type:
-          - string
-          - "null"
-
+        type: ["string", "null"]
       recurring:
-        type:
-          - boolean
-          - "null"
-
+        type: ["boolean", "null"]
       precision:
         oneOf:
           - $ref: "#/$defs/precision"
           - type: "null"
 
-
   quantitative_result:
     type: object
     additionalProperties: false
-
     properties:
-
       value:
-        type:
-          - number
-          - "null"
-
+        type: ["number", "null"]
       minimum:
-        type:
-          - number
-          - "null"
-
+        type: ["number", "null"]
       maximum:
-        type:
-          - number
-          - "null"
-
+        type: ["number", "null"]
       unit:
-        type:
-          - string
-          - "null"
-
+        type: ["string", "null"]
       precision:
         $ref: "#/$defs/precision"
-
       comparison:
-        type:
-          - string
-          - "null"
-        description: >
-          Human-readable quantitative relationship such as "33 days to 3 days"
-          when that representation better preserves the factual result.
-
+        type: ["string", "null"]
 
   factual_status:
     type: string
@@ -1131,10 +879,6 @@ $defs:
       - estimated
       - qualified
       - uncertain
-    description: >
-      Factual status of a human-investigation finding. This does not indicate
-      target-job relevance or evidence strength.
-
 
   precision:
     type: string
@@ -1144,9 +888,9 @@ $defs:
       - range
       - minimum
       - maximum
+      - order_of_magnitude
       - qualitative
       - unknown
-
 
   evidence_dimension:
     type: string
@@ -1179,36 +923,49 @@ $defs:
       - directness
       - other
 
+  versioned_jer_reference:
+    type: object
+    additionalProperties: false
+    required:
+      - jer_id
+      - jer_version
+    properties:
+      jer_id:
+        type: string
+        pattern: "^JER-[0-9]{4,}$"
+      jer_version:
+        type: integer
+        minimum: 1
+
+  versioned_jea_reference:
+    type: object
+    additionalProperties: false
+    required:
+      - jea_id
+      - analysis_version
+    properties:
+      jea_id:
+        type: string
+        pattern: "^JEA-[0-9]{4,}$"
+      analysis_version:
+        type: integer
+        minimum: 1
 
   lineage:
     type: object
     additionalProperties: false
-
     required:
       - created_at
       - updated_at
-
     properties:
-
       created_at:
         type: string
         format: date-time
-
       updated_at:
         type: string
         format: date-time
-
       supersedes_version:
-        type:
-          - integer
-          - "null"
+        type: ["integer", "null"]
         minimum: 1
-
       material_change_summary:
-        type:
-          - string
-          - "null"
-        description: >
-          Concise description of material factual changes from the prior
-          response version. This records artifact evolution rather than runtime
-          workflow.
+        type: ["string", "null"]
