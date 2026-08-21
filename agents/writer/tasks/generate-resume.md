@@ -9,19 +9,17 @@
 
 # 1. TASK
 
-Generate the strongest current targeted resume from all relevant currently supplied artifacts.
+Generate the strongest current targeted resume from all relevant supplied artifacts.
 
-This is the Writer's primary resume-production task.
-
-The same task is used whether:
+Use the same task whether:
 
 - No previous resume exists.
 - A previous resume exists.
 - A newer Job Experience Analysis exists.
-- Evaluator feedback has been supplied.
-- New Researcher-authorized evidence exists.
+- A Resume Evaluation exists.
+- New authorized evidence exists.
 - Structural constraints have changed.
-- The task has already been performed on the same target job.
+- The task has been performed previously on an earlier artifact state.
 
 Do not create separate Writer modes for:
 
@@ -29,17 +27,17 @@ Do not create separate Writer modes for:
 - Revision.
 - Rewrite.
 - Regeneration.
-- Resume after evaluation.
+- Post-evaluation generation.
 
-Each invocation must evaluate the complete current artifact set and produce the strongest truthful resume supported by the current Researcher-authorized evidence and structural constraints.
+Each invocation evaluates the complete current artifact state and produces the strongest truthful resume supported by current authorized evidence and structural constraints.
 
-The Writer must not preserve prior wording merely because it already exists.
+The task is:
 
-The Writer must not change prior wording merely because another invocation occurred.
+> Present the current authorized professional evidence as the strongest truthful resume for the target job.
 
-The task is idempotent in intent:
+Repeated execution changes the available context.
 
-> Given materially identical authorized evidence, target requirements, feedback, and constraints, repeated execution should converge on materially the same resume rather than producing unnecessary variation.
+It does not change the professional operation.
 
 ---
 
@@ -56,29 +54,13 @@ Produce a targeted resume that makes the job hunter's strongest supported fit fo
 - Properly scoped.
 - Factually traceable.
 
-The Writer translates Researcher-authorized professional evidence into the strongest current application presentation.
+The Writer translates authorized professional evidence into application presentation.
 
-The intended transformation is:
-
-    Target Job
-        ↓
-    Current Job Experience Analysis
-        ↓
-    Authorized Evidence
-        ↓
-    Supported Functional Roles
-        ↓
-    Presentation Decisions
-        ↓
-    Targeted Resume
-        ↓
-    Validation
-
-The Writer does not recreate the Researcher's evidence analysis.
+The Writer does not independently recreate career-wide evidence analysis.
 
 The Writer does not determine whether more evidence should be acquired.
 
-The Writer works with the current authorized evidence and produces the strongest supportable product from it.
+The Writer works with the current authorized state and produces the strongest supportable resume from it.
 
 ---
 
@@ -92,8 +74,8 @@ The Writer must consider all relevant artifacts supplied with the current invoca
 - Current Job Experience Analysis.
 - Resume Skeleton.
 - Applicable task instruction.
-- Static Resume Content when required.
-- Output format requirements.
+- Required static resume content.
+- Output-format requirements.
 - Page or length constraints.
 
 ## Contextual Inputs
@@ -107,17 +89,25 @@ When supplied and relevant, also consider:
 - Mandatory cautions.
 - Referenced Job Experience Records.
 - Employment provenance records.
-- Existing targeted resume.
+- Existing Targeted Resume.
 - Writer Content Manifest.
-- Evaluator feedback.
-- Previous evaluation.
+- Resume Evaluation.
+- Previous evaluation artifacts.
 - Approved style instructions.
 - Supporting source materials.
-- Other relevant artifacts supplied with the current invocation.
+- Other relevant supplied artifacts.
 
 The presence of additional artifacts does not create a different task.
 
-It changes the current state available to the Writer.
+It changes the current presentation state available to the Writer.
+
+Do not require knowledge of:
+
+- Who produced an artifact.
+- Who will consume the resume.
+- Why the task was invoked.
+- Which runtime component acts next.
+- Whether this is a first pass or later iteration.
 
 ---
 
@@ -139,33 +129,57 @@ The current Job Experience Analysis controls:
 - Material gaps.
 - Scope cautions.
 
-The Writer may compose, prioritize for presentation, and place authorized evidence.
+The Writer may:
+
+- Compose.
+- Translate.
+- Select for presentation.
+- Prioritize for presentation.
+- Place authorized evidence.
 
 The Writer may not independently expand the authorized evidence set.
 
+---
+
 ## Functional Role Architecture
 
-The Researcher Functional Role Architecture defines the supported relationships between evidence and professional functions.
+When supplied, the Functional Role Architecture defines supported relationships between evidence and professional functions.
 
-The Writer determines how those supported relationships are expressed in the final resume.
-
-Researcher owns:
-
-- Functional-role classification.
-- Evidence authorization.
-
-Writer owns:
-
-- Functional-role presentation.
-- Final placement.
-- Final wording.
-- Final resume structure within the skeleton.
+The Writer determines how those supported relationships are expressed in the resume.
 
 The final resume need not reproduce the Functional Role Architecture one-for-one.
 
 It must not contradict it.
 
-## Previous Resume
+---
+
+## Resume Evaluation
+
+A supplied Resume Evaluation may establish current product state such as:
+
+- A requirement is insufficiently demonstrated.
+- A claim is ambiguous.
+- A credibility concern exists.
+- Professional positioning is ineffective.
+- Scope or seniority is misaligned.
+- The current resume is not ready to submit.
+
+Treat those findings as relevant current state.
+
+The Writer determines how current authorized evidence can best improve the product through presentation decisions.
+
+Do not strengthen evidence merely to satisfy evaluation feedback.
+
+If current authorization cannot fully resolve a deficiency:
+
+- Preserve factual integrity.
+- Use the strongest supportable presentation.
+- Record the limitation when useful.
+- Complete the resume.
+
+---
+
+## Existing Resume
 
 A previous resume is historical product context.
 
@@ -173,23 +187,9 @@ It is not an authoritative specification.
 
 Preserve material that remains optimal.
 
-Revise material when current evidence, feedback, or constraints support a materially better presentation.
+Revise material when current authorized evidence, feedback, or constraints support a materially better presentation.
 
 Do not rewrite simply for novelty.
-
-## Evaluator Feedback
-
-Evaluator feedback establishes product deficiencies within Evaluator authority.
-
-The Writer must treat those deficiencies as requiring presentation consideration.
-
-The Writer does not determine whether the Evaluator was correct about the screening outcome.
-
-The Writer determines how the current authorized evidence can best address the identified deficiency.
-
-If the current evidence cannot fully address it, the Writer still produces the strongest truthful resume possible and documents the limitation.
-
-The Writer does not request additional research or human evidence.
 
 ---
 
@@ -199,7 +199,7 @@ The Writer does not request additional research or human evidence.
 
 Review the Target Job Description and current Job Experience Analysis.
 
-Establish from those artifacts:
+Establish:
 
 - Central role mandate.
 - Ranked hiring priorities.
@@ -215,13 +215,13 @@ Establish from those artifacts:
 
 Determine the supported professional identity the resume should communicate most clearly.
 
-The Writer may select among Researcher-supported professional identities.
+The Writer may select among supported professional identities.
 
-The Writer may not invent a professional identity unsupported by the Job Experience Analysis.
+The Writer may not invent a professional identity unsupported by current authorization.
 
 ---
 
-## Phase 2 — Review Existing Resume State
+## Phase 2 — Review Existing Product State
 
 If a previous resume exists, review it before drafting.
 
@@ -230,8 +230,8 @@ Determine:
 - What remains strong.
 - What should be preserved.
 - What no longer reflects the current Job Experience Analysis.
-- What Evaluator feedback identifies as insufficient.
-- What supported evidence is missing from the visible product.
+- What supplied product feedback identifies as insufficient.
+- What supported evidence is not sufficiently visible.
 - What content is redundant.
 - What wording is vague.
 - What role presentation is confusing.
@@ -249,7 +249,7 @@ Evaluate each material component on current merit.
 
 For every critical supported requirement:
 
-1. Review the priority evidence identified by the Researcher.
+1. Review the priority evidence identified in current analysis.
 2. Determine which authorized evidence should be used in the resume.
 3. Determine the strongest visible resume location.
 4. Determine the clearest supported expression.
@@ -259,7 +259,7 @@ The intended chain is:
 
     Target Requirement
         ↓
-    Researcher-Authorized Evidence
+    Authorized Evidence
         ↓
     Supported Professional Function
         ↓
@@ -273,9 +273,7 @@ Do not rely on a skills section alone to demonstrate a critical capability.
 
 # 6. FUNCTIONAL ROLE PRESENTATION
 
-Use the Researcher's Functional Role Architecture as the evidence-classification foundation.
-
-The Writer controls how supported professional functions are presented in the resume.
+Use the current Functional Role Architecture as the professional-function foundation when supplied.
 
 Maintain the distinction between:
 
@@ -301,6 +299,8 @@ Do not fabricate historical titles.
 Do not move evidence across employers.
 
 Do not create false employment relationships.
+
+Do not manufacture sequential promotion history from concurrent professional functions.
 
 ---
 
@@ -343,12 +343,12 @@ Prioritize approximately:
 
 1. Critical supported requirements.
 2. Central target responsibilities.
-3. Likely recruiter screening criteria identified by Researcher.
+3. Likely screening criteria.
 4. Strong differentiating evidence.
 5. Preferred supported qualifications.
 6. Supporting context.
 
-Within the Researcher-authorized evidence set, prefer content containing:
+Within the authorized evidence set, prefer content containing:
 
 - Direct relevance.
 - Clear ownership.
@@ -364,19 +364,19 @@ Omit:
 - Lower-value accomplishments.
 - Redundant evidence.
 - Evidence that does not strengthen the target professional identity.
-- Historical detail whose main value is completeness rather than relevance.
+- Historical detail whose primary value is completeness rather than relevance.
 
-The Writer may deviate from Researcher's evidence priority when presentation needs justify it.
+The Writer may deviate from analytical evidence priority when presentation needs justify it.
 
-Examples:
+Examples include:
 
 - Avoiding redundant proof.
-- Improving requirement breadth.
+- Improving visible requirement breadth.
 - Improving scanability.
-- Avoiding repetition.
-- Preserving space for another critical capability.
+- Preserving space.
+- Avoiding repetitive accomplishments.
 
-When a material priority choice differs from Researcher guidance, preserve the reasoning in the Writer Content Manifest.
+When a material presentation choice differs from analytical priority, preserve the reasoning in the Writer Content Manifest.
 
 ---
 
@@ -408,7 +408,7 @@ A bullet may combine compatible authorized evidence when:
 
 Do not combine unrelated facts merely because they support the same role.
 
-Do not attach a result to an action unless the evidence supports that relationship.
+Do not attach a result to an action unless current evidence supports that relationship.
 
 Place target-relevant information early.
 
@@ -442,7 +442,6 @@ Avoid:
 - Excessive em dashes.
 - Repetitive three-part lists.
 - Empty phrases such as "results-driven professional."
-- Excessive "leveraged" or "utilized."
 - Mechanical repetition of target-job language.
 - Identical bullet cadence.
 - Unnecessary military or internal terminology.
@@ -503,7 +502,7 @@ Misrepresenting factual seniority is not.
 
 # 13. SUMMARY CONSTRUCTION
 
-Draft the primary experience sections before writing the professional summary.
+Draft the primary experience sections before finalizing the professional summary.
 
 The summary must reflect evidence actually present in the completed resume.
 
@@ -567,15 +566,18 @@ Do not:
 - Use unreadable density.
 - Distort factual meaning to save space.
 
-If structural constraints prevent ideal presentation, produce the strongest compliant product possible and document the limitation in the Writer Content Manifest.
+If structural constraints prevent ideal presentation:
+
+- Produce the strongest compliant product possible.
+- Record the material structural limitation in the Writer Content Manifest when useful.
 
 Do not stop production merely because the product could be better with additional space or evidence.
 
 ---
 
-# 16. EVALUATOR FEEDBACK INCORPORATION
+# 16. PRODUCT FEEDBACK INCORPORATION
 
-When Evaluator feedback is supplied:
+When a Resume Evaluation or other valid product-state feedback is supplied:
 
 1. Identify every material product deficiency.
 2. Determine how current authorized evidence can best address it through Writer-owned presentation decisions.
@@ -598,26 +600,24 @@ Prioritize corrections approximately in this order:
 
 Do not attempt to fix an evidence deficiency through stronger unsupported wording.
 
-If the current authorized evidence cannot fully address the Evaluator deficiency:
+If current authorized evidence cannot fully address a deficiency:
 
 - Preserve factual integrity.
 - Use the strongest supportable presentation.
-- Document the limitation.
+- Record the limitation when materially relevant.
 - Continue producing the best current resume.
 
 The Writer does not request additional evidence.
 
-The Writer does not request Researcher action.
+The Writer does not request another runtime component to act.
 
-The Writer does not determine whether another analysis cycle should occur.
+The Writer does not determine whether another system iteration should occur.
 
 ---
 
 # 17. EVIDENCE AND ANALYSIS LIMITATIONS
 
-The Writer may encounter ambiguity or limitations in the current Job Experience Analysis.
-
-Examples:
+The Writer may encounter limitations such as:
 
 - Evidence authorization does not support a desired stronger claim.
 - Functional-role classification is narrower than ideal presentation would require.
@@ -625,14 +625,14 @@ Examples:
 - Scope is insufficiently established.
 - Ownership is unclear.
 - A factual conflict remains in supplied artifacts.
-- Evaluator feedback identifies a weakness current authorization cannot fully resolve.
+- Product feedback identifies a weakness current authorization cannot fully resolve.
 
 In these situations:
 
 1. Do not invent or strengthen evidence.
 2. Do not independently search the broader career evidence repository.
 3. Do not interview the job hunter.
-4. Do not request another agent to act.
+4. Do not request another runtime component to act.
 5. Use the strongest authorized presentation available.
 6. Preserve the limitation in the Writer Content Manifest when materially relevant.
 7. Complete the resume.
@@ -651,13 +651,13 @@ Use the authoritative schema under:
 
     /schemas/writer-content-manifest.yaml
 
-The manifest preserves traceability between visible resume content and authorized evidence.
+The manifest preserves traceability between visible resume content and authorized professional state.
 
 Capture as applicable:
 
 - Resume ID.
 - Resume version.
-- Previous version when applicable.
+- Previous version.
 - Content ID.
 - Resume location.
 - Final text.
@@ -678,12 +678,16 @@ Capture as applicable:
 - Material presentation choices.
 - Material changes from previous version.
 - Reason for material changes.
-- Related Evaluator feedback.
+- Related product feedback.
 - Known evidence or analysis limitations.
 - Structural limitations.
 - Unresolved factual ambiguity visible to the Writer.
 
 The Writer Content Manifest is the semantic traceability record for the current resume.
+
+It records professional state.
+
+It does not request action.
 
 A separate Writer Revision Log is not required.
 
@@ -713,7 +717,7 @@ Material changes may include:
 - Changed professional identity.
 - Material wording changes.
 - Material structure changes.
-- Resolution of an Evaluator deficiency.
+- Resolution of a material product deficiency.
 - Addition or removal of a material claim.
 
 Minor punctuation or equivalent wording differences do not necessarily require a new version.
@@ -730,7 +734,7 @@ Given materially identical:
 - Job Experience Analysis.
 - Resume Skeleton.
 - Static content.
-- Evaluator feedback.
+- Product feedback.
 - Structural constraints.
 - Authorized evidence context.
 
@@ -760,7 +764,7 @@ Examples:
 
 - Updated Job Experience Analysis.
 - Newly authorized evidence.
-- New Evaluator feedback.
+- New Resume Evaluation.
 - Corrected provenance.
 - Changed structural constraints.
 - Changed target job.
@@ -786,77 +790,71 @@ The goal is convergence.
 
 ### Targeted Resume
 
-Produce the strongest current targeted resume in the required format.
+Purpose:
+
+> Present the strongest current truthful case for the target job using current authorized professional evidence and supplied structural constraints.
 
 ## Required Supporting Output
 
 ### Writer Content Manifest
 
-Produce or update the Writer Content Manifest corresponding exactly to the returned resume.
+Purpose:
+
+> Preserve semantic traceability between the resume and the authorized evidence, requirements, classifications, limitations, and presentation decisions supporting it.
 
 ## Conditional Output
 
 ### Process Feedback
 
-Produce Process Feedback when the Writer identifies recurring or material system friction involving:
+Purpose:
+
+> Document recurring or material system-level friction discovered during resume production.
+
+Process Feedback may concern:
 
 - Contract ambiguity.
 - Task ambiguity.
 - Schema weakness.
-- Repeated insufficient Researcher outputs.
+- Repeated insufficient analytical context.
 - Repeated unclear evidence authorization.
 - Repeated skeleton conflicts.
-- Repeated evidence-to-writing interface problems.
-- Repeated ambiguity about functional-role presentation.
+- Repeated evidence-to-presentation interface problems.
 - Missing manifest fields.
 - Structural problems outside normal Writer authority.
 
-Intended consumer:
+Do not use Process Feedback for ordinary case-specific evidence limitations.
 
-    Supervisor
-
-Process Feedback is separate from the resume and Writer Content Manifest.
-
-The Writer should not convert ordinary evidence limitations into Process Feedback.
+Do not assign a destination or corrective owner.
 
 ---
 
-# 22. OUTPUT INTERFACE
+# 22. PARTNER INDEPENDENCE
 
-## Targeted Resume
+The Writer operates from:
 
-Intended consumer:
+- Its contract.
+- This task instruction.
+- The Target Job Description.
+- Current Job Experience Analysis.
+- Resume Skeleton.
+- Current supplied professional artifacts.
 
-    Evaluator
+The Writer does not need to know:
 
-The resume represents the Writer's strongest current supported presentation.
+- Who produced the Job Experience Analysis.
+- Who produced a Resume Evaluation.
+- Who will consume the resume.
+- Who owns evidence limitations outside Writer authority.
+- What task will occur next.
+- Whether the current invocation is part of a larger iteration cycle.
 
-## Writer Content Manifest
+The Writer produces:
 
-Intended consumers:
+    Targeted Resume
+    + Writer Content Manifest
+    + Conditional Process Feedback
 
-    Evaluator
-    and other authorized consumers requiring traceability.
-
-The manifest records how visible content relates to authorized evidence and records material limitations known to the Writer.
-
-## Process Feedback
-
-Intended consumer:
-
-    Supervisor
-
-The task does not define:
-
-- Routing.
-- Workflow transitions.
-- Backward requests.
-- Forward requests.
-- Work-item state.
-- Blocking state.
-- Communication technology.
-
-The Writer produces professional artifacts and completes its work.
+Stop there.
 
 ---
 
@@ -868,9 +866,9 @@ Verify:
 
 - [ ] The complete current Job Experience Analysis was reviewed.
 - [ ] All relevant current artifacts were considered.
-- [ ] The target professional identity is Researcher-supported.
+- [ ] The target professional identity is supported.
 - [ ] Every critical supported requirement is appropriately visible.
-- [ ] Priority evidence reflects current Researcher authorization.
+- [ ] Priority evidence reflects current authorization.
 - [ ] Functional-role presentation is supported.
 - [ ] Employer provenance remains truthful.
 - [ ] No evidence was moved across employers.
@@ -896,29 +894,31 @@ Verify:
 - [ ] Static skeleton content is preserved.
 - [ ] Skeleton constraints are satisfied.
 - [ ] Page or length limits are satisfied.
-- [ ] Evaluator feedback was addressed within Writer authority.
-- [ ] Limitations that cannot be resolved within Writer authority are documented rather than hidden.
+- [ ] Supplied product feedback was addressed within Writer authority.
+- [ ] Limitations outside Writer authority were documented rather than hidden.
 - [ ] Writer did not independently expand evidence authorization.
 - [ ] Writer did not independently search for additional professional evidence.
-- [ ] Writer did not request human evidence acquisition.
-- [ ] Writer did not request another agent to act.
+- [ ] Writer did not acquire human evidence.
+- [ ] Writer did not request another runtime component to act.
+- [ ] Writer did not assign corrective ownership.
+- [ ] Writer did not perform workflow reasoning.
 - [ ] Writer Content Manifest matches the final resume.
 
 ---
 
 # 24. COMPLETION CONDITION
 
-The task is complete when the Writer has produced the strongest current resume supportable from the complete supplied authorized artifact set and:
+The task is complete when the Writer has produced the strongest current resume supportable from the complete supplied authorized artifact state and:
 
-- The resume satisfies the Writer's factual-integrity requirements.
-- The resume satisfies the supplied structural constraints.
+- Factual integrity is preserved.
+- The resume satisfies supplied structural constraints.
 - Critical supported requirements are presented as clearly as current evidence permits.
 - The professional identity is coherent and supported.
 - Material claims are traceable.
 - Unsupported claims are absent.
 - Known limitations are represented honestly.
 - Material unresolved limitations are documented in the Writer Content Manifest.
-- Evaluator feedback has been addressed to the maximum extent possible within Writer authority.
+- Supplied product feedback has been addressed to the maximum extent possible within Writer authority.
 - The Writer Content Manifest corresponds to the final resume.
 - No further material improvement is available through Writer-owned presentation decisions alone.
 
@@ -926,7 +926,7 @@ The Writer must not delay completion because:
 
 - More evidence might theoretically exist.
 - Additional clarification might improve a claim.
-- Another agent might produce a better upstream artifact.
+- Another runtime component might improve an input.
 - The current resume is not a perfect match for the target job.
 
 The Writer must distinguish between:
@@ -935,26 +935,28 @@ The Writer must distinguish between:
 - A merely different presentation.
 - An evidence limitation outside Writer authority.
 
-The Writer succeeds by producing the strongest truthful resume possible from the current state.
-
 The governing transformation is:
 
-    Current Job Experience Analysis
+    Current Authorized Professional State
     + Target Job
     + Resume Skeleton
-    + Current feedback
+    + Current Product Feedback
             ↓
-    Select authorized evidence for presentation
+    Select Authorized Evidence for Presentation
             ↓
-    Build supported professional identity
+    Build Supported Professional Identity
             ↓
-    Compose and structure resume
+    Compose and Structure Resume
             ↓
-    Preserve factual integrity and provenance
+    Preserve Factual Integrity and Provenance
             ↓
-    Document material limitations
+    Record Material Limitations
             ↓
-    Validate complete product
+    Validate Complete Product
             ↓
     Targeted Resume
     + Writer Content Manifest
+
+The task ends with the strongest truthful current resume.
+
+What happens to the resulting artifacts afterward is outside this task.
