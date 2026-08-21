@@ -65,6 +65,7 @@ Evaluate all relevant artifacts supplied with the current invocation.
 
 - Target Job Description.
 - Current Targeted Resume.
+- Corresponding Writer Content Manifest.
 
 ## Contextual Inputs
 
@@ -72,7 +73,6 @@ When available and relevant, also consider:
 
 - Resume identifier and version.
 - Current Job Experience Analysis.
-- Writer Content Manifest.
 - Relevant Job Experience Records.
 - Functional Role Architecture.
 - Permitted Claim Guidance.

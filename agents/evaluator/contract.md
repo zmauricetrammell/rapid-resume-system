@@ -217,8 +217,17 @@ The Evaluator requires:
 
 - Target Job Description.
 - Current Targeted Resume.
+- Corresponding Writer Content Manifest.
 - Applicable evaluation task instruction.
 - Applicable output schema when defined.
+
+A Targeted Resume produced by RRS and its corresponding Writer Content Manifest form a coupled product interface for evaluation.
+
+The visible resume remains authoritative for determining what an external reviewer can observe.
+
+The Writer Content Manifest is authoritative for tracing visible content to the analytical and evidentiary state that authorized its construction.
+
+The Evaluator must not use hidden manifest or evidence content to increase the visible resume's external screening credit.
 
 ## Contextual Inputs
 
@@ -226,7 +235,6 @@ The Evaluator may also receive:
 
 - Resume ID and version.
 - Current Job Experience Analysis.
-- Writer Content Manifest.
 - Functional Role Architecture.
 - Permitted Claim Guidance.
 - Prohibited Claim Guidance.

@@ -142,14 +142,19 @@ Identify the specific requirement, evidence deficiency, conflict, or uncertainty
 
 Preserve as applicable:
 
+- Relevant evidence IDs.
+- Relevant Job Experience Record IDs and versions.
+- Relevant analysis IDs and versions.
+- Relevant feedback or deficiency references.
+
+When the factual issue is target-specific, additionally preserve:
+
+- Target Job ID.
+- Job Experience Analysis ID and version.
 - Requirement ID.
 - Original job-description language.
 - Normalized requirement.
 - Requirement priority.
-- Relevant evidence IDs.
-- Relevant Job Experience Record IDs.
-- Relevant analysis IDs.
-- Relevant feedback or deficiency references.
 
 Determine why the unresolved issue matters analytically.
 
@@ -443,11 +448,8 @@ Produce an Evidence Request conforming to the authoritative schema under:
 The Evidence Request should contain, as applicable:
 
 - Request ID.
-- Related Target Job ID.
-- Related requirement IDs.
 - Related evidence IDs.
-- Related Job Experience Record IDs.
-- Related analysis IDs.
+- Related Job Experience Record IDs and versions.
 - Reason for request.
 - Current evidence summary.
 - Missing evidence dimensions.
@@ -458,12 +460,18 @@ The Evidence Request should contain, as applicable:
 - Partial factual-resolution conditions.
 - Related-capability conditions when applicable.
 - Unsupported factual outcome conditions.
-- Requirement materiality.
+- Materiality.
 - Analytical impact.
 - Current supported position.
 - Claim constraints when applicable.
 - Originating artifact references.
-- Related prior Evidence Request IDs when applicable.
+- Related prior Evidence Request IDs and versions when applicable.
+
+When the Evidence Request is target-specific, it should additionally contain:
+
+- Related Target Job ID.
+- Related Job Experience Analysis ID and version.
+- Related requirement IDs.
 
 Do not include:
 
