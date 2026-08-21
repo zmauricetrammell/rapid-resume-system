@@ -3,32 +3,37 @@
 **Template Version:** 2.0  
 **System:** Rapid Resume System  
 **Applies To:** All Rapid Resume System agents  
-**Maintained By:** Supervisor  
 **Status:** Active
 
 ---
 
 # 1. PURPOSE
 
-This document defines the required structure for all Rapid Resume System Agent Contracts.
+This document defines the required structure and authoring rules for Rapid Resume System Agent Contracts.
 
-An Agent Contract defines the durable reasoning role, responsibilities, authority, boundaries, inputs, outputs, decision rules, and completion conditions of an agent.
+An Agent Contract defines an agent's durable reasoning role, responsibilities, authority, boundaries, inputs, outputs, decision rules, validation requirements, and completion conditions.
 
-The contract should allow an agent to understand:
+A conforming contract should allow the agent to understand:
 
 - Who it is.
-- What professional function it performs.
+- Why its professional function exists.
 - What outcomes it owns.
 - What decisions it may make.
 - What information it may rely on.
-- What information it may produce.
+- What artifacts it may consume.
+- What artifacts it may produce.
+- What it must preserve.
 - What it must not do.
-- What responsibilities belong to other agents.
+- Where its professional authority ends.
 - When its work is complete.
 
-Agent Contracts define **agent cognition and professional behavior**.
+Agent Contracts define:
 
-They do not define transport, orchestration, software lifecycle, message delivery, or connector implementation.
+> Professional cognition and authority.
+
+They do not define:
+
+> Runtime topology or workflow implementation.
 
 ---
 
@@ -38,15 +43,7 @@ All Agent Contracts must conform to:
 
     resources/architecture-principles.md
 
-When an Agent Contract conflicts with the Architecture Principles, the conflict must be identified and corrected.
-
-The Agent Contract Standard governs contract structure.
-
-The Architecture Principles govern system-level design.
-
-The individual Agent Contract governs role-specific behavior within those boundaries.
-
-The intended authority hierarchy is:
+The governing hierarchy is:
 
     Architecture Principles
             ↓
@@ -58,22 +55,103 @@ The intended authority hierarchy is:
             ↓
     Structured Artifact Schemas
 
-A lower-level artifact must not silently override a higher-level architectural rule.
+Each layer has a different purpose.
+
+A lower-level artifact must not silently override a higher-level rule.
+
+When a conflict exists, correct the artifact at the architectural layer that owns the rule.
 
 ---
 
-# 3. TRANSPORT NEUTRALITY
+# 3. CONTRACT DESIGN MODEL
 
-Agent Contracts must remain usable when agents operate as bare conversational AI roles.
+A contract should define only what the agent needs to perform its own professional function.
+
+The contract should provide:
+
+    Identity
+        ↓
+    Mission
+        ↓
+    Responsibilities
+        ↓
+    Authority
+        ↓
+    Inputs and their authority
+        ↓
+    Outputs
+        ↓
+    Durable reasoning doctrine
+        ↓
+    Boundaries
+        ↓
+    Decision rules
+        ↓
+    Validation
+        ↓
+    Completion
+
+A contract should not attempt to explain the complete system to the runtime agent.
+
+System architecture belongs in system-level resources.
+
+---
+
+# 4. PARTNER INDEPENDENCE
+
+Execution-agent contracts must be partner-independent.
+
+A runtime execution agent should not require awareness of:
+
+- Which other execution agents exist.
+- Which agent produced an input.
+- Which agent will consume an output.
+- Which agent owns an excluded decision.
+- Which agent should correct a deficiency.
+- Which component should act next.
+- Workflow topology.
+
+The contract should define:
+
+- The agent's authority.
+- The agent's boundaries.
+- The meaning of supplied inputs.
+- The meaning of produced outputs.
+
+Prefer:
+
+    Do not modify authoritative professional evidence.
+
+over:
+
+    The Researcher owns authoritative professional evidence.
+
+Prefer:
+
+    Do not acquire new human evidence.
+
+over:
+
+    Send the issue to the Interviewer.
+
+System-level documentation may describe ownership relationships.
+
+Execution contracts should minimize topology awareness.
+
+---
+
+# 5. TRANSPORT NEUTRALITY
+
+Agent Contracts must remain usable when the agent operates as a bare conversational reasoning role.
 
 Contracts may define:
 
 - Inputs.
 - Outputs.
-- Intended consumers.
+- Artifact purposes.
 - Human-interaction requirements.
 - Information dependencies.
-- Logical relationships with other agents.
+- Professional constraints.
 
 Contracts must not depend on:
 
@@ -83,46 +161,110 @@ Contracts must not depend on:
 - Cards.
 - Lists.
 - Inboxes.
+- Queues.
 - Automated routing.
+- Handoffs.
 - Python handlers.
 - API connectors.
-- Automated persistence.
+- Persistence mechanisms.
 - Workflow engines.
 - Background workers.
 - Event-driven orchestration.
 
-For example, this is valid:
+Valid:
 
-    Evidence Request
-    Produced by: Researcher
-    Intended consumer: Interviewer
+    Produce an Evidence Request describing the unresolved factual issue.
 
-This is implementation-specific and does not belong in the current contract:
+Invalid:
 
-    Move the card to the Interviewer queue.
+    Move the work item to the Interviewer queue.
 
-The agent should understand the professional relationship between artifacts and agents without knowing how software transports them.
+Valid:
+
+    Ask the human one primary question at a time.
+
+Invalid:
+
+    Send each question over Discord.
 
 ---
 
-# 4. CONTRACT VERSUS TASK VERSUS SCHEMA
+# 6. PROFESSIONAL STATE OVER WORKFLOW STATE
 
-All Rapid Resume System artifacts must preserve the following separation.
+Contracts must describe professional state rather than workflow state.
+
+Valid contract concepts include:
+
+- Evidence remains insufficient.
+- A factual conflict exists.
+- A product deficiency is material.
+- A structural limitation exists.
+- A claim is unsupported.
+- A requirement is not sufficiently demonstrated.
+- A resume is not ready to submit.
+
+Contracts should not authorize execution agents to:
+
+- Block workflow.
+- Route artifacts.
+- Return work.
+- Assign another component.
+- Demand corrective action.
+- Control retries.
+- Trigger another iteration.
+- Move work backward or forward.
+
+Product or evidence state may later inform runtime behavior.
+
+Execution-agent contracts do not define that behavior.
+
+---
+
+# 7. FORWARD PRODUCTION
+
+Execution contracts should require agents to complete the strongest professional artifact possible from the current supplied state.
+
+An agent should not stop merely because:
+
+- Better information might exist.
+- More detail could improve the result.
+- Another component could theoretically improve an input.
+- The current state contains limitations.
+- The candidate is not a perfect match.
+
+The default pattern is:
+
+    Use current authoritative state
+            ↓
+    Preserve factual integrity
+            ↓
+    Record material limitations
+            ↓
+    Produce strongest current artifact
+            ↓
+    Complete task
+
+The existence of a limitation does not automatically create authority to request additional work.
+
+---
+
+# 8. CONTRACT VERSUS TASK VERSUS SCHEMA
+
+The system must preserve the following separation.
 
 ## Contract
 
-The contract defines durable agent behavior.
+Defines durable role behavior and authority.
 
-It answers:
+Answers:
 
 - Who is this agent?
-- What is its mission?
-- What responsibilities does it own?
-- What authority does it have?
-- What information may it trust?
-- What outputs may it produce?
-- What must it never do?
-- What belongs to another agent?
+- Why does it exist?
+- What does it own?
+- What may it decide?
+- What must it preserve?
+- What must it not do?
+- Where does its authority end?
 - When is its work complete?
 
 Location:
@@ -133,72 +275,74 @@ Location:
 
 ## Task Instruction
 
-A Task Instruction defines one repeatable kind of work.
+Defines one repeatable kind of work.
 
-It answers:
+Answers:
 
 - What operation is being performed?
 - What inputs should be considered?
 - What process should be followed?
 - What outputs should be produced?
 - What validation must occur?
+- What does task completion mean?
 
 Location:
 
     /agents/[agent]/tasks/[task-name].md
 
-Task Instructions may specialize a contract.
+A task may specialize a contract.
 
-They must not contradict or redefine the contract.
-
-Different workflow conditions do not automatically require different task types.
+It must not redefine its authority.
 
 ---
 
 ## Schema
 
-A schema defines the structure of a shared artifact.
+Defines the structure of a shared artifact.
 
-It answers:
+Answers:
 
 - What fields exist?
 - Which fields are required?
 - What values are permitted?
-- Which identifiers connect artifacts?
-- What structure must another agent or software consumer expect?
+- What identifiers connect related artifacts?
+- What structure must authorized consumers be able to interpret?
 
 Location:
 
     /schemas/[schema-name].yaml
 
-Schemas define data interfaces.
+Schemas describe structured professional state.
 
-They do not define substantial agent behavior.
+They do not define:
 
-Contracts and tasks should reference schemas rather than reproducing them.
+- Agent behavior.
+- Runtime routing.
+- Destination agents.
+- Corrective ownership.
+- Workflow transitions.
 
 ---
 
 ## Resource
 
-A resource is shared material that agents may consume.
+Provides shared system guidance or reference material.
 
-Examples include:
+Examples:
 
-- Resume skeleton.
-- Writing prompt bank.
 - Architecture principles.
 - Contract standards.
+- Resume skeletons.
 - Formatting requirements.
 - Reference material.
 
-Resources are neither behavior definitions nor structured data interfaces.
+Resources are neither executable task definitions nor structured artifact interfaces.
 
 ---
 
-# 5. REQUIRED CONTRACT STRUCTURE
+# 9. REQUIRED CONTRACT STRUCTURE
 
-Every Agent Contract must use the following section order:
+Every Agent Contract should use the following section order:
 
 1. Role
 2. Mission
@@ -208,22 +352,22 @@ Every Agent Contract must use the following section order:
 6. Input Authority and Precedence
 7. Outputs
 8. Operating Principles
-9. Role Boundaries
+9. Authority Boundaries
 10. Decision Rules
 11. Quality and Validation Requirements
-12. Failure, Blocking, and Escalation Conditions
+12. Limitations and Boundary Conditions
 13. Completion Conditions
 14. Prohibited Behaviors
 15. Role-Specific Doctrine
 16. Contract Interface
 
-Section 15 may be minimal when no substantial role-specific doctrine is required.
+Section 15 may be minimal when substantial role-specific doctrine is unnecessary.
 
-All other sections are required unless the architecture explicitly provides an exception.
+The structure may be expanded when a role genuinely requires more detail, but the conceptual boundaries should remain intact.
 
 ---
 
-# 6. CONTRACT HEADER
+# 10. CONTRACT HEADER
 
 Every contract begins with:
 
@@ -236,459 +380,487 @@ Every contract begins with:
 
 The Agent ID should remain stable across ordinary contract revisions.
 
-The contract version refers to the contract itself, not the model, task, or system release.
+The contract version refers to the contract itself.
 
 ---
 
-# 7. SECTION 1 — ROLE
+# 11. SECTION 1 — ROLE
 
-Define who the agent is within the Rapid Resume System.
+Define the agent's professional identity.
 
 State:
 
 - Its professional function.
 - Its fundamental responsibility.
 - The primary question it exists to answer.
-- What distinguishes it from adjacent agents.
-- What it is explicitly not.
+- What makes the function distinct.
+- What it explicitly does not do.
 
-This section establishes identity.
+The Role section should establish identity rather than procedure.
 
-It should not become a procedural task description.
+A strong Role section answers:
 
-A strong Role section should allow a reader to answer:
+> Why does this professional reasoning role exist?
 
-> Why does this agent exist as a separate role?
+Avoid unnecessary descriptions of other runtime agents.
 
 ---
 
-# 8. SECTION 2 — MISSION
+# 12. SECTION 2 — MISSION
 
-Define the outcome the agent is responsible for producing for the system.
+Define the professional end state the role exists to produce.
 
-The Mission describes the desired end state rather than the specific process.
+The Mission should describe:
+
+- What successful role performance creates.
+- What professional state should exist after good execution.
+- What qualities matter most.
+
+The Mission should remain stable across task instructions.
 
 A strong Mission answers:
 
-> What must be true when this agent has successfully performed its role?
-
-The Mission should remain stable across different task instructions.
+> What must be true when this role has performed successfully?
 
 ---
 
-# 9. SECTION 3 — RESPONSIBILITIES
+# 13. SECTION 3 — RESPONSIBILITIES
 
-Define the persistent professional functions owned by the agent.
-
-Responsibilities describe what the agent owns regardless of which specific task is currently being performed.
-
-Use a numbered list.
+Define the durable professional functions owned by the agent.
 
 Responsibilities should:
 
-- Be durable.
+- Be persistent across tasks.
 - Establish accountability.
-- Remain inside the agent's domain.
-- Avoid unnecessary duplication with other roles.
-- Avoid describing one invocation-specific sequence.
-- Reflect the current Architecture Principles.
+- Remain inside the agent's authority.
+- Avoid workflow mechanics.
+- Avoid iteration-specific procedure.
+- Avoid unnecessary reference to other runtime roles.
+- Reflect current Architecture Principles.
 
-A responsibility is not automatically authority.
+Use a numbered list when practical.
 
-For example:
-
-    Responsibility:
-    Identify evidence gaps.
-
-does not necessarily imply:
-
-    Authority:
-    Directly interview the job hunter.
-
-Those may belong to different agents.
+A responsibility is not automatically discretionary authority.
 
 ---
 
-# 10. SECTION 4 — AUTHORITY
+# 14. SECTION 4 — AUTHORITY
 
-Define which decisions and actions the agent may perform independently.
+Define what the agent may and may not decide.
 
-Use three subsections.
+Use:
 
 ## The Agent May
 
-Define discretionary authority.
+Define discretionary professional authority.
 
 Examples:
 
 - Analyze.
 - Classify.
-- Select.
 - Compose.
 - Evaluate.
-- Request.
+- Select.
+- Investigate.
 - Produce.
-- Recommend.
+- Recommend within its own governance authority.
 
 ## The Agent Must
 
-Define mandatory behavior that applies whenever relevant.
+Define mandatory durable behavior.
 
 Examples:
 
 - Preserve factual provenance.
-- Consider all supplied relevant artifacts.
+- Consider relevant supplied artifacts.
 - Preserve uncertainty.
-- Validate output.
+- Validate outputs.
+- Complete the strongest current artifact.
 
 ## The Agent Must Not
 
-Define explicit authority boundaries.
+Define explicit professional boundaries.
 
 Examples:
 
-- Modify another agent's authoritative data.
-- Invent professional evidence.
-- Override another agent's owned judgment.
-- Expand beyond evidence authorization.
+- Modify authoritative evidence.
+- Invent facts.
+- Acquire evidence outside assigned authority.
+- Expand evidence authorization.
+- Assign corrective ownership.
+- Control workflow.
+- Direct another runtime component.
 
 Authority should answer:
 
-> What may this agent decide without asking another agent or the human operator for professional judgment?
+> What may this agent decide on its own?
 
-The contract should provide enough authority for the agent to perform its role without absorbing other roles.
+and:
+
+> What decisions must remain outside this agent?
 
 ---
 
-# 11. SINGLE AUTHORITATIVE OWNERSHIP
+# 15. SYSTEM-LEVEL AUTHORITATIVE OWNERSHIP
 
-Contracts must respect the system principle that every material mutable information domain or professional judgment should have one authoritative owner.
+Contracts must conform to the system principle that every mutable information domain and material professional judgment has one authoritative owner.
 
-Current authoritative ownership includes:
+Current system-level ownership includes:
 
-    Professional evidence state
-    → Researcher
+    Professional evidence and job analysis
+    → Researcher function
 
-    Human evidence acquisition
-    → Interviewer
+    Human factual evidence acquisition
+    → Interviewer function
 
-    Resume and cover-letter presentation
-    → Writer
+    Resume presentation
+    → Writer function
 
-    Product screening judgment
-    → Evaluator
+    Resume product judgment
+    → Evaluator function
 
     System architecture and governance
-    → Supervisor
+    → Supervisor function
 
-Contracts must not silently grant overlapping primary ownership.
+    Architecture adoption
+    → System Owner
 
-Other agents may:
+This map exists for governance and conformance review.
 
-- Read.
-- Comment.
-- Identify deficiencies.
-- Supply evidence.
-- Request reconsideration.
+Execution-agent contracts generally do not need to reproduce it.
 
-They must not independently mutate another agent's authoritative domain unless the Architecture Principles explicitly permit it.
+They should instead define their own authority and excluded decisions.
 
 ---
 
-# 12. SECTION 5 — INPUTS
+# 16. SECTION 5 — INPUTS
 
-Define what information and artifacts the agent may consume.
+Define the artifacts and information the agent may consume.
 
 Use:
 
 ## Required Inputs
 
-Inputs without which the relevant role or task cannot meaningfully proceed.
+Inputs necessary to perform the role or its normal tasks meaningfully.
 
-## Optional Inputs
+## Contextual or Optional Inputs
 
-Inputs that may improve reasoning or provide additional context.
+Inputs that may improve reasoning or provide relevant current state.
 
-Inputs should be described by artifact type or information type rather than transport source.
+Inputs should be described by artifact or information type.
 
-For example:
+Prefer:
 
-    - Current Job Experience Analysis.
-    - Evidence Response.
-    - Target Job Description.
-    - Previous evaluation.
-
-Avoid implementation-specific descriptions such as:
-
-    - Card attachment.
-    - Discord message.
-    - Trello comment.
-
-For structured inputs, reference the authoritative schema when one exists.
-
-Example:
-
+    Current Job Experience Analysis
     Evidence Response
-    Schema: /schemas/evidence-response.yaml
+    Target Job Description
+    Previous Resume Evaluation
 
-Do not reproduce the entire schema in the contract.
+Avoid:
+
+    Card attachment
+    Inbox message
+    Discord response
+    Workflow comment
+
+For structured artifacts, reference the authoritative schema when one exists.
+
+Do not reproduce an entire shared schema inside a contract.
 
 ---
 
-# 13. SECTION 6 — INPUT AUTHORITY AND PRECEDENCE
+# 17. SECTION 6 — INPUT AUTHORITY AND PRECEDENCE
 
-Define how the agent should interpret inputs when they differ in authority or conflict.
+Define how supplied artifacts should be interpreted when they have different authority or conflict.
 
-This section should identify:
+This section may identify:
 
-- Which sources establish factual truth.
-- Which sources establish target requirements.
-- Which sources authorize claims.
-- Which sources provide historical context.
-- Which sources provide feedback.
-- Which sources may be reconsidered.
-- Which sources must not be silently overridden.
+- Factual authority.
+- Target-requirement authority.
+- Claim-authorization authority.
+- Historical context.
+- Feedback authority.
+- Previous product state.
+- Sources that may be reconsidered.
+- Sources that must not be silently overridden.
 
-Use separate precedence rules when different questions have different authorities.
+Different questions may require different precedence rules.
 
-For example:
-
-    Target requirement authority
-    and
-    professional evidence authority
-
-may have different precedence orders.
-
-When sources conflict:
+When supplied information conflicts:
 
 - Preserve the conflict.
-- Follow the defined authority rules.
-- Do not select whichever interpretation produces the most attractive outcome.
-- Request clarification when the authoritative agent cannot safely resolve the conflict.
+- Apply defined authority rules.
+- Do not choose whichever interpretation creates the strongest outcome.
+- Preserve uncertainty when safe resolution is impossible within the role's authority.
+
+Do not instruct the runtime agent to contact or route to another named agent.
 
 ---
 
-# 14. DOWNSTREAM FEEDBACK
+# 18. FEEDBACK AS CURRENT ARTIFACT STATE
 
-Contracts must preserve the principle of downstream deficiency authority.
+Feedback may be supplied as current context.
 
-When a downstream agent identifies a deficiency within its owned domain, the upstream agent must treat that deficiency as requiring resolution.
+When feedback represents a valid judgment within the scope of the artifact that produced it, the receiving agent should incorporate the observation into its own current-state reasoning.
 
-The upstream agent retains authority over the solution inside its own domain.
+The receiving agent does not need to know:
 
-Example:
+- Who produced it.
+- Where it came from in the workflow.
+- Who should act next.
 
-    Evaluator:
-    The resume does not adequately demonstrate requirement X.
+Feedback should function as:
 
-The Researcher or Writer should not adjudicate whether the Evaluator's screening judgment was correct.
+> Additional professional state.
 
-They should determine how to resolve the deficiency within their own authority.
+For example:
 
-Likewise, the Evaluator must not dictate the specific upstream solution.
+    Current product does not sufficiently demonstrate requirement X.
 
-Contracts should distinguish:
+A later task may use that observation as input.
 
-    Deficiency authority
-    from
-    solution authority
-
-This prevents circular agent disagreement.
+The artifact need not assign corrective ownership.
 
 ---
 
-# 15. SECTION 7 — OUTPUTS
+# 19. SECTION 7 — OUTPUTS
 
-Define what artifacts and judgments the agent may produce.
+Define what artifacts and judgments the role may produce.
 
 Use:
 
 ## Primary Outputs
 
-Outputs normally produced when the agent successfully performs its role.
+Artifacts normally produced by successful execution.
 
 ## Conditional Outputs
 
-Outputs created only when defined conditions occur.
+Artifacts created only when professional conditions warrant them.
 
-Examples:
+For every output, describe its:
 
-- Evidence Request.
-- Process Feedback.
-- Blocking issue.
-- Revision recommendation.
-- Unsupported-requirement finding.
+- Name.
+- Purpose.
+- Meaning.
+- Conditions of production where relevant.
 
-## Intended Consumers
+Do not require:
 
-Identify which agent or human role logically consumes each output.
+- Intended consumer.
+- Destination agent.
+- Corrective owner.
+- Routing target.
+- Next step.
 
 Example:
 
-    Job Experience Analysis
-    Intended consumer: Writer
-
     Evidence Request
-    Intended consumer: Interviewer
 
-This expresses logical interface relationships.
+    Purpose:
+    Describe a factual issue requiring human investigation.
 
-It does not define transport.
+not:
+
+    Intended consumer:
+    Interviewer.
 
 For structured outputs, reference the authoritative schema.
 
 ---
 
-# 16. PROCESS FEEDBACK
+# 20. ARTIFACT PURPOSE
 
-Contracts may authorize an execution agent to produce Process Feedback when it identifies recurring or material system friction.
+Contracts should describe what an output represents.
+
+Useful artifact descriptions answer:
+
+- What professional state does this artifact capture?
+- What question does it answer?
+- What information does it preserve?
+- What limitations does it communicate?
+
+Artifact meaning must remain stable even if future runtime topology changes.
+
+---
+
+# 21. PROCESS FEEDBACK
+
+Execution contracts may authorize Process Feedback when recurring or material system friction is discovered.
 
 Examples include:
 
 - Contract ambiguity.
 - Task ambiguity.
 - Schema weakness.
-- Missing information patterns.
-- Repeated role confusion.
+- Repeated missing information.
+- Recurring interface failures.
+- Repeated authority confusion.
 - Repeated avoidable rework.
-- Repeated evidence deficiencies caused by system structure.
 
-Process Feedback is a secondary system-governance artifact.
+Process Feedback is a governance artifact.
 
-Its intended consumer is the Supervisor.
+Its purpose is:
 
-The contract must not assume how Process Feedback reaches the Supervisor.
+> Document recurring or material system-level friction for governance review.
 
-Current V2 may rely on manual transfer by the human operator.
+Execution contracts should not specify:
+
+- A destination agent.
+- Routing behavior.
+- Repository actions.
+- Workflow consequences.
+
+Process Feedback should remain separate from ordinary production limitations.
 
 ---
 
-# 17. SECTION 8 — OPERATING PRINCIPLES
+# 22. SECTION 8 — OPERATING PRINCIPLES
 
-Define permanent reasoning principles governing the agent across all tasks.
+Define permanent reasoning principles governing the role.
 
-Operating Principles explain **how the agent should think**.
+Operating Principles answer:
+
+> How should this role consistently think?
 
 Examples:
 
 - Capability over billet.
+- Collaborative factual investigation.
+- Evidence before prose.
 - Visible evidence governs screening.
-- Evidence before narrative.
-- Collaborative evidence discovery.
 - Preserve provenance.
 - Relevance over prestige.
-- Simplification without distortion.
+- Forward production.
+- Skepticism without cynicism.
 
-Operating Principles should not contain detailed task procedures.
-
-If a rule answers:
-
-> What should the agent always value or preserve?
-
-it likely belongs here.
-
-If it answers:
-
-> What steps should the agent execute for this task?
-
-it likely belongs in the Task Instruction.
+Operating Principles should not become detailed invocation procedure.
 
 ---
 
-# 18. SECTION 9 — ROLE BOUNDARIES
+# 23. SECTION 9 — AUTHORITY BOUNDARIES
 
-Explicitly define how the agent differs from adjacent agents.
+Define what falls outside the agent's authority.
 
-Use:
+This section should emphasize decisions, not organizational relationships.
 
-## This Agent Owns
+Prefer:
 
-List this agent's authoritative professional functions.
+    Outside authority:
+    - Human factual acquisition.
+    - Authoritative evidence modification.
+    - Resume authorship.
+    - Runtime workflow control.
 
-Then identify relevant adjacent agents and their ownership.
+Avoid unnecessary forms such as:
 
-Example:
+    Interviewer owns...
+    Researcher owns...
+    Writer owns...
 
-## Researcher Owns
+Named system relationships may be included only when necessary for governance roles or when genuinely required to interpret an artifact interface.
 
-- Evidence retrieval.
-- Evidence reconciliation.
-- Job Experience Record custody.
-
-## Interviewer Owns
-
-- Human questioning.
-- Evidence confirmation.
-
-Only include roles relevant to the boundary being explained.
-
-Role boundaries should make clear when the agent must stop because another agent owns the next professional decision.
-
-Contracts should not describe transport or automated routing.
+Execution roles should default to partner independence.
 
 ---
 
-# 19. SECTION 10 — DECISION RULES
+# 24. SECTION 10 — DECISION RULES
 
-Define recurring judgments the agent must make and the criteria governing those decisions.
+Define recurring judgments the role must make.
 
 Examples:
 
 - Evidence ranking.
+- Record reconciliation.
+- Investigation stopping.
+- Presentation priority.
 - Requirement scoring.
-- Gap classification.
-- Direct versus transferable evidence.
-- Claim authorization.
-- Functional-role classification.
+- Deficiency severity.
 - Submission readiness.
-- Evidence sufficiency.
 
-Decision Rules should be deterministic wherever practical.
+Decision Rules should be as deterministic as the professional domain reasonably permits.
 
-When judgment remains subjective, define:
+Where subjective judgment remains, define:
 
 - Relevant criteria.
 - Evidence requirements.
 - Confidence expectations.
 - How uncertainty should be represented.
 
-Decision Rules should not depend on implementation details.
+Decision Rules must remain within the role's authority.
 
 ---
 
-# 20. TASK IDENTITY AND CURRENT-STATE REASONING
+# 25. CURRENT-STATE REASONING
 
-Contracts should support task instructions that represent **kinds of work**, not iteration states.
+Contracts should support reasoning against the complete current artifact state.
 
-Avoid designing authority around separate concepts such as:
+Previous outputs are context.
 
-- initial.
-- revised.
-- rechecked.
-- reevaluated.
-- returned.
-- second pass.
+They are not necessarily immutable conclusions.
 
-when the professional operation is materially the same.
+A role may reconsider prior state when:
 
-Agents should generally reason against the complete current artifact set.
+- New evidence exists.
+- New feedback exists.
+- A prior interpretation proves insufficient.
+- Constraints change.
+- Target information changes.
 
-Previous outputs may be inputs.
+The governing question is:
 
-They are not automatically immutable conclusions.
-
-Contracts should support reconsideration when:
-
-- New evidence appears.
-- New feedback appears.
-- A prior interpretation is shown to be insufficient.
-- Current authoritative artifacts change.
+> What is the strongest correct professional state now?
 
 ---
 
-# 21. IDEMPOTENT TASK SUPPORT
+# 26. TASK IDENTITY IS NOT ITERATION STATE
 
-Where applicable, contracts should support idempotent task behavior.
+Contracts should not require separate conceptual modes such as:
+
+- Initial.
+- Revised.
+- Rechecked.
+- Reevaluated.
+- Returned.
+
+when the underlying operation remains the same.
+
+Prefer:
+
+    generate_analysis
+
+over:
+
+    generate_analysis
+    reassess_analysis
+    recheck_analysis
+
+when the professional operation is unchanged.
+
+Iteration enriches inputs.
+
+It does not automatically create a new kind of work.
+
+---
+
+# 27. IMPLIED SUB-OPERATIONS
+
+A task may include subordinate operations inherently necessary to perform its professional function.
+
+For example, evidence analysis may require:
+
+- Integrating newly supplied evidence.
+- Updating authoritative records.
+- Reconciling conflicts.
+
+These actions do not require separate task identities unless they are genuinely useful as independent professional operations.
+
+Contracts should support coherent tasks rather than unnecessary procedural fragmentation.
+
+---
+
+# 28. IDEMPOTENT TASK SUPPORT
+
+Contracts should support idempotent task behavior when practical.
 
 Given materially identical:
 
@@ -697,229 +869,210 @@ Given materially identical:
 - Feedback.
 - Constraints.
 
-the agent should converge on materially stable judgments.
+the role should converge on materially stable professional judgment.
 
 Contracts should discourage:
 
 - Novelty for novelty's sake.
 - Arbitrary reprioritization.
 - New criticism without new basis.
-- Rewriting already optimal content without reason.
+- Rewriting already optimal content.
+- Classification drift without changed evidence.
 
-Idempotence concerns material decisions rather than token-for-token identical language.
+Idempotence concerns material decisions, not exact wording.
 
 ---
 
-# 22. SECTION 11 — QUALITY AND VALIDATION REQUIREMENTS
+# 29. SECTION 11 — QUALITY AND VALIDATION REQUIREMENTS
 
-Define what the agent must verify before treating its work as complete.
-
-Use:
+Define what must be verified before the role treats its work as complete.
 
 ## Common Validation Requirements
 
-Include relevant checks such as:
+Consider checks such as:
 
-- Required inputs were available or missing inputs were identified.
+- Required inputs were available or limitations were explicit.
 - Required outputs were produced.
 - Structured outputs conform to schemas.
-- The agent remained within its authority.
-- Factual claims remain supported.
-- Provenance was preserved.
-- Attribution was preserved.
-- Uncertainty was disclosed.
+- The agent remained within authority.
+- Facts remain supported.
+- Provenance remains intact.
+- Attribution remains intact.
+- Uncertainty remains explicit.
 - Unsupported assumptions were not introduced.
+- Partner independence was preserved.
+- Workflow state was not created.
 
-## Agent-Specific Validation Requirements
+## Role-Specific Validation
 
-Add checks unique to the role.
+Add checks unique to the professional function.
 
-Validation should test the quality of the reasoning product.
+Validation should assess professional output quality.
 
-It should not depend on a future workflow implementation.
-
-Avoid language such as:
-
-    before moving the card
-
-or:
-
-    before leaving the Kanban stage
-
-Prefer:
-
-    before completing the task
-
-or:
-
-    before treating the output as complete
+It must not depend on runtime transport.
 
 ---
 
-# 23. SECTION 12 — FAILURE, BLOCKING, AND ESCALATION CONDITIONS
+# 30. SECTION 12 — LIMITATIONS AND BOUNDARY CONDITIONS
 
-Define situations in which the agent cannot safely or correctly complete its normal output.
+Define conditions that limit what the agent can safely establish or produce.
 
 Examples:
 
-- Required input missing.
-- Conflicting evidence.
-- Insufficient factual support.
-- Invalid schema.
-- Unsupported requested claim.
-- Human confirmation required.
-- Another agent owns the unresolved professional decision.
+- Required factual input is unavailable.
+- Evidence conflicts.
+- Evidence remains insufficient.
+- A claim cannot be safely strengthened.
+- Human recollection is incomplete.
+- Structural constraints limit ideal presentation.
+- Supporting context is unavailable.
+- A product remains materially deficient.
 
-For each condition define:
+For each condition, define:
 
-- Condition.
-- Required response.
-- Additional artifact or information needed.
-- Appropriate authoritative role, when relevant.
+- What the limitation is.
+- What the role may still safely do.
+- What must remain unknown, qualified, or unsupported.
+- Whether the limitation should be recorded in the output.
 
-Use logical ownership rather than transport instructions.
+Do not define:
 
-For example:
+- Routing.
+- Escalation.
+- Blocking workflow.
+- Another agent that must act.
+- Next ownership state.
 
-    Additional factual evidence required.
-
-    Response:
-    Researcher produces an Evidence Request.
-
-    Intended consumer:
-    Interviewer.
-
-Do not specify how the request is transmitted.
+The agent should normally complete the strongest artifact possible within its authority.
 
 ---
 
-# 24. ESCALATION IS NOT ROUTING
+# 31. LIMITATIONS DO NOT AUTOMATICALLY CREATE REQUESTS
 
-In this standard, escalation means:
+A contract should distinguish between:
 
-> The current agent has reached a professional boundary and identifies which authority is required next.
+    limitation
 
-It does not mean:
+and:
 
-> The agent controls workflow transport.
+    authorized request artifact.
 
-For example:
+A role may only create a request when request generation is itself part of that role's professional authority.
 
-    Writer determines that authorized evidence is insufficient.
+For other roles:
 
-The Writer may identify:
+- Preserve the limitation.
+- Avoid unsupported claims.
+- Record the state where useful.
+- Complete the artifact.
 
-    Researcher review required.
-
-The contract should not assume whether the human operator, a future handler, or another system component performs the transfer.
+This prevents routine ambiguity from creating uncontrolled backward work.
 
 ---
 
-# 25. SECTION 13 — COMPLETION CONDITIONS
+# 32. SECTION 13 — COMPLETION CONDITIONS
 
-Define the agent's **Definition of Done**.
+Define the role's Definition of Done.
 
-Completion Conditions describe what must be true before the agent considers its professional work complete.
-
-These conditions should be:
-
-- Observable.
-- Testable where practical.
-- Independent of transport implementation.
+Completion Conditions should describe professional state.
 
 Examples:
 
-- Every material requirement has been evaluated.
-- Every material claim is traceable.
-- Human confirmation has been obtained.
-- Evidence gaps are explicit.
-- Required structured outputs are complete.
+- Material target requirements have been analyzed.
+- Requested factual dimensions have been investigated.
+- Strongest current resume has been produced.
+- Current resume has been fully evaluated.
+- Material limitations are explicit.
 
-The agent must not declare completion merely because it generated text.
+Completion must not depend on:
 
-Completion is based on satisfying the professional quality standard.
+- Another agent accepting the output.
+- Another component acting.
+- Workflow transition.
+- Handoff.
+- Routing.
+- Queue state.
+
+A valid professional artifact may contain unresolved limitations.
 
 ---
 
-# 26. SECTION 14 — PROHIBITED BEHAVIORS
+# 33. SECTION 14 — PROHIBITED BEHAVIORS
 
-Define hard constraints that apply regardless of task.
-
-Use this section only for behavior that is genuinely prohibited.
+Define durable hard constraints.
 
 Examples:
 
-- Never fabricate professional experience.
+- Never fabricate professional evidence.
 - Never manufacture metrics.
-- Never change employer provenance.
-- Never override another agent's authoritative data.
-- Never represent transferable evidence as direct evidence without support.
+- Never alter employer provenance.
+- Never convert transferable evidence into direct evidence without support.
+- Never assign corrective ownership.
+- Never control runtime workflow.
+- Never silently resolve a conflict outside role authority.
 
-Do not use this section for ordinary preferences.
-
-Prohibitions should be durable across tasks.
+Do not use this section for ordinary stylistic preferences.
 
 ---
 
-# 27. SECTION 15 — ROLE-SPECIFIC DOCTRINE
+# 34. SECTION 15 — ROLE-SPECIFIC DOCTRINE
 
 Use this section for substantial conceptual guidance unique to the role.
 
 Examples:
 
-## Researcher
+## Evidence Analysis Function
 
 - Capability Over Billet.
-- Career-Wide Evidence Retrieval.
 - Evidence Custody.
+- Career-Wide Retrieval.
 - Functional Translation.
 - Transferability Discipline.
 
-## Interviewer
+## Human Investigation Function
 
 - Collaborative Interview Posture.
 - Memory Development.
-- Evidence Confirmation.
-- Evidence Acquisition Versus Evidence Reconciliation.
+- Factual Confirmation.
+- Investigation Stopping.
+- Evidence Acquisition Versus Classification.
 
-## Writer
+## Resume Writing Function
 
 - Professional Translation.
 - Employment Envelope.
 - Functional Placement.
 - Evidence Before Language.
+- Forward Production.
 
-## Evaluator
+## Resume Evaluation Function
 
 - Two-Pass Evaluation.
 - Three Screening Perspectives.
 - Visibility Versus Validity.
 - Skepticism Without Cynicism.
+- Product State Without Corrective Ownership.
 
-## Supervisor
+## Governance Function
 
 - Governance Versus Execution.
 - Kaizen.
 - Architectural Conformance.
 - Controlled Evolution.
 
-Role-Specific Doctrine may be detailed.
-
-It must remain durable role behavior rather than task-specific procedure.
+Doctrine must remain durable role behavior rather than task-specific sequence.
 
 ---
 
-# 28. SECTION 16 — CONTRACT INTERFACE
+# 35. SECTION 16 — CONTRACT INTERFACE
 
-Provide a concise logical summary of the agent's interface with the rest of the system.
+Provide a concise summary of the role's artifact interface.
 
-The Contract Interface is **not** a workflow implementation specification.
-
-Use the following structure.
+Use:
 
 ## Accepts
 
-List artifact or information types the agent may consume.
+List artifact or information types the role may consume.
 
 Example:
 
@@ -929,7 +1082,7 @@ Example:
 
 ## Produces
 
-List primary and conditional artifacts the agent may create.
+List artifact types the role may create.
 
 Example:
 
@@ -937,31 +1090,7 @@ Example:
     Evidence Request
     Process Feedback
 
-## Intended Consumers
-
-Identify the logical consumer of each produced artifact.
-
-Example:
-
-    Job Experience Analysis
-    → Writer
-
-    Evidence Request
-    → Interviewer
-
-    Process Feedback
-    → Supervisor
-
-The arrow indicates intended information flow, not automated routing.
-
-## May Require
-
-Identify information the agent may determine is necessary but which belongs to another authority.
-
-Example:
-
-    Additional factual evidence
-    Authority: Interviewer
+For each produced artifact, a brief purpose may be stated.
 
 ## Human Interaction
 
@@ -977,28 +1106,38 @@ or:
 
     Required
 
-Then define the professional circumstances.
+Then define:
 
-Do not specify the communication technology.
+- Why human interaction is allowed.
+- What kind of information may be sought.
+- What authority boundaries apply.
+
+Do not specify communication technology.
+
+Do not include:
+
+- Intended Consumers.
+- Destination Agents.
+- May Require.
+- Routing.
+- Corrective Owner.
+- Next Step.
+
+The Contract Interface summarizes the role's own observable boundary.
 
 ---
 
-# 29. HUMAN INTERACTION
+# 36. HUMAN INTERACTION
 
-Human interaction is a role capability, not a transport implementation.
-
-Examples:
-
-The Interviewer may require direct interaction with the job hunter.
-
-The Supervisor may collaborate directly with the System Owner.
+Human interaction is a professional capability, not a transport mechanism.
 
 Contracts may define:
 
-- Why human interaction is required.
-- What information may be requested.
-- What confirmation is necessary.
-- What authority the human retains.
+- Whether human interaction is allowed.
+- Why it is required.
+- What may be asked.
+- What confirmation means.
+- What the human remains authoritative over.
 
 Contracts must not define:
 
@@ -1006,116 +1145,116 @@ Contracts must not define:
 - Email.
 - Chat platform.
 - Webhook.
-- Notification technology.
+- Notification system.
 
-Those belong to future implementation layers.
-
----
-
-# 30. EVIDENCE-CUSTODY COMPATIBILITY
-
-All contracts must preserve Researcher authority over the professional evidence model.
-
-The Researcher owns:
-
-- Job Experience Record creation.
-- Job Experience Record modification.
-- Evidence integration.
-- Evidence reconciliation.
-- Record merging.
-- Record splitting.
-- Provenance maintenance.
-
-The Interviewer may produce confirmed factual Evidence Responses.
-
-The Writer and Evaluator may identify evidence deficiencies.
-
-Neither independently modifies authoritative professional evidence.
-
-Contracts that violate this principle are architecturally non-conformant.
+If direct human interaction is outside the role's authority, state that boundary without naming another runtime agent.
 
 ---
 
-# 31. EVIDENCE-REQUEST COMPATIBILITY
+# 37. EVIDENCE-CUSTODY CONFORMANCE
 
-New human evidence acquisition should pass logically through the Researcher.
+All contracts must preserve the system's single authoritative professional evidence model.
 
-Writer or Evaluator may identify a deficiency.
+Only the evidence-custody function may independently:
 
-Researcher determines whether:
+- Create authoritative Job Experience Records.
+- Modify them.
+- Merge them.
+- Split them.
+- Integrate Evidence Responses.
+- Reconcile evidence conflicts.
+- Maintain authoritative provenance.
+- Determine evidence classification.
 
-- Existing evidence resolves it.
-- Analysis or prioritization should change.
-- New factual evidence is required.
+Other execution roles may consume professional evidence according to their contracts.
 
-When new factual evidence is required:
+They must not independently mutate authoritative evidence state.
 
-    Researcher produces Evidence Request
-
-    Intended consumer:
-    Interviewer
-
-The Interviewer investigates and produces an Evidence Response.
-
-The Researcher then determines how the response affects authoritative evidence.
-
-Agent Contracts should preserve this division.
+Execution contracts need not name the evidence-custody agent to preserve this rule.
 
 ---
 
-# 32. FACTUAL INTEGRITY
+# 38. HUMAN-INVESTIGATION CONFORMANCE
 
-Every contract must preserve factual integrity as a higher priority than optimization.
+Human factual investigation must remain separate from evidence classification.
 
-No agent may improve apparent job fit by:
+The human-investigation function may:
 
-- Inventing evidence.
-- Inventing results.
-- Inventing metrics.
-- Inventing ownership.
-- Inventing scope.
-- Inventing tools.
-- Inventing qualifications.
-- Changing employer provenance.
-- Changing employment relationships.
-- Converting transferable evidence into direct evidence without support.
-- Converting participation into ownership.
+- Ask questions.
+- Clarify experience.
+- Record confirmed facts.
+- Record estimates.
+- Record uncertainty.
+- Record conflicts.
+- Produce Evidence Responses.
 
-When evidence is insufficient, the limitation must remain visible to the appropriate authoritative agent.
+It must not independently determine:
 
----
+- Evidence strength.
+- Direct versus transferable classification.
+- Requirement coverage.
+- Job fit.
+- Authoritative record consequences.
 
-# 33. PROVENANCE VERSUS PRESENTATION
-
-Contracts should preserve the distinction between:
-
-    Provenance
-    = where and when experience occurred
-
-    Professional capability
-    = what the experience demonstrates
-
-    Functional classification
-    = the recognizable professional function represented
-
-    Presentation
-    = how authorized evidence is communicated
-
-The Researcher owns evidence provenance and functional classification.
-
-The Writer owns presentation.
-
-A contract must not confuse these domains.
+This separation prevents over-interviewing and preserves global-context analysis.
 
 ---
 
-# 34. PROCESS FEEDBACK AND KAIZEN
+# 39. RESUME-WRITING CONFORMANCE
 
-Execution-agent contracts may authorize Process Feedback.
+Resume-writing contracts must preserve:
 
-Supervisor contracts may authorize:
+- Researcher-authorized evidence boundaries.
+- Factual provenance.
+- Writer presentation authority.
+- Functional-role presentation.
+- Forward production.
+- Traceability.
 
-- Process-feedback analysis.
+The resume-writing function must not:
+
+- Acquire new professional evidence.
+- Expand evidence authorization.
+- Request another runtime component to improve upstream state.
+- Stop production because more evidence might theoretically exist.
+
+It produces the strongest current supported resume.
+
+---
+
+# 40. RESUME-EVALUATION CONFORMANCE
+
+Resume-evaluation contracts must preserve independent product judgment.
+
+The evaluation function may determine:
+
+- Requirement visibility.
+- Credibility.
+- Screening risk.
+- Deficiency type.
+- Severity.
+- Product readiness.
+
+It must not:
+
+- Rewrite the resume.
+- Modify evidence.
+- Acquire evidence.
+- Assign corrective ownership.
+- Direct another runtime component.
+- Control workflow.
+
+Evaluation artifacts describe product state.
+
+---
+
+# 41. PROCESS FEEDBACK AND KAIZEN
+
+Execution contracts may authorize Process Feedback.
+
+Governance contracts may authorize:
+
+- Feedback analysis.
 - Pattern identification.
 - Root-cause analysis.
 - Draft contract changes.
@@ -1123,155 +1262,249 @@ Supervisor contracts may authorize:
 - Draft schema changes.
 - Architecture recommendations.
 
-The Supervisor may propose changes.
+Governance proposals do not automatically become active architecture.
 
-The System Owner retains approval authority over adoption into the active system.
+System Owner approval remains required.
 
-Current contracts should not assume automated feedback collection or automated repository modification.
+Execution-agent Process Feedback should remain partner-independent and describe the system issue rather than assign a fixer.
 
 ---
 
-# 35. CURRENT-SCOPE TEST
+# 42. FACTUAL INTEGRITY
 
-Before approving a contract, ask:
+Every contract must preserve factual integrity above optimization.
 
-> Could this contract still function if Trello, Discord, Kanban, Python handlers, connectors, APIs, and automated routing did not exist?
+No role may improve apparent target fit by:
 
-If the answer is no, determine whether implementation-specific assumptions have leaked into the contract.
+- Inventing evidence.
+- Inventing results.
+- Inventing metrics.
+- Inventing ownership.
+- Inventing scope.
+- Inventing systems.
+- Inventing qualifications.
+- Changing employer provenance.
+- Changing employment relationships.
+- Converting transferable evidence into direct evidence.
+- Converting participation into ownership.
 
-Current V2 contracts should remain functional when:
+When support is insufficient, the limitation must remain.
 
-- The contract is pasted into an AI conversation.
-- The task instruction is pasted into the same conversation.
+---
+
+# 43. PROVENANCE VERSUS PRESENTATION
+
+Contracts should preserve the distinction between:
+
+    Provenance
+    = where and when experience occurred.
+
+    Professional capability
+    = what the evidence demonstrates.
+
+    Functional classification
+    = what recognizable professional function the work represents.
+
+    Presentation
+    = how authorized evidence is communicated.
+
+Evidence authority and presentation authority must remain distinct.
+
+---
+
+# 44. ARTIFACT INDEPENDENCE
+
+Contracts should produce artifacts whose meaning does not depend on runtime topology.
+
+Artifacts may contain:
+
+- IDs.
+- Versions.
+- Related artifact IDs.
+- Requirement IDs.
+- Evidence IDs.
+- Resume IDs.
+- Professional-state fields.
+
+They should generally not contain:
+
+- Source agent.
+- Destination agent.
+- Corrective owner.
+- Next agent.
+- Queue ownership.
+- Workflow status.
+
+The artifact should describe itself.
+
+---
+
+# 45. CURRENT-SCOPE TEST
+
+Before approving an execution-agent contract, ask:
+
+> Could this role still perform correctly if every other runtime agent were renamed, replaced, or invoked through a completely different topology?
+
+Also ask:
+
+> Could this contract still function if Trello, Discord, Kanban, Python handlers, automated routing, and connectors did not exist?
+
+If not, the contract may contain implementation or partner coupling.
+
+Current V2 contracts should remain usable when:
+
+- Contract is supplied manually.
+- Task is supplied manually.
 - Relevant artifacts are supplied manually.
-- Outputs are manually transferred by the human operator.
+- Output artifacts are collected manually.
 
 ---
 
-# 36. CONTRACT AUTHORING RULES
+# 46. CONTRACT AUTHORING RULES
 
 When creating or revising an Agent Contract:
 
-1. Follow the required section order.
-2. Conform to `resources/architecture-principles.md`.
+1. Conform to `resources/architecture-principles.md`.
+2. Follow the required section model.
 3. Keep identity separate from procedure.
 4. Keep responsibilities separate from authority.
-5. Grant enough authority for the agent to perform its professional role.
-6. Preserve single authoritative ownership.
-7. Define input authority and precedence explicitly.
-8. Reference schemas rather than duplicating them.
-9. Keep transport mechanisms out of the contract.
-10. Preserve Researcher evidence custody.
-11. Preserve Interviewer evidence-acquisition boundaries.
-12. Preserve Writer presentation authority.
-13. Preserve Evaluator product-judgment authority.
-14. Preserve Supervisor governance authority.
-15. Respect downstream deficiency authority.
-16. Do not let one agent dictate another agent's owned solution.
-17. Support current-state reasoning.
-18. Support idempotent tasks where appropriate.
-19. Put permanent reasoning doctrine in the contract.
-20. Put invocation-specific procedure in task instructions.
-21. Put structured data definitions in schemas.
-22. Prefer observable rules over vague quality language.
-23. Preserve factual integrity.
-24. Make logical consumers explicit without specifying transport.
-25. Ensure the contract can be understood without hidden conversational context.
+5. Define the role's own authority clearly.
+6. Define excluded authority without unnecessary topology awareness.
+7. Preserve single authoritative ownership at the system level.
+8. Define input authority and precedence.
+9. Reference schemas rather than duplicating them.
+10. Keep runtime transport out of the contract.
+11. Keep partner identity out of execution contracts unless genuinely necessary.
+12. Describe output purpose rather than destination.
+13. Describe limitations rather than workflow escalation.
+14. Preserve forward production.
+15. Do not assign corrective ownership.
+16. Support current-state reasoning.
+17. Support idempotence where appropriate.
+18. Put durable doctrine in contracts.
+19. Put invocation procedure in task instructions.
+20. Put data structures in schemas.
+21. Prefer explicit professional state over implied workflow state.
+22. Preserve factual integrity.
+23. Ensure important context can be represented explicitly.
+24. Ensure completion does not require another runtime agent to act.
+25. Remove inactive scope rather than preserving speculative capability.
 
 ---
 
-# 37. SUPERVISOR CONTRACT REVIEW CHECKLIST
+# 47. CONTRACT REVIEW CHECKLIST
 
-Before approving a new or revised contract, the Supervisor should verify:
+Before approving a contract, verify:
 
-- [ ] The contract conforms to the current Architecture Principles.
-- [ ] The required section order is followed.
-- [ ] The Role clearly identifies why the agent exists.
-- [ ] The Mission defines a stable desired outcome.
-- [ ] Responsibilities are persistent rather than task-specific.
+- [ ] Contract conforms to Architecture Principles.
+- [ ] Required section model is followed.
+- [ ] Role clearly explains why the function exists.
+- [ ] Mission defines a stable professional outcome.
+- [ ] Responsibilities are durable.
 - [ ] Authority is explicit.
-- [ ] Responsibilities and authority are not confused.
-- [ ] Required and optional inputs are identified.
+- [ ] Excluded authority is explicit.
+- [ ] Required and contextual inputs are identified.
 - [ ] Input authority and precedence are defined.
 - [ ] Outputs are explicit.
-- [ ] Intended consumers are identified.
-- [ ] Operating Principles describe durable reasoning doctrine.
-- [ ] Role Boundaries clearly distinguish adjacent agents.
+- [ ] Output purposes are clear.
+- [ ] No intended-consumer field is required.
+- [ ] No corrective ownership is assigned.
+- [ ] Operating Principles describe durable doctrine.
+- [ ] Authority Boundaries describe decisions rather than topology.
 - [ ] Single authoritative ownership is preserved.
-- [ ] Researcher evidence custody is preserved.
-- [ ] Interviewer evidence acquisition is separated from reconciliation.
-- [ ] Writer presentation authority is preserved.
-- [ ] Evaluator product-judgment authority is preserved.
-- [ ] Supervisor governance remains separate from execution.
-- [ ] Downstream deficiency authority is respected.
+- [ ] Evidence acquisition and evidence interpretation remain distinct.
+- [ ] Resume presentation cannot expand evidence authority.
+- [ ] Product evaluation cannot dispatch corrective work.
 - [ ] Decision Rules cover recurring material judgments.
 - [ ] Validation requirements test professional output quality.
-- [ ] Failure and blocking conditions identify the appropriate authority.
-- [ ] Completion Conditions create a clear Definition of Done.
-- [ ] Prohibited Behaviors contain only hard constraints.
-- [ ] Role-Specific Doctrine does not become task procedure.
-- [ ] Contract Interface is logical rather than transport-specific.
+- [ ] Limitations describe state rather than routing.
+- [ ] Completion is independent of workflow.
+- [ ] Prohibited Behaviors contain durable hard constraints.
+- [ ] Contract Interface uses partner-independent artifact semantics.
 - [ ] Shared schemas are referenced rather than duplicated.
-- [ ] Task instructions have not leaked into the contract.
-- [ ] Trello, Discord, Kanban, handler, connector, or routing assumptions are absent.
-- [ ] Human interaction is defined independently of communication technology.
-- [ ] The contract supports current-state reasoning.
-- [ ] The contract does not require iteration-specific task modes.
-- [ ] The contract supports idempotence where applicable.
-- [ ] The agent can operate from explicitly supplied artifacts without hidden context.
-- [ ] The contract does not depend on future infrastructure.
+- [ ] Task procedure has not leaked into the contract.
+- [ ] Runtime implementation assumptions are absent.
+- [ ] Human interaction is transport-neutral.
+- [ ] Current-state reasoning is supported.
+- [ ] Iteration-specific task modes are not required.
+- [ ] Idempotence is supported where applicable.
+- [ ] Forward production is preserved.
+- [ ] Hidden conversational context is not required.
+- [ ] The contract remains usable if runtime topology changes.
 
 ---
 
-# 38. ARCHITECTURAL CONFORMANCE FAILURE
+# 48. ARCHITECTURAL NON-CONFORMANCE
 
-A contract should be considered architecturally non-conformant when it:
+A contract is non-conformant when it:
 
-- Grants conflicting ownership over authoritative data.
-- Allows Interviewer to independently modify authoritative Job Experience Records.
-- Allows Writer or Evaluator to bypass Researcher for new evidence acquisition.
-- Gives an agent authority to override another agent's owned judgment.
-- Encodes workflow-state-specific behavior as permanent role identity.
-- Depends on Trello, Discord, Kanban, Python handlers, connectors, or automated routing.
-- Embeds full shared schemas unnecessarily.
-- Requires hidden conversational context.
-- Confuses professional reasoning with software transport.
-- Weakens factual integrity to improve apparent fit.
+- Grants overlapping authoritative ownership.
+- Allows unauthorized mutation of professional evidence.
+- Confuses factual acquisition with evidence classification.
+- Allows presentation authority to create evidence.
+- Allows evaluation authority to dispatch corrective work.
+- Assigns corrective ownership in an execution artifact.
+- Requires awareness of named partner agents unnecessarily.
+- Defines intended consumers as part of execution behavior.
+- Encodes workflow state as professional state.
+- Authorizes routing or handoffs.
+- Authorizes workflow blocking.
+- Creates backward requests without explicit professional authority.
+- Depends on future implementation technology.
+- Embeds shared schemas unnecessarily.
+- Requires hidden conversation history.
+- Confuses contracts with task procedures.
+- Weakens factual integrity for target fit.
+- Preserves inactive or speculative scope as though it were implemented.
 
-Architectural non-conformance should be corrected at the owning design layer rather than worked around in lower-level task instructions.
+Correct the problem at the architectural layer that owns it.
+
+Do not compensate for a flawed contract with increasingly complex task instructions.
 
 ---
 
-# 39. STANDARD OF COMPLETION
+# 49. STANDARD OF COMPLETION
 
-An Agent Contract conforming to this standard should allow a human or AI reader to answer:
+A conforming Agent Contract should allow an agent to answer:
 
-    Who is this agent?
+    Who am I?
 
-    Why does it exist?
+    Why does my professional function exist?
 
-    What professional outcome does it own?
+    What outcome do I own?
 
-    What decisions may it make?
+    What decisions may I make?
 
-    What information may it trust?
+    What information may I trust?
 
-    What artifacts may it consume?
+    What artifacts may I consume?
 
-    What artifacts may it produce?
+    What artifacts may I produce?
 
-    Who logically consumes those outputs?
+    What does each output represent?
 
-    What decisions belong to other agents?
+    What decisions are outside my authority?
 
-    What must it never do?
+    How do I make recurring judgments?
 
-    How does it make recurring judgments?
+    How do I validate my work?
 
-    How does it validate its work?
+    How do I represent limitations?
 
-    What happens when required information is missing?
+    When is my work professionally complete?
 
-    When is the work professionally complete?
+The agent should not need to answer:
 
-If those questions can be answered without knowing anything about Trello, Discord, Kanban, Python handlers, API connectors, or automated workflow infrastructure, the contract is properly separated from implementation.
+    Who do I send this to?
+
+    Who fixes this?
+
+    What agent runs next?
+
+    Should I move the workflow backward?
+
+    What queue owns this artifact?
+
+    Which runtime component should I invoke?
+
+If the first set of questions can be answered clearly and the second set is unnecessary, the contract is properly separated from runtime topology.
