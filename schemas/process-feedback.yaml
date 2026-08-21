@@ -1,0 +1,787 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://rapid-resume-system.local/schemas/process-feedback.yaml
+title: Process Feedback
+description: 'Governance-input artifact representing a recurring or materially significant observation
+  about Rapid Resume System behavior. Process Feedback preserves who made the observation, when it was
+  proposed, what system behavior was observed, the evidence supporting that observation, its apparent
+  impact, the producing function''s suspected architectural layer, and an optional proposed solution.
+
+  Process Feedback is evidence for governance analysis. The feedback owner may propose a cause or solution,
+  but those proposals are not authoritative. Determination of architectural root cause and adoption of
+  system changes remain governed by the Supervisor contract and human approval boundaries.
+
+  Feedback ownership represents provenance and authorship. It does not represent corrective ownership,
+  runtime routing, destination, workflow assignment, or authority to implement the proposed change.
+
+  '
+type: object
+additionalProperties: false
+required:
+- schema_version
+- process_feedback_id
+- feedback_version
+- status
+- feedback_owner
+- proposed_at
+- observation_context
+- observation
+- classification
+- occurrence
+- impact
+- evidence
+- suspected_layer
+- proposed_solution
+- related_feedback
+- lineage
+properties:
+  schema_version:
+    type: string
+    description: 'Version of this schema against which the Process Feedback artifact was created.
+
+      '
+    pattern: ^[0-9]+\.[0-9]+$
+    examples:
+    - '2.0'
+  process_feedback_id:
+    type: string
+    description: 'Stable human-readable identifier for this coherent Process Feedback item. The identifier
+      should remain stable across ordinary revisions of the same observed system issue.
+
+      '
+    pattern: ^PF-[0-9]{4,}$
+    examples:
+    - PF-0001
+  feedback_version:
+    type: integer
+    minimum: 1
+    description: 'Monotonically increasing version number for this Process Feedback item.
+
+      '
+  status:
+    type: string
+    description: 'Lifecycle state of the Process Feedback artifact. This is not governance disposition,
+      implementation status, or runtime workflow state.
+
+      '
+    enum:
+    - active
+    - superseded
+    - deprecated
+  feedback_owner:
+    $ref: '#/$defs/feedback_owner'
+  proposed_at:
+    type: string
+    format: date-time
+    description: 'Timestamp at which the feedback owner proposed this Process Feedback. This preserves
+      proposal provenance and should not be interpreted as a runtime scheduling field.
+
+      '
+  observation_context:
+    $ref: '#/$defs/observation_context'
+  observation:
+    $ref: '#/$defs/observation'
+  classification:
+    $ref: '#/$defs/classification'
+  occurrence:
+    $ref: '#/$defs/occurrence'
+  impact:
+    $ref: '#/$defs/impact'
+  evidence:
+    $ref: '#/$defs/evidence'
+  suspected_layer:
+    $ref: '#/$defs/suspected_layer'
+  proposed_solution:
+    $ref: '#/$defs/proposed_solution'
+  related_feedback:
+    type: array
+    description: 'Known Process Feedback items describing the same, similar, derivative, or overlapping
+      system behavior.
+
+      '
+    items:
+      $ref: '#/$defs/related_feedback'
+  lineage:
+    $ref: '#/$defs/lineage'
+$defs:
+  feedback_owner:
+    type: object
+    additionalProperties: false
+    required:
+    - owner_id
+    - owner_type
+    - professional_role
+    properties:
+      owner_id:
+        type: string
+        minLength: 1
+        description: 'Stable identifier or recognizable name for the function or human proposing the feedback.
+          This establishes authorship, not corrective ownership.
+
+          '
+      owner_type:
+        type: string
+        enum:
+        - agent
+        - human
+        description: 'Whether the feedback was proposed by an RRS professional agent function or directly
+          by a human governance participant.
+
+          '
+      professional_role:
+        type: string
+        enum:
+        - researcher
+        - interviewer
+        - writer
+        - evaluator
+        - supervisor
+        - system_owner
+        - other
+        description: 'Professional or governance role from whose perspective the feedback was produced.
+
+          '
+      owner_label:
+        type:
+        - string
+        - 'null'
+        description: 'Optional human-readable label when owner_id alone is insufficient for understandable
+          provenance.
+
+          '
+  observation_context:
+    type: object
+    additionalProperties: false
+    required:
+    - task_ids
+    - artifact_types
+    - resource_refs
+    properties:
+      task_ids:
+        type: array
+        uniqueItems: true
+        description: 'Professional operations during which the observed friction surfaced. May be empty
+          when the observation concerns architecture outside a particular task.
+
+          '
+        items:
+          type: string
+          enum:
+          - generate_analysis
+          - request_evidence
+          - investigate_evidence_request
+          - generate_resume
+          - evaluate_resume
+          - other
+      artifact_types:
+        type: array
+        uniqueItems: true
+        description: 'Artifact families involved in or affected by the observed behavior.
+
+          '
+        items:
+          type: string
+          enum:
+          - job_experience_record
+          - job_experience_analysis
+          - evidence_request
+          - evidence_response
+          - targeted_resume
+          - writer_content_manifest
+          - resume_evaluation
+          - process_feedback
+          - governance_document
+          - other
+      resource_refs:
+        type: array
+        uniqueItems: true
+        description: 'Contracts, task instructions, schemas, architecture resources, or documentation
+          directly relevant to the observation.
+
+          '
+        items:
+          type: string
+      context_summary:
+        type:
+        - string
+        - 'null'
+        description: 'Concise explanation of the professional situation in which the feedback was observed.
+
+          '
+  observation:
+    type: object
+    additionalProperties: false
+    required:
+    - summary
+    - description
+    - observed_pattern
+    properties:
+      summary:
+        type: string
+        minLength: 1
+        description: 'Short statement of the observed system-level problem.
+
+          '
+      description:
+        type: string
+        minLength: 1
+        description: 'Detailed factual description of the observed behavior without requiring the producing
+          function to establish architectural root cause.
+
+          '
+      observed_pattern:
+        type: string
+        minLength: 1
+        description: 'Description of the repeated, persistent, or materially significant behavior that
+          justifies elevating the observation to Process Feedback.
+
+          '
+      expected_behavior:
+        type:
+        - string
+        - 'null'
+        description: 'Expected professional or architectural behavior when that expectation is established
+          by current approved resources.
+
+          '
+      observed_behavior:
+        type:
+        - string
+        - 'null'
+        description: 'Concise contrast describing what actually occurred.
+
+          '
+      governing_resource_refs:
+        type: array
+        uniqueItems: true
+        description: 'Approved governance resources that establish the expected behavior when relevant.
+
+          '
+        items:
+          type: string
+  classification:
+    type: object
+    additionalProperties: false
+    required:
+    - feedback_type
+    - materiality
+    - confidence
+    properties:
+      feedback_type:
+        type: string
+        enum:
+        - contract_ambiguity
+        - task_ambiguity
+        - schema_limitation
+        - missing_field
+        - interface_problem
+        - authority_boundary_ambiguity
+        - terminology_inconsistency
+        - repeated_missing_context
+        - repeated_redundant_work
+        - repeated_unnecessary_investigation
+        - traceability_problem
+        - structural_constraint
+        - runtime_leakage
+        - partner_coupling
+        - idempotence_problem
+        - classification_pressure
+        - validation_gap
+        - documentation_mismatch
+        - scope_mismatch
+        - duplicated_responsibility
+        - missing_responsibility
+        - other
+      materiality:
+        type: string
+        enum:
+        - critical
+        - high
+        - moderate
+        - low
+        description: 'Estimated significance of the observed system problem.
+
+          '
+      confidence:
+        type: string
+        enum:
+        - high
+        - moderate
+        - low
+        description: 'Confidence that the observed behavior represents a genuine system problem rather
+          than isolated execution variance or incomplete context.
+
+          '
+  occurrence:
+    type: object
+    additionalProperties: false
+    required:
+    - occurrence_type
+    properties:
+      occurrence_type:
+        type: string
+        enum:
+        - isolated_material
+        - recurring
+        - persistent
+        description: 'Nature of recurrence supporting creation of the Process Feedback.
+
+          '
+      observed_count:
+        type:
+        - integer
+        - 'null'
+        minimum: 1
+        description: 'Number of distinct observed occurrences when known. This describes supporting evidence
+          for recurrence and is not a workflow counter.
+
+          '
+      first_observed_at:
+        type:
+        - string
+        - 'null'
+        format: date-time
+      most_recent_observed_at:
+        type:
+        - string
+        - 'null'
+        format: date-time
+      recurrence_basis:
+        type:
+        - string
+        - 'null'
+        description: 'Why the feedback owner considers the issue recurring or persistent.
+
+          '
+      materially_distinct_contexts:
+        type: array
+        description: 'Different tasks, artifacts, applications, or scenarios in which the same pattern
+          was observed.
+
+          '
+        items:
+          type: string
+  impact:
+    type: object
+    additionalProperties: false
+    required:
+    - impact_types
+    - description
+    - affected_artifact_types
+    - affected_resource_refs
+    properties:
+      impact_types:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+          enum:
+          - factual_integrity_risk
+          - authority_confusion
+          - repeated_work
+          - unnecessary_human_burden
+          - analytical_quality
+          - investigation_quality
+          - presentation_quality
+          - evaluation_quality
+          - traceability_loss
+          - schema_interoperability
+          - idempotence_loss
+          - partner_coupling
+          - runtime_coupling
+          - maintainability
+          - usability
+          - unnecessary_complexity
+          - missing_professional_state
+          - governance_ambiguity
+          - other
+      description:
+        type: string
+        minLength: 1
+        description: 'Concrete effect the observed issue has on professional quality, architecture, maintainability,
+          human effort, or system reliability.
+
+          '
+      affected_artifact_types:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum:
+          - job_experience_record
+          - job_experience_analysis
+          - evidence_request
+          - evidence_response
+          - targeted_resume
+          - writer_content_manifest
+          - resume_evaluation
+          - process_feedback
+          - governance_document
+          - other
+      affected_task_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+      affected_resource_refs:
+        type: array
+        uniqueItems: true
+        description: 'Contracts, task instructions, schemas, documentation, or architectural resources
+          apparently affected by the issue.
+
+          '
+        items:
+          type: string
+      severity_rationale:
+        type:
+        - string
+        - 'null'
+        description: 'Why the assigned materiality level is appropriate.
+
+          '
+  evidence:
+    type: object
+    additionalProperties: false
+    required:
+    - artifact_refs
+    - examples
+    properties:
+      artifact_refs:
+        type: array
+        description: 'Professional or governance artifacts demonstrating the observed behavior.
+
+          '
+        items:
+          $ref: '#/$defs/artifact_reference'
+      examples:
+        type: array
+        description: 'Concise examples showing how the problem manifested.
+
+          '
+        items:
+          $ref: '#/$defs/feedback_example'
+      supporting_notes:
+        type:
+        - string
+        - 'null'
+      counterevidence:
+        type: array
+        description: 'Observations that may weaken, qualify, or contradict the proposed interpretation.
+          Including counterevidence is encouraged when known.
+
+          '
+        items:
+          type: string
+  artifact_reference:
+    type: object
+    additionalProperties: false
+    required:
+    - artifact_type
+    - artifact_id
+    properties:
+      artifact_type:
+        type: string
+        enum:
+        - job_experience_record
+        - job_experience_analysis
+        - evidence_request
+        - evidence_response
+        - targeted_resume
+        - writer_content_manifest
+        - resume_evaluation
+        - process_feedback
+        - governance_document
+        - other
+      artifact_id:
+        type: string
+        minLength: 1
+      artifact_version:
+        type:
+        - integer
+        - string
+        - 'null'
+        description: Exact artifact version when the referenced artifact family is versioned. Required
+          for versioned production artifacts and Process Feedback; may be null for governance_document
+          or other non-versioned references.
+      locator:
+        type:
+        - string
+        - 'null'
+        description: 'Stable file, section, field, content ID, or other locator identifying where the
+          observation is visible.
+
+          '
+      relevance:
+        type:
+        - string
+        - 'null'
+    allOf:
+    - if:
+        properties:
+          artifact_type:
+            enum:
+            - job_experience_record
+            - job_experience_analysis
+            - evidence_request
+            - evidence_response
+            - targeted_resume
+            - writer_content_manifest
+            - resume_evaluation
+            - process_feedback
+        required:
+        - artifact_type
+      then:
+        required:
+        - artifact_version
+        properties:
+          artifact_version:
+            type:
+            - integer
+            - string
+            description: Exact version of the referenced versioned artifact. This is required for production
+              and Process Feedback artifact families so governance evidence remains historically reproducible.
+  feedback_example:
+    type: object
+    additionalProperties: false
+    required:
+    - example_id
+    - description
+    - artifact_refs
+    properties:
+      example_id:
+        type: string
+        pattern: ^PFX-[0-9]{3,}$
+      description:
+        type: string
+        minLength: 1
+      artifact_refs:
+        type: array
+        items:
+          $ref: '#/$defs/artifact_reference'
+      expected_state:
+        type:
+        - string
+        - 'null'
+      observed_state:
+        type:
+        - string
+        - 'null'
+      material_consequence:
+        type:
+        - string
+        - 'null'
+  suspected_layer:
+    type: object
+    additionalProperties: false
+    required:
+    - layer
+    - rationale
+    - confidence
+    properties:
+      layer:
+        type: string
+        enum:
+        - architecture_principles
+        - contract_standard
+        - agent_contract
+        - task_instruction
+        - schema
+        - documentation
+        - runtime_implementation
+        - connector_implementation
+        - human_operating_procedure
+        - multiple_layers
+        - unknown
+        description: 'Feedback owner''s hypothesis concerning the architectural layer most likely responsible
+          for the observed issue. This is not an authoritative root-cause determination.
+
+          '
+      rationale:
+        type: string
+        minLength: 1
+        description: 'Why the feedback owner suspects this layer.
+
+          '
+      confidence:
+        type: string
+        enum:
+        - high
+        - moderate
+        - low
+      suspected_resource_refs:
+        type: array
+        uniqueItems: true
+        description: 'Specific resources the feedback owner believes may warrant governance review.
+
+          '
+        items:
+          type: string
+      alternative_layers:
+        type: array
+        uniqueItems: true
+        description: 'Other plausible architectural layers when root cause is uncertain.
+
+          '
+        items:
+          type: string
+          enum:
+          - architecture_principles
+          - contract_standard
+          - agent_contract
+          - task_instruction
+          - schema
+          - documentation
+          - runtime_implementation
+          - connector_implementation
+          - human_operating_procedure
+          - unknown
+  proposed_solution:
+    type: object
+    additionalProperties: false
+    required:
+    - proposal
+    - rationale
+    - proposal_confidence
+    - affected_resource_refs
+    properties:
+      proposal:
+        type: string
+        minLength: 1
+        description: 'Feedback owner''s proposed solution to the observed problem. This is advisory and
+          does not represent approved governance state.
+
+          '
+      rationale:
+        type: string
+        minLength: 1
+        description: 'Why the feedback owner believes the proposed solution would address the observed
+          issue.
+
+          '
+      proposal_confidence:
+        type: string
+        enum:
+        - high
+        - moderate
+        - low
+        description: 'Confidence in the proposed solution independently from confidence in the observation
+          itself.
+
+          '
+      affected_resource_refs:
+        type: array
+        uniqueItems: true
+        description: 'Resources the proposed solution would likely change if adopted.
+
+          '
+        items:
+          type: string
+      proposed_change_types:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum:
+          - architecture_change
+          - contract_change
+          - task_change
+          - schema_change
+          - documentation_change
+          - runtime_change
+          - connector_change
+          - operating_procedure_change
+          - deprecation
+          - no_structural_change
+          - other
+      expected_benefit:
+        type:
+        - string
+        - 'null'
+      potential_risks:
+        type: array
+        description: 'Known or plausible regressions introduced by the proposed solution.
+
+          '
+        items:
+          type: string
+      alternatives_considered:
+        type: array
+        description: 'Other possible solutions considered by the feedback owner.
+
+          '
+        items:
+          type: string
+      urgency:
+        type:
+        - string
+        - 'null'
+        enum:
+        - immediate_review
+        - high
+        - normal
+        - low
+        - null
+        description: 'Suggested governance-review urgency. This is advisory and does not control runtime
+          behavior or implementation scheduling.
+
+          '
+  related_feedback:
+    type: object
+    additionalProperties: false
+    required:
+    - feedback_id
+    - relationship
+    properties:
+      feedback_id:
+        type: string
+        pattern: ^PF-[0-9]{4,}$
+      relationship:
+        type: string
+        enum:
+        - same_pattern
+        - similar_pattern
+        - possible_duplicate
+        - supersedes
+        - refines
+        - contradicts
+        - supporting
+      relationship_note:
+        type:
+        - string
+        - 'null'
+  lineage:
+    type: object
+    additionalProperties: false
+    required:
+    - created_at
+    - updated_at
+    properties:
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      supersedes_version:
+        type:
+        - integer
+        - 'null'
+        minimum: 1
+      material_change_summary:
+        type:
+        - string
+        - 'null'
+        description: 'Concise description of material changes from the previous version of this Process
+          Feedback item.
+
+          '
+      derived_from_feedback_ids:
+        type: array
+        uniqueItems: true
+        description: 'Process Feedback items from which this item was materially derived, consolidated,
+          or refined.
+
+          '
+        items:
+          type: string
+          pattern: ^PF-[0-9]{4,}$

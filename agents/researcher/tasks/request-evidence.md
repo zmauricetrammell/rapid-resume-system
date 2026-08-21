@@ -9,51 +9,64 @@
 
 # 1. TASK
 
-Generate an Experience Gap Request when the current evidence set is insufficient to adequately evaluate or support a material target-job requirement and additional factual evidence may exist.
+Generate an Evidence Request when current authoritative professional evidence is insufficient to resolve a material factual question and additional human factual investigation could materially improve the evidence state.
 
-This task converts an identified evidence deficiency into a focused request that the Interviewer can investigate with the job hunter.
+This task converts an identified evidence deficiency into a focused factual investigation specification.
 
 The purpose is not to prove that the job hunter lacks the experience.
 
-The purpose is to identify exactly what factual information is missing and give the Interviewer enough context to investigate it efficiently and neutrally.
+The purpose is to define exactly:
+
+- What is currently known.
+- What remains unknown.
+- Why the missing information matters.
+- What factual dimensions require investigation.
+- What facts must not be assumed.
+- What existing professional context is most relevant.
+- What factual outcomes would materially clarify the issue.
 
 Use this task when:
 
-- A material requirement cannot be adequately supported from the current evidence set.
-- Existing evidence appears relevant but lacks important detail.
+- A material requirement cannot be adequately evaluated from current evidence.
+- Relevant evidence exists but lacks important factual detail.
 - Ownership is unclear.
 - Scope is unclear.
 - Results are unclear.
 - Attribution is unclear.
 - Proficiency is unclear.
 - Duration or frequency is unclear.
-- Direct versus transferable experience cannot be established.
-- A downstream agent has identified a material deficiency and the Researcher determines that new factual evidence is required to resolve it.
-- Conflicting evidence requires clarification from the job hunter.
-- A likely experience gap cannot yet be distinguished from incomplete documentation.
+- Direct versus transferable experience cannot yet be determined.
+- Conflicting evidence requires human factual clarification.
+- An apparent capability gap cannot yet be distinguished from incomplete documentation.
+- Supplied professional-state feedback reveals a factual deficiency that current evidence cannot resolve.
 
-Do not use this task merely because stronger evidence would be nice to have.
+Do not use this task merely because stronger evidence would be desirable.
 
 ---
 
 # 2. OBJECTIVE
 
-Produce a focused Experience Gap Request that enables the Interviewer to discover, clarify, or confirm the factual evidence needed to resolve a material requirement.
+Produce a self-contained Evidence Request that defines a coherent factual investigation.
 
-The request must tell the Interviewer:
+The request must establish:
 
-1. Which requirement is affected.
-2. Why the current evidence is insufficient.
-3. What evidence already exists.
-4. Which specific factual dimensions are missing.
-5. Which adjacent experiences provide the best starting points.
+1. What professional requirement or factual issue is affected.
+2. What current authoritative evidence already establishes.
+3. What remains unresolved.
+4. Why the unresolved information is material.
+5. Which existing professional experiences provide useful investigative context.
 6. What facts must not be assumed.
-7. What questions or investigative directions are likely to be useful.
-8. What would constitute full resolution.
-9. What would constitute partial resolution.
-10. What would confirm that the gap is genuine.
+7. Which factual dimensions should be explored.
+8. What factual findings would materially clarify the issue.
+9. What factual findings would establish only partial support.
+10. What factual findings would demonstrate related but non-direct capability when relevant.
+11. What factual findings would establish that the requested experience cannot currently be supported.
 
-The request must be specific enough that the Interviewer does not need to repeat the Researcher's analysis.
+The Evidence Request must contain enough context that the factual investigation does not require repeating the complete career-wide evidence analysis.
+
+The Evidence Request describes professional evidence need.
+
+It does not describe runtime behavior.
 
 ---
 
@@ -63,102 +76,134 @@ The Researcher must consider all relevant current artifacts before requesting ne
 
 ## Minimum Required Inputs
 
-- Target Job Description.
-- Current professional evidence set.
-- Identified material requirement or evidence deficiency.
+- Identified material factual deficiency or uncertainty.
+- Current authoritative professional evidence relevant to that issue.
 
 ## Contextual Inputs
 
-When available, also consider:
+When available and relevant, also consider:
 
+- Target Job Description.
 - Current Job Experience Analysis.
 - Previous Job Experience Analyses.
 - Relevant Job Experience Records.
-- Atomic experience points.
-- Previous Experience Gap Requests.
-- Previous Interviewer responses.
-- Evaluator feedback.
-- Writer feedback.
+- Atomic Experience Points.
+- Previous Evidence Requests.
+- Previous Evidence Responses.
+- Resume Evaluation.
 - Writer Content Manifest.
 - Current targeted resume.
 - Employment provenance records.
 - Confirmed corrections.
 - Supporting source materials.
-- Other artifacts attached to the work item.
+- Other relevant supplied artifacts.
 
-Before generating a request, the Researcher must determine that reasonable retrieval from the existing evidence set has already been attempted.
+Before generating an Evidence Request, determine that reasonable retrieval and analysis of existing authoritative evidence has already occurred.
+
+Do not generate a request simply because available evidence is inconvenient, incomplete in presentation, or less impressive than desired.
 
 ---
 
 # 4. REQUEST THRESHOLD
 
-Generate an Experience Gap Request only when all of the following are true:
+Generate an Evidence Request only when all of the following are true:
 
-- The affected requirement is material enough to justify additional investigation.
-- The current evidence is insufficient for the Researcher's analysis.
+- The factual issue is materially relevant.
+- Current authoritative evidence is insufficient.
 - Reasonable career-wide retrieval has already been performed.
-- Existing terminology variants and adjacent capabilities have been considered.
-- Existing direct and transferable evidence has been evaluated.
-- The missing information is factual rather than purely presentational.
-- Additional questioning could plausibly resolve or materially clarify the deficiency.
+- Relevant terminology variants have been considered.
+- Adjacent responsibilities have been considered.
+- Direct and transferable evidence have been evaluated.
+- The deficiency is factual rather than purely presentational.
+- Additional human investigation could plausibly resolve or materially clarify the issue.
 
-Do not request evidence for:
+Do not generate an Evidence Request for:
 
 - Formatting issues.
 - Resume phrasing issues.
 - Content-ordering issues.
-- Keyword placement issues.
-- Evidence that already exists but merely needs better selection.
-- Evidence that already exists but merely needs better presentation.
-- Low-priority details unlikely to affect the target-job analysis.
-- Confirmed gaps that have already been adequately investigated.
+- Keyword-placement issues.
+- Evidence that already exists but merely needs stronger selection.
+- Evidence that already exists but merely needs stronger presentation.
+- Low-value details unlikely to materially affect analysis.
+- Questions already resolved by prior Evidence Responses.
+- Confirmed unsupported requirements unless new information creates a genuinely different factual question.
+- Desired evidence whose absence does not materially affect analytical state.
+
+The Researcher must exhaust reasonable existing evidence before requesting human factual investigation.
 
 ---
 
 # 5. PROCESS
 
-## Phase 1 — Identify the Requirement
+## Phase 1 — Identify the Factual Issue
 
-Identify the specific target-job requirement affected.
+Identify the specific requirement, evidence deficiency, conflict, or uncertainty requiring investigation.
 
-Preserve:
+Preserve as applicable:
 
+- Relevant evidence IDs.
+- Relevant Job Experience Record IDs and versions.
+- Relevant analysis IDs and versions.
+- Relevant feedback or deficiency references.
+
+When the factual issue is target-specific, additionally preserve:
+
+- Target Job ID.
+- Job Experience Analysis ID and version.
 - Requirement ID.
 - Original job-description language.
 - Normalized requirement.
 - Requirement priority.
-- Whether it is required, preferred, or materially implied.
 
-Determine why the requirement matters to the target role.
+Determine why the unresolved issue matters analytically.
+
+An Evidence Request does not need to concern a target-job requirement directly.
+
+It may also concern:
+
+- Conflicting professional evidence.
+- Ownership ambiguity.
+- Scope ambiguity.
+- Attribution ambiguity.
+- Result ambiguity.
+- Proficiency ambiguity.
+- Direct-versus-transferable uncertainty.
+- Incomplete professional episode documentation.
 
 ---
 
 ## Phase 2 — Review Existing Evidence
 
-Identify all currently available evidence relevant to the requirement.
+Identify all current authoritative evidence relevant to the factual issue.
 
-Include:
+Consider:
 
 - Direct evidence.
 - Transferable evidence.
 - Adjacent evidence.
-- Relevant results.
 - Relevant responsibilities.
+- Relevant actions.
+- Relevant ownership.
+- Relevant scope.
 - Relevant tools or systems.
-- Relevant functional-role classifications.
-- Previous evidence requests and responses.
+- Relevant results.
+- Existing functional-role classifications.
+- Previous Evidence Requests.
+- Previous Evidence Responses.
+- Related professional episodes.
 
-Summarize what the existing evidence already establishes.
+Summarize what current authoritative evidence already establishes.
 
-Do not ask the Interviewer to rediscover facts that are already documented.
+Do not request rediscovery of facts already established.
 
 ---
 
-## Phase 3 — Identify the Deficiency
+## Phase 3 — Define the Missing Evidence
 
-Define precisely what remains unknown or insufficient.
+State precisely what remains unknown or insufficient.
 
-Possible evidence dimensions include:
+Possible dimensions include:
 
 - Responsibility.
 - Personal action.
@@ -183,390 +228,580 @@ Possible evidence dimensions include:
 - Business significance.
 - Operational significance.
 - Customer significance.
-- Direct versus transferable relationship.
+- Direct-versus-transferable relationship.
+- Conflicting values or definitions.
 
-Avoid vague statements such as:
+Avoid vague deficiencies such as:
 
 - "Need more detail."
 - "Need stronger evidence."
-- "Need leadership experience."
+- "Need leadership evidence."
 - "Need better metrics."
 
-State exactly what information is missing.
+State exactly what factual information remains unresolved.
 
 ---
 
-## Phase 4 — Identify Adjacent Experience
+## Phase 4 — Identify Promising Professional Context
 
-Identify the strongest existing professional experiences that may contain the missing evidence.
+Identify existing professional experiences that may contain the missing evidence.
 
-For each promising starting point, provide:
+For each useful context, provide:
 
 - Experience or record ID.
-- Relevant role or employment context.
+- Relevant employment or role context.
 - What is already known.
-- Why the experience may contain the missing evidence.
-- Which dimensions should be explored further.
+- Why the experience may be relevant.
+- Which factual dimensions may be worth exploring.
 
-The Interviewer should begin with the most promising existing context before searching broadly.
+This context should narrow the investigation without presuming the missing fact exists.
 
-Do not imply that adjacent evidence proves the missing fact.
+Do not imply that adjacent evidence proves the requested fact.
 
 ---
 
 ## Phase 5 — Define Facts That Must Not Be Assumed
 
-Explicitly identify facts the Interviewer must not infer or lead the job hunter toward.
+Explicitly identify factual inferences that must not be made during investigation.
 
 Examples:
 
-- Do not assume coordination means ownership.
-- Do not assume leadership means direct reports.
-- Do not assume tool familiarity means production administration.
-- Do not assume team results were individually attributable.
-- Do not assume a similar system is equivalent to the required system.
-- Do not assume military authority is equivalent to a specific civilian management responsibility.
-- Do not assume a result was measured if no measurement exists.
-- Do not assume direct experience when only transferable evidence exists.
+- Coordination does not automatically establish ownership.
+- Leadership does not automatically establish direct reports.
+- Tool familiarity does not automatically establish production administration.
+- Team results do not automatically establish individual attribution.
+- Similar systems do not automatically establish direct system experience.
+- Military authority does not automatically establish an equivalent civilian management responsibility.
+- A result is not automatically measured merely because an outcome occurred.
+- Transferable evidence does not automatically become direct evidence.
+- Participation does not automatically establish decision authority.
+- Current recollection does not automatically supersede older confirmed evidence.
 
-These constraints protect factual integrity during the interview.
-
----
-
-## Phase 6 — Develop Investigation Guidance
-
-Provide the Interviewer with neutral investigative directions.
-
-Questions should help discover facts rather than steer the job hunter toward a preferred answer.
-
-Good examples:
-
-    What part of the vendor relationship were you personally responsible for?
-
-    Were you responsible for measuring or enforcing service levels,
-    or were you primarily coordinating with the vendor?
-
-    How many vendors or contracts were involved?
-
-    What happened when performance fell below expectations?
-
-    Did you personally make renewal, escalation, or corrective-action decisions?
-
-    Was the result formally measured or observed qualitatively?
-
-Avoid leading questions such as:
-
-    You managed the vendor SLA directly, correct?
-
-    Can we say you owned vendor performance?
-
-    Would it be fair to call this contract management?
-
-The Interviewer owns the final questioning strategy.
-
-The Researcher provides investigative context, not a script that forces a conclusion.
+These constraints protect factual integrity.
 
 ---
 
-# 6. RESOLUTION CRITERIA
+## Phase 6 — Define Investigative Objectives
 
-Every Experience Gap Request must define clear resolution criteria.
+Describe the factual questions the investigation needs to answer.
 
-## Full Resolution
+Prefer factual objectives rather than scripted interview questions.
 
-Define the evidence that would adequately establish the requirement.
+For example:
+
+    Determine whether the job hunter personally monitored vendor performance.
+
+    Determine whether the job hunter controlled escalation or corrective action.
+
+    Determine whether formal service expectations were reviewed.
+
+    Determine the approximate number of vendors involved.
+
+    Determine whether contract or renewal authority existed.
+
+Avoid prescribing exact conversational wording unless a narrowly defined factual clarification requires it.
+
+The Evidence Request defines:
+
+> What facts need to be established?
+
+It does not define:
+
+> How the human conversation must be conducted.
+
+---
+
+# 6. FACTUAL RESOLUTION CONDITIONS
+
+Every Evidence Request should define the factual states that would materially clarify the issue.
+
+These are investigation reference points.
+
+They are not final evidence classifications.
+
+## Full Factual Resolution
+
+Define what factual information would fully answer the question being investigated.
 
 Example:
 
-    Full resolution requires confirmed evidence that the job hunter
-    personally owned or materially led vendor performance management,
-    including responsibility for service expectations, escalation,
-    corrective action, or performance review.
+    Full factual resolution would establish whether the job hunter
+    personally owned or materially led vendor-performance management,
+    including the specific responsibilities held for performance review,
+    escalation, corrective action, or service expectations.
 
-Full resolution does not require a specific answer if several factual paths could establish the capability.
+Do not require one preferred answer.
+
+Several factual outcomes may fully answer the question.
 
 ---
 
-## Partial Resolution
+## Partial Factual Resolution
 
-Define evidence that would improve support but leave a meaningful limitation.
+Define what information would materially improve understanding while leaving an important dimension unresolved.
 
 Example:
 
-    Partial resolution exists if the job hunter coordinated vendor
-    performance or escalations but did not own SLA definition,
-    enforcement, or contract decisions.
+    Partial factual resolution would establish that the job hunter
+    coordinated vendor escalations while leaving formal SLA ownership
+    or contracting authority unresolved.
 
-Partial resolution should identify the remaining limitation.
+State which factual limitation would remain.
 
 ---
 
-## Transferable Resolution
+## Related Capability Resolution
 
-When appropriate, define what evidence would establish transferable rather than direct experience.
+When relevant, define what facts would establish a related professional capability even if the requested direct experience is not present.
 
 Example:
 
-    Transferable resolution exists if the job hunter managed internal
-    service-performance targets using substantially similar governance
-    and escalation practices but did not directly manage external vendors.
+    Related capability would be established if the job hunter managed
+    comparable internal service-performance targets and escalation
+    processes but did not directly manage external vendors.
 
-Do not collapse transferable resolution into direct resolution.
+Do not classify this result as transferable evidence within the Evidence Request.
+
+The request records the factual state necessary for later analysis.
 
 ---
 
-## Confirmed Gap
+## Unsupported Factual Outcome
 
-Define what would establish that the job hunter does not possess the requested experience.
+Define what factual finding would establish that the requested professional experience cannot currently be supported.
 
 Example:
 
-    Confirmed gap exists if the job hunter confirms that they did not
-    own, lead, materially support, or perform comparable vendor-performance
-    responsibilities in any relevant role.
+    The requested experience would remain unsupported if the job hunter
+    confirms that they did not own, lead, materially support, or perform
+    comparable vendor-performance responsibilities in relevant roles.
 
-The answer:
+The statement:
 
-    "I do not have that experience."
+    "I did not do that."
 
-is a valid resolution.
+is a valid factual outcome.
+
+The purpose of investigation is truth, not confirmation of desired experience.
 
 ---
 
-# 7. OUTPUT
+# 7. ANALYTICAL IMPACT
 
-Produce an Experience Gap Request conforming to the authoritative schema under:
+Describe why the unresolved factual issue matters.
 
-    /schemas/experience-gap-request.yaml
+Do not assign workflow status.
 
-The request should include, at minimum:
+Possible concepts include:
+
+## Materiality
+
+Examples:
+
+- Critical.
+- High.
+- Moderate.
+- Low.
+
+## Analytical Impact
+
+Examples:
+
+- Prevents confident ownership determination.
+- Prevents direct-experience classification.
+- Prevents reliable scope assessment.
+- Prevents safe attribution of a result.
+- Limits current requirement support.
+- Prevents use of a stronger professional claim.
+- Does not materially affect core fit but may improve differentiation.
+
+## Current Supported Position
+
+State what current evidence safely supports before investigation.
+
+Example:
+
+    Current evidence supports vendor coordination and escalation activity
+    but does not establish ownership of formal SLA management.
+
+## Claim Constraint
+
+When useful, state what interpretation cannot currently be made.
+
+Example:
+
+    Current evidence does not support claiming direct ownership of
+    formal vendor SLA management.
+
+The Evidence Request describes analytical state.
+
+It does not determine process state.
+
+---
+
+# 8. OUTPUT
+
+Produce an Evidence Request conforming to the authoritative schema under:
+
+    /schemas/evidence-request.yaml
+
+The Evidence Request should contain, as applicable:
 
 - Request ID.
-- Target Job ID.
-- Requirement ID.
-- Requirement priority.
-- Original requirement language.
-- Normalized requirement.
+- Related evidence IDs.
+- Related Job Experience Record IDs and versions.
 - Reason for request.
 - Current evidence summary.
 - Missing evidence dimensions.
-- Adjacent experience references.
-- Investigation guidance.
+- Promising professional context.
 - Facts that must not be assumed.
-- Full-resolution criteria.
-- Partial-resolution criteria.
-- Transferable-resolution criteria when applicable.
-- Confirmed-gap criteria.
-- Blocking status.
+- Investigative objectives.
+- Full factual-resolution conditions.
+- Partial factual-resolution conditions.
+- Related-capability conditions when applicable.
+- Unsupported factual outcome conditions.
+- Materiality.
+- Analytical impact.
+- Current supported position.
+- Claim constraints when applicable.
 - Originating artifact references.
+- Related prior Evidence Request IDs and versions when applicable.
 
----
+When the Evidence Request is target-specific, it should additionally contain:
 
-# 8. HANDOFF
+- Related Target Job ID.
+- Related Job Experience Analysis ID and version.
+- Related requirement IDs.
 
-The normal destination is:
+Do not include:
 
-    Researcher → Interviewer
+- Destination agent.
+- Intended consumer.
+- Corrective owner.
+- Workflow state.
+- Blocking status.
+- Next action.
+- Routing instruction.
 
-The Interviewer owns:
-
-- Human questioning.
-- Memory prompting.
-- Fact discovery.
-- Clarification.
-- Confirmation.
-- Job Experience Record creation or revision.
-
-The Researcher does not dictate the factual answer.
-
-After the Interviewer completes the investigation, the work item should return to the Researcher with:
-
-- New or updated Job Experience Records.
-- Resolved Experience Gap Request.
-- Confirmed uncertainty.
-- Partial evidence.
-- Transferable evidence.
-- Or confirmed lack of experience.
-
-The Researcher then performs:
-
-    generate_analysis
-
-again using the expanded artifact set.
+The Evidence Request is a professional-state artifact.
 
 ---
 
 # 9. MULTIPLE EVIDENCE REQUESTS
 
-A single Researcher invocation may identify more than one material evidence deficiency.
+A single analytical invocation may identify more than one factual deficiency.
 
-Generate separate Experience Gap Requests when the missing evidence concerns materially distinct:
+Use one Evidence Request for one coherent factual investigation.
 
-- Requirements.
-- Professional capabilities.
-- Experiences.
-- Ownership questions.
-- Scope questions.
-- Results questions.
+Closely related missing dimensions concerning the same professional episode should normally remain together.
 
-Do not combine unrelated evidence gaps into one large Interviewer request merely for convenience.
+For example:
 
-However, closely related missing dimensions concerning the same professional episode may remain within one request.
+    ownership
+    + scope
+    + result
+    + attribution
 
-Prefer the smallest set of requests that allows focused investigation.
+may belong in one Evidence Request when they concern the same experience.
+
+Generate separate Evidence Requests when the investigations are materially independent.
+
+Examples include:
+
+- Different professional episodes.
+- Unrelated capabilities.
+- Separate factual conflicts.
+- Distinct source contexts.
+- Questions unlikely to benefit from the same factual investigation.
+
+Prefer the smallest set of coherent requests.
+
+Do not fragment one professional episode into unnecessary micro-requests.
 
 ---
 
 # 10. DUPLICATE AND REPEAT REQUEST CONTROL
 
-Before generating a new request:
+Before generating a new Evidence Request:
 
-1. Check whether the same requirement has previously generated an Experience Gap Request.
+1. Determine whether the same factual issue has previously generated a request.
 2. Review the previous request.
-3. Review the Interviewer's response.
-4. Determine whether the current deficiency is genuinely new.
-5. Do not repeatedly ask the same factual question after it has been resolved or confirmed as a gap.
+3. Review any corresponding Evidence Responses.
+4. Determine whether the factual question remains unresolved.
+5. Determine whether the current question is materially different.
+6. Preserve or update the existing request relationship when appropriate.
+7. Create a new request only when a genuinely distinct factual investigation is required.
+
+Given materially identical:
+
+- Evidence deficiency.
+- Current authoritative evidence.
+- Requirement context.
+- Prior request history.
+
+repeated execution should not generate duplicate Evidence Requests.
 
 A new request may be appropriate when:
 
-- New evidence changes the question.
-- Downstream feedback reveals a different missing dimension.
-- A previous partial resolution exposes a narrower factual issue.
+- New evidence changes the factual question.
+- A prior response resolves part of the issue but exposes a narrower unresolved dimension.
+- New supplied professional state identifies a materially different deficiency.
 - Conflicting evidence emerges.
-- The prior request did not investigate the current requirement dimension.
+- A previous investigation did not address the current factual dimension.
 
-When a request is related to a prior request, preserve traceability.
-
----
-
-# 11. BLOCKING DECISION
-
-Determine whether the evidence request blocks progression to the Writer.
-
-## Blocking Request
-
-Mark the request as blocking when the missing evidence materially affects:
-
-- A critical required qualification.
-- A likely knockout requirement.
-- A central responsibility.
-- A material credibility issue.
-- A claim the Writer cannot safely make without clarification.
-- The target professional identity.
-- A major fit determination.
-
-When blocking:
-
-    Researcher → Interviewer
-
-The work item should return to the Researcher before proceeding to Writer.
+Preserve traceability between related requests.
 
 ---
 
-## Non-Blocking Request
+# 11. CONFLICT-RESOLUTION REQUESTS
 
-Mark the request as non-blocking when:
+An Evidence Request may exist specifically to clarify conflicting professional evidence.
 
-- Current evidence adequately supports the critical requirements.
-- Additional evidence would improve differentiation rather than establish basic fit.
-- The missing detail concerns a lower-priority preferred qualification.
-- The Writer can proceed safely using the current authorized evidence.
+In that case identify:
 
-When non-blocking, the workflow may permit:
+- Existing value or interpretation A.
+- Existing value or interpretation B.
+- Provenance of each when known.
+- Why they appear inconsistent.
+- Whether both could plausibly be true under different:
+  - Scopes.
+  - Time periods.
+  - Populations.
+  - Definitions.
+  - Responsibilities.
+- What factual clarification is required.
 
-    Researcher → Writer
+Example:
 
-while the evidence request remains available for later development.
+    Existing evidence:
+    Managed 10 vendors.
 
-The workflow implementation determines whether non-blocking requests are processed immediately or retained as improvement opportunities.
+    New factual statement:
+    Managed approximately 12 vendors.
 
----
+    Possible explanation:
+    Ten may refer to active service vendors while twelve refers to
+    the total vendor portfolio.
 
-# 12. PROCESS FEEDBACK
+    Investigative objective:
+    Establish what each count represented.
 
-If the need for an evidence request reveals a recurring system problem rather than an isolated evidence gap, the Researcher may also generate Process Feedback.
+The Evidence Request should seek clarification.
 
-Examples:
-
-- The same factual dimension is repeatedly missing from Job Experience Records.
-- The Interviewer schema does not capture an evidence dimension the Researcher frequently needs.
-- The same class of requirement repeatedly creates avoidable handoff cycles.
-- Experience records systematically omit ownership.
-- Functional-role classifications repeatedly lack enough supporting context.
-- A schema field is ambiguous.
-- The workflow repeatedly loses returned evidence.
-
-Destination:
-
-    Researcher → Supervisor
-
-Process Feedback does not replace the Experience Gap Request.
-
-The production issue and the system-improvement issue are separate outputs.
+It must not determine which value becomes authoritative.
 
 ---
 
-# 13. VALIDATION
+# 12. DIRECT-VERSUS-RELATED EXPERIENCE REQUESTS
+
+When the unresolved issue concerns whether experience is direct or only related:
+
+Define:
+
+- What current evidence establishes.
+- What important distinction remains unresolved.
+- What factual information would establish direct experience.
+- What factual information would establish related capability without direct experience.
+- What factual information would establish no meaningful support.
+
+Example:
+
+    Known:
+    Candidate managed service-performance metrics internally.
+
+    Unknown:
+    Whether candidate directly managed external vendor SLA performance.
+
+    Direct factual state:
+    Candidate personally monitored and acted on external vendor service commitments.
+
+    Related factual state:
+    Candidate managed comparable internal service-performance controls
+    but did not manage external vendor SLAs.
+
+Do not classify the result inside the Evidence Request.
+
+The artifact defines the factual distinctions required for later analysis.
+
+---
+
+# 13. IDEMPOTENT BEHAVIOR
+
+This task is idempotent.
+
+Given materially identical:
+
+- Evidence deficiency.
+- Authoritative evidence.
+- Requirement context.
+- Prior requests.
+- Prior responses.
+- Current analytical state.
+
+the Researcher should converge on materially the same Evidence Request.
+
+Do not create new requests merely because:
+
+- The task is invoked again.
+- A previous request remains unresolved.
+- The candidate would benefit from stronger evidence.
+
+Change or create a request only when the factual investigation need materially changes.
+
+---
+
+# 14. PARTNER INDEPENDENCE
+
+The Researcher generates an Evidence Request without needing to know:
+
+- Which runtime component will investigate it.
+- Which communication method will be used.
+- Which runtime component supplied the triggering professional state.
+- Whether the request causes another iteration.
+- Whether work is paused.
+- What artifact will be processed next.
+
+The task's complete professional transformation is:
+
+    Current Authoritative Evidence
+            ↓
+    Identify Material Factual Deficiency
+            ↓
+    Exhaust Reasonable Existing Retrieval
+            ↓
+    Define Missing Factual Dimensions
+            ↓
+    Define Investigation Context
+            ↓
+    Define Factual Resolution Conditions
+            ↓
+    Produce Evidence Request
+
+Stop there.
+
+---
+
+# 15. PROCESS FEEDBACK
+
+Produce Process Feedback only when recurring or materially significant system-level friction is identified.
+
+Process Feedback must conform to:
+
+    /schemas/process-feedback.yaml
+
+Process Feedback should preserve:
+
+- Feedback owner.
+- Proposal timestamp.
+- Observed system behavior.
+- Recurrence or materiality basis.
+- Operational impact.
+- Supporting artifacts, examples, or other evidence.
+- Suspected architectural layer.
+- Confidence in the suspected cause.
+- Proposed solution.
+- Confidence in the proposed solution.
+- Known alternatives or risks when materially useful.
+
+The producing function may:
+
+- Describe the observed problem.
+- Identify a suspected cause.
+- Identify the architectural layer it believes may be responsible.
+- Propose a solution.
+- Explain why it believes that solution may help.
+
+These are advisory professional observations.
+
+The producing function does **not** determine:
+
+- Authoritative architectural root cause.
+- Governance disposition.
+- Corrective ownership.
+- Required implementation.
+- Runtime routing.
+- Workflow sequence.
+- Approval of a proposed change.
+
+Process Feedback describes a system observation and a proposed interpretation of that observation.
+
+Governance authority remains separate from the function producing the feedback.
+
+---
+
+# 16. VALIDATION
 
 Before completing the task, verify:
 
-- [ ] The requirement is materially relevant to the target job.
+## Request Justification
+
+- [ ] The factual issue is materially relevant.
 - [ ] Reasonable existing-evidence retrieval was performed first.
 - [ ] Existing direct evidence was reviewed.
-- [ ] Existing transferable evidence was reviewed.
+- [ ] Existing related and transferable evidence was reviewed.
 - [ ] Adjacent experience was reviewed.
-- [ ] The deficiency requires factual development rather than Writer correction.
-- [ ] The request identifies exactly what evidence is missing.
-- [ ] Existing evidence is summarized so the Interviewer does not duplicate research.
-- [ ] Promising adjacent experiences are identified.
+- [ ] Previous Evidence Requests were reviewed.
+- [ ] Previous Evidence Responses were reviewed.
+- [ ] The deficiency requires factual development rather than presentation correction.
+- [ ] Additional human investigation could plausibly improve the evidence state.
+
+## Request Quality
+
+- [ ] The request identifies exactly what remains unknown.
+- [ ] Existing evidence is summarized accurately.
+- [ ] Promising professional context is identified.
 - [ ] Facts that must not be assumed are explicit.
-- [ ] Investigation guidance is neutral.
-- [ ] Full-resolution criteria are defined.
-- [ ] Partial-resolution criteria are defined.
-- [ ] Transferable-resolution criteria are defined when applicable.
-- [ ] Confirmed-gap criteria are defined.
-- [ ] The request does not lead the job hunter toward a desired claim.
-- [ ] Previous requests were reviewed for duplication.
-- [ ] Blocking status is appropriate.
-- [ ] Source and requirement identifiers are preserved.
-- [ ] The output conforms to the Experience Gap Request schema.
+- [ ] Investigative objectives describe needed facts rather than dictating interview technique.
+- [ ] Full factual-resolution conditions are defined.
+- [ ] Partial factual-resolution conditions are defined.
+- [ ] Related-capability conditions are defined when relevant.
+- [ ] Unsupported factual-outcome conditions are defined.
+- [ ] Analytical impact is stated.
+- [ ] Current supported position is stated.
+- [ ] Claim constraints are stated when relevant.
+
+## Architectural Conformance
+
+- [ ] No workflow-blocking state is assigned.
+- [ ] No destination agent is named.
+- [ ] No intended consumer is required.
+- [ ] No corrective owner is assigned.
+- [ ] No runtime sequence is prescribed.
+- [ ] No communication technology is specified.
+- [ ] Duplicate requests were avoided.
+- [ ] Related prior requests remain traceable.
+- [ ] One request represents one coherent factual investigation.
+- [ ] Output conforms to the authoritative Evidence Request schema when defined.
 
 ---
 
-# 14. COMPLETION CONDITION
+# 17. COMPLETION CONDITION
 
-The task is complete when the Researcher has converted a material evidence deficiency into a focused, traceable, neutral, and actionable Experience Gap Request that the Interviewer can investigate without independently repeating the Researcher's analysis.
+The task is complete when the Researcher has converted a material factual evidence deficiency into a focused, traceable, neutral, and actionable Evidence Request that clearly establishes:
 
-The completed request must make clear:
+- What factual issue matters.
+- What authoritative evidence already establishes.
+- What remains unknown.
+- Why the unknown information matters.
+- Which professional context is most relevant.
+- What facts must not be assumed.
+- What factual dimensions require investigation.
+- What factual outcomes would fully answer the question.
+- What factual outcomes would partially answer it.
+- What factual outcomes would establish related capability.
+- What factual outcomes would leave the requested experience unsupported.
+- What analytical limitation currently remains.
 
-    What requirement matters.
+The Researcher must not use Evidence Requests as a substitute for thorough retrieval and analysis.
 
-    What is already known.
+The task ends when the Evidence Request accurately represents the professional factual need.
 
-    What is still missing.
+It does not end by:
 
-    Where the Interviewer should begin.
+- Assigning another runtime component.
+- Routing the artifact.
+- Blocking a process.
+- Determining what happens next.
+- Waiting for investigation to occur.
 
-    What must not be assumed.
-
-    What would resolve the issue.
-
-    What would partially resolve it.
-
-    What would confirm a genuine gap.
-
-The Researcher must not use evidence requests as a substitute for thorough retrieval.
-
-The correct sequence is:
-
-    Search existing evidence
-            ↓
-    Evaluate evidence
-            ↓
-    Identify material factual deficiency
-            ↓
-    Request evidence
-            ↓
-    Interviewer develops or confirms facts
-            ↓
-    Researcher generates analysis again
+The Evidence Request is complete when the factual investigation need is complete.

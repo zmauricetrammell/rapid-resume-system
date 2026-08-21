@@ -1,0 +1,1266 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://rapid-resume-system.local/schemas/job-experience-analysis.yaml"
+
+title: "Job Experience Analysis"
+description: >
+  Target-specific analytical artifact representing the strongest current
+  evidence-grounded assessment of how authoritative professional experience
+  relates to a target job.
+
+type: object
+additionalProperties: false
+
+required:
+  - schema_version
+  - jea_id
+  - analysis_version
+  - status
+  - target_job
+  - target_role_analysis
+  - requirement_assessments
+  - priority_evidence
+  - functional_role_architecture
+  - claim_guidance
+  - mandatory_cautions
+  - evidence_limitations
+  - material_evidence_needs
+  - fit_assessment
+  - source_artifacts
+  - lineage
+
+properties:
+
+  schema_version:
+    type: string
+    pattern: "^[0-9]+\\.[0-9]+$"
+
+  jea_id:
+    type: string
+    pattern: "^JEA-[0-9]{4,}$"
+
+  analysis_version:
+    type: integer
+    minimum: 1
+
+  status:
+    type: string
+    enum:
+      - active
+      - superseded
+      - deprecated
+
+  target_job:
+    $ref: "#/$defs/target_job"
+
+  target_role_analysis:
+    $ref: "#/$defs/target_role_analysis"
+
+  requirement_assessments:
+    type: array
+    minItems: 1
+    items:
+      $ref: "#/$defs/requirement_assessment"
+
+  priority_evidence:
+    type: array
+    items:
+      $ref: "#/$defs/priority_evidence"
+
+  functional_role_architecture:
+    $ref: "#/$defs/functional_role_architecture"
+
+  claim_guidance:
+    $ref: "#/$defs/claim_guidance"
+
+  mandatory_cautions:
+    type: array
+    items:
+      $ref: "#/$defs/mandatory_caution"
+
+  evidence_limitations:
+    type: array
+    items:
+      $ref: "#/$defs/evidence_limitation"
+
+  material_evidence_needs:
+    type: array
+    items:
+      $ref: "#/$defs/material_evidence_need"
+
+  fit_assessment:
+    $ref: "#/$defs/fit_assessment"
+
+  source_artifacts:
+    $ref: "#/$defs/source_artifacts"
+
+  lineage:
+    $ref: "#/$defs/lineage"
+
+$defs:
+
+  target_job:
+    type: object
+    additionalProperties: false
+    required:
+      - target_job_id
+      - employer
+      - role_title
+    properties:
+      target_job_id:
+        type: string
+        minLength: 1
+      employer:
+        type: string
+        minLength: 1
+      role_title:
+        type: string
+        minLength: 1
+      location:
+        type: ["string", "null"]
+      employment_type:
+        type: ["string", "null"]
+      source_reference:
+        type: ["string", "null"]
+      analyzed_job_description_version:
+        type: ["string", "null"]
+
+  target_role_analysis:
+    type: object
+    additionalProperties: false
+    required:
+      - central_mandate
+      - screening_priorities
+      - knockout_requirements
+      - seniority_expectation
+      - scope_expectations
+    properties:
+
+      central_mandate:
+        type: string
+        minLength: 1
+
+      screening_priorities:
+        type: array
+        items:
+          $ref: "#/$defs/screening_priority"
+
+      knockout_requirements:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^REQ-[0-9]{3,}$"
+
+      seniority_expectation:
+        type: ["string", "null"]
+
+      scope_expectations:
+        type: array
+        items:
+          type: string
+
+      differentiators:
+        type: array
+        items:
+          type: string
+
+  screening_priority:
+    type: object
+    additionalProperties: false
+    required:
+      - rank
+      - description
+    properties:
+      rank:
+        type: integer
+        minimum: 1
+      description:
+        type: string
+        minLength: 1
+      related_requirement_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^REQ-[0-9]{3,}$"
+
+  requirement_assessment:
+    type: object
+    additionalProperties: false
+    required:
+      - requirement_id
+      - source_text
+      - normalized_requirement
+      - requirement_type
+      - requirement_origin
+      - priority
+      - knockout_confidence
+      - evidence_status
+      - evidence_strength
+      - evidence_mappings
+      - strongest_evidence_mapping_ids
+      - permitted_claim_ids
+      - prohibited_claim_ids
+      - evidence_need_ids
+      - caution_ids
+    properties:
+
+      requirement_id:
+        type: string
+        pattern: "^REQ-[0-9]{3,}$"
+
+      source_text:
+        type: string
+        minLength: 1
+
+      normalized_requirement:
+        type: string
+        minLength: 1
+
+      requirement_type:
+        type: string
+        enum:
+          - qualification
+          - responsibility
+          - capability
+          - technical_skill
+          - tool_system
+          - leadership
+          - people_management
+          - operational
+          - project_program
+          - domain
+          - education
+          - certification
+          - experience_duration
+          - scope
+          - industry
+          - other
+
+      requirement_origin:
+        type: string
+        enum:
+          - required
+          - preferred
+          - materially_implied
+
+      priority:
+        type: string
+        enum:
+          - knockout
+          - critical
+          - high
+          - moderate
+          - low
+
+      knockout_confidence:
+        type: string
+        enum:
+          - high
+          - moderate
+          - low
+          - not_applicable
+
+      screening_relevance:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          enum:
+            - ats
+            - recruiter
+            - hiring_manager
+
+      evidence_status:
+        type: string
+        enum:
+          - supported
+          - partially_supported
+          - unsupported
+          - conflicting
+          - unresolved
+
+      evidence_strength:
+        $ref: "#/$defs/evidence_strength"
+
+      evidence_mappings:
+        type: array
+        items:
+          $ref: "#/$defs/evidence_mapping"
+
+      strongest_evidence_mapping_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^MAP-[0-9]{3,}-[0-9]{2,}$"
+
+      permitted_claim_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^CLAIM-[0-9]{3,}$"
+
+      prohibited_claim_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^PCLAIM-[0-9]{3,}$"
+
+      evidence_need_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^EN-[0-9]{3,}$"
+
+      caution_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^CAUTION-[0-9]{3,}$"
+
+      analytical_summary:
+        type: ["string", "null"]
+
+      candidacy_impact:
+        type: ["string", "null"]
+
+  evidence_mapping:
+    type: object
+    additionalProperties: false
+    required:
+      - mapping_id
+      - jer_id
+      - jer_version
+      - experience_point_ids
+      - result_ids
+      - evidence_summary
+      - relationship
+      - transferability
+      - evidence_strength
+      - assessment
+      - selection_rank
+      - rationale
+      - qualifications
+    properties:
+
+      mapping_id:
+        type: string
+        pattern: "^MAP-[0-9]{3,}-[0-9]{2,}$"
+
+      jer_id:
+        type: string
+        pattern: "^JER-[0-9]{4,}$"
+
+      jer_version:
+        type: integer
+        minimum: 1
+
+      experience_point_ids:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^EP-[0-9]{4,}-[0-9]{2,}$"
+
+      result_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^RES-[0-9]{4,}-[0-9]{2,}$"
+
+      evidence_summary:
+        type: string
+        minLength: 1
+
+      relationship:
+        type: string
+        enum:
+          - supports
+          - partially_supports
+          - contextualizes
+          - contradicts
+          - limits
+
+      transferability:
+        type: string
+        enum:
+          - direct
+          - strongly_transferable
+          - partially_transferable
+          - adjacent
+          - unsupported
+
+      evidence_strength:
+        $ref: "#/$defs/evidence_strength"
+
+      assessment:
+        $ref: "#/$defs/evidence_dimension_assessment"
+
+      selection_rank:
+        type: ["integer", "null"]
+        minimum: 1
+
+      rationale:
+        type: string
+        minLength: 1
+
+      qualifications:
+        type: array
+        items:
+          type: string
+
+  evidence_dimension_assessment:
+    type: object
+    additionalProperties: false
+    required:
+      - relevance
+      - ownership
+      - scope
+      - proficiency
+      - results
+      - specificity
+      - differentiation
+    properties:
+      relevance:
+        $ref: "#/$defs/dimension_strength"
+      ownership:
+        $ref: "#/$defs/dimension_strength"
+      scope:
+        $ref: "#/$defs/dimension_strength"
+      proficiency:
+        $ref: "#/$defs/dimension_strength"
+      results:
+        $ref: "#/$defs/dimension_strength"
+      specificity:
+        $ref: "#/$defs/dimension_strength"
+      differentiation:
+        $ref: "#/$defs/dimension_strength"
+
+  dimension_strength:
+    type: string
+    enum:
+      - exceptional
+      - strong
+      - moderate
+      - weak
+      - not_applicable
+
+  evidence_strength:
+    type: string
+    enum:
+      - exceptional
+      - strong
+      - moderate
+      - weak
+      - none
+
+  priority_evidence:
+    type: object
+    additionalProperties: false
+    required:
+      - priority_evidence_id
+      - global_rank
+      - mapping_refs
+      - requirement_ids
+      - rationale
+    properties:
+
+      priority_evidence_id:
+        type: string
+        pattern: "^PE-[0-9]{3,}$"
+
+      global_rank:
+        type: integer
+        minimum: 1
+
+      mapping_refs:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^MAP-[0-9]{3,}-[0-9]{2,}$"
+
+      requirement_ids:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^REQ-[0-9]{3,}$"
+
+      functional_role_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^FRA-ROLE-[0-9]{3,}$"
+
+      rationale:
+        type: string
+        minLength: 1
+
+      presentation_value:
+        type: ["string", "null"]
+
+  functional_role_architecture:
+    type: object
+    additionalProperties: false
+    required:
+      - primary_role_id
+      - roles
+    properties:
+
+      primary_role_id:
+        type: ["string", "null"]
+        pattern: "^FRA-ROLE-[0-9]{3,}$"
+
+      roles:
+        type: array
+        items:
+          $ref: "#/$defs/functional_role"
+
+  functional_role:
+    type: object
+    additionalProperties: false
+    required:
+      - functional_role_id
+      - label
+      - role_type
+      - classification_strength
+      - capabilities
+      - requirement_ids
+      - evidence_refs
+      - result_refs
+      - cautions
+    properties:
+
+      functional_role_id:
+        type: string
+        pattern: "^FRA-ROLE-[0-9]{3,}$"
+
+      label:
+        type: string
+        minLength: 1
+
+      role_type:
+        type: string
+        enum:
+          - primary
+          - secondary
+          - supporting
+
+      classification_strength:
+        type: string
+        enum:
+          - strong
+          - moderate
+          - limited
+
+      capabilities:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+
+      requirement_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^REQ-[0-9]{3,}$"
+
+      evidence_refs:
+        type: array
+        items:
+          $ref: "#/$defs/evidence_reference"
+
+      result_refs:
+        type: array
+        items:
+          $ref: "#/$defs/result_reference"
+
+      cautions:
+        type: array
+        items:
+          type: string
+
+      provenance_note:
+        type: ["string", "null"]
+
+  claim_guidance:
+    type: object
+    additionalProperties: false
+    required:
+      - supported_claims
+      - prohibited_claims
+    properties:
+      supported_claims:
+        type: array
+        items:
+          $ref: "#/$defs/supported_claim"
+      prohibited_claims:
+        type: array
+        items:
+          $ref: "#/$defs/prohibited_claim"
+
+  supported_claim:
+    type: object
+    additionalProperties: false
+    required:
+      - claim_id
+      - claim
+      - strength
+      - requirement_ids
+      - evidence_refs
+      - qualifications
+    properties:
+
+      claim_id:
+        type: string
+        pattern: "^CLAIM-[0-9]{3,}$"
+
+      claim:
+        type: string
+        minLength: 1
+
+      strength:
+        $ref: "#/$defs/evidence_strength"
+
+      requirement_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^REQ-[0-9]{3,}$"
+
+      evidence_refs:
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/$defs/evidence_reference"
+
+      qualifications:
+        type: array
+        items:
+          type: string
+
+      preferred_terminology:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+
+  prohibited_claim:
+    type: object
+    additionalProperties: false
+    required:
+      - prohibited_claim_id
+      - prohibited_interpretation
+      - reason
+      - requirement_ids
+      - evidence_refs
+    properties:
+
+      prohibited_claim_id:
+        type: string
+        pattern: "^PCLAIM-[0-9]{3,}$"
+
+      prohibited_interpretation:
+        type: string
+        minLength: 1
+
+      reason:
+        type: string
+        minLength: 1
+
+      requirement_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^REQ-[0-9]{3,}$"
+
+      evidence_refs:
+        type: array
+        items:
+          $ref: "#/$defs/evidence_reference"
+
+      safe_alternative:
+        type: ["string", "null"]
+
+  mandatory_caution:
+    type: object
+    additionalProperties: false
+    required:
+      - caution_id
+      - topic
+      - caution
+      - related_requirement_ids
+      - related_evidence_refs
+    properties:
+
+      caution_id:
+        type: string
+        pattern: "^CAUTION-[0-9]{3,}$"
+
+      topic:
+        type: string
+        minLength: 1
+
+      caution:
+        type: string
+        minLength: 1
+
+      related_requirement_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^REQ-[0-9]{3,}$"
+
+      related_evidence_refs:
+        type: array
+        items:
+          $ref: "#/$defs/evidence_reference"
+
+      severity:
+        type: ["string", "null"]
+        enum:
+          - critical
+          - high
+          - moderate
+          - low
+          - null
+
+  evidence_limitation:
+    type: object
+    additionalProperties: false
+    required:
+      - limitation_id
+      - limitation_type
+      - description
+      - materiality
+      - requirement_ids
+      - evidence_refs
+      - analytical_impact
+    properties:
+
+      limitation_id:
+        type: string
+        pattern: "^LIM-[0-9]{3,}$"
+
+      limitation_type:
+        type: string
+        enum:
+          - ownership
+          - scope
+          - proficiency
+          - duration
+          - result
+          - attribution
+          - tool
+          - industry
+          - domain
+          - qualification
+          - certification
+          - education
+          - verification
+          - conflict
+          - retrieval
+          - terminology
+          - other
+
+      description:
+        type: string
+        minLength: 1
+
+      materiality:
+        type: string
+        enum:
+          - critical
+          - high
+          - moderate
+          - low
+
+      requirement_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^REQ-[0-9]{3,}$"
+
+      evidence_refs:
+        type: array
+        items:
+          $ref: "#/$defs/evidence_reference"
+
+      analytical_impact:
+        type: string
+        minLength: 1
+
+      current_supported_position:
+        type: ["string", "null"]
+
+      reason_no_evidence_request:
+        type: ["string", "null"]
+
+  material_evidence_need:
+    type: object
+    additionalProperties: false
+    required:
+      - evidence_need_id
+      - related_requirement_ids
+      - factual_issue
+      - current_evidence_summary
+      - evidence_refs
+      - missing_dimensions
+      - relevant_professional_context
+      - facts_not_to_assume
+      - materiality
+      - analytical_impact
+      - current_supported_position
+      - claim_constraints
+      - status
+    properties:
+
+      evidence_need_id:
+        type: string
+        pattern: "^EN-[0-9]{3,}$"
+
+      related_requirement_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^REQ-[0-9]{3,}$"
+
+      factual_issue:
+        type: string
+        minLength: 1
+
+      current_evidence_summary:
+        type: string
+        minLength: 1
+
+      evidence_refs:
+        type: array
+        items:
+          $ref: "#/$defs/evidence_reference"
+
+      missing_dimensions:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          $ref: "#/$defs/evidence_dimension"
+
+      relevant_professional_context:
+        type: array
+        items:
+          $ref: "#/$defs/professional_context_reference"
+
+      facts_not_to_assume:
+        type: array
+        items:
+          type: string
+
+      materiality:
+        type: string
+        enum:
+          - critical
+          - high
+          - moderate
+          - low
+
+      analytical_impact:
+        type: string
+        minLength: 1
+
+      current_supported_position:
+        type: string
+        minLength: 1
+
+      claim_constraints:
+        type: array
+        items:
+          type: string
+
+      status:
+        type: string
+        enum:
+          - open
+          - partially_resolved
+          - resolved
+          - no_longer_material
+
+      resolution_summary:
+        type: ["string", "null"]
+
+  professional_context_reference:
+    type: object
+    additionalProperties: false
+    required:
+      - jer_id
+      - jer_version
+      - rationale
+    properties:
+
+      jer_id:
+        type: string
+        pattern: "^JER-[0-9]{4,}$"
+
+      jer_version:
+        type: integer
+        minimum: 1
+
+      experience_point_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^EP-[0-9]{4,}-[0-9]{2,}$"
+
+      result_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^RES-[0-9]{4,}-[0-9]{2,}$"
+
+      rationale:
+        type: string
+        minLength: 1
+
+  fit_assessment:
+    type: object
+    additionalProperties: false
+    required:
+      - overall_fit
+      - confidence
+      - rationale
+      - strongest_fit_areas
+      - moderate_fit_areas
+      - weak_fit_areas
+      - differentiators
+      - material_risks
+      - skill_areas
+    properties:
+
+      overall_fit:
+        $ref: "#/$defs/fit_scale"
+
+      confidence:
+        $ref: "#/$defs/confidence_scale"
+
+      rationale:
+        type: string
+        minLength: 1
+
+      strongest_fit_areas:
+        type: array
+        items:
+          type: string
+
+      moderate_fit_areas:
+        type: array
+        items:
+          type: string
+
+      weak_fit_areas:
+        type: array
+        items:
+          type: string
+
+      differentiators:
+        type: array
+        items:
+          type: string
+
+      material_risks:
+        type: array
+        items:
+          type: string
+
+      skill_areas:
+        type: array
+        items:
+          $ref: "#/$defs/skill_area_fit"
+
+  skill_area_fit:
+    type: object
+    additionalProperties: false
+    required:
+      - skill_area_id
+      - name
+      - fit
+      - confidence
+      - requirement_ids
+      - rationale
+    properties:
+
+      skill_area_id:
+        type: string
+        pattern: "^SKILL-[0-9]{3,}$"
+
+      name:
+        type: string
+        minLength: 1
+
+      fit:
+        $ref: "#/$defs/fit_scale"
+
+      confidence:
+        $ref: "#/$defs/confidence_scale"
+
+      requirement_ids:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^REQ-[0-9]{3,}$"
+
+      rationale:
+        type: string
+        minLength: 1
+
+      material_gap:
+        type: ["boolean", "null"]
+
+  fit_scale:
+    type: string
+    enum:
+      - exceptional
+      - strong
+      - moderate
+      - weak
+      - poor
+
+  confidence_scale:
+    type: string
+    enum:
+      - high
+      - moderate
+      - low
+
+  evidence_dimension:
+    type: string
+    enum:
+      - responsibility
+      - action
+      - ownership
+      - decision_authority
+      - leadership
+      - scope
+      - organizational_scope
+      - user_customer_scope
+      - geographic_scope
+      - budget
+      - systems
+      - tools
+      - complexity
+      - duration
+      - frequency
+      - proficiency
+      - result
+      - baseline
+      - final_state
+      - attribution
+      - business_significance
+      - operational_significance
+      - customer_significance
+      - verification
+      - conflicting_value
+      - directness
+      - other
+
+  evidence_reference:
+    type: object
+    additionalProperties: false
+    required:
+      - jer_id
+      - jer_version
+      - experience_point_ids
+      - result_ids
+    properties:
+
+      jer_id:
+        type: string
+        pattern: "^JER-[0-9]{4,}$"
+
+      jer_version:
+        type: integer
+        minimum: 1
+
+      experience_point_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^EP-[0-9]{4,}-[0-9]{2,}$"
+
+      result_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^RES-[0-9]{4,}-[0-9]{2,}$"
+
+  result_reference:
+    type: object
+    additionalProperties: false
+    required:
+      - jer_id
+      - jer_version
+      - result_id
+    properties:
+
+      jer_id:
+        type: string
+        pattern: "^JER-[0-9]{4,}$"
+
+      jer_version:
+        type: integer
+        minimum: 1
+
+      result_id:
+        type: string
+        pattern: "^RES-[0-9]{4,}-[0-9]{2,}$"
+
+  versioned_jer_reference:
+    type: object
+    additionalProperties: false
+    required:
+      - jer_id
+      - jer_version
+    properties:
+      jer_id:
+        type: string
+        pattern: "^JER-[0-9]{4,}$"
+      jer_version:
+        type: integer
+        minimum: 1
+
+  versioned_evidence_response_reference:
+    type: object
+    additionalProperties: false
+    required:
+      - evidence_response_id
+      - response_version
+    properties:
+      evidence_response_id:
+        type: string
+        pattern: "^ERESP-[0-9]{4,}$"
+      response_version:
+        type: integer
+        minimum: 1
+
+  versioned_resume_reference:
+    type: object
+    additionalProperties: false
+    required:
+      - resume_id
+      - resume_version
+    properties:
+      resume_id:
+        type: string
+        pattern: "^RESUME-[0-9]{4,}$"
+      resume_version:
+        type: integer
+        minimum: 1
+
+  versioned_evaluation_reference:
+    type: object
+    additionalProperties: false
+    required:
+      - evaluation_id
+      - evaluation_version
+    properties:
+      evaluation_id:
+        type: string
+        pattern: "^EVAL-[0-9]{4,}$"
+      evaluation_version:
+        type: integer
+        minimum: 1
+
+  source_artifacts:
+    type: object
+    additionalProperties: false
+    required:
+      - target_job_id
+      - job_experience_records
+    properties:
+
+      target_job_id:
+        type: string
+        minLength: 1
+
+      job_experience_records:
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/$defs/versioned_jer_reference"
+
+      evidence_responses:
+        type: array
+        items:
+          $ref: "#/$defs/versioned_evidence_response_reference"
+
+      previous_jea:
+        oneOf:
+          - type: object
+            additionalProperties: false
+            required:
+              - jea_id
+              - analysis_version
+            properties:
+              jea_id:
+                type: string
+                pattern: "^JEA-[0-9]{4,}$"
+              analysis_version:
+                type: integer
+                minimum: 1
+          - type: "null"
+
+      targeted_resumes:
+        type: array
+        items:
+          $ref: "#/$defs/versioned_resume_reference"
+
+      resume_evaluations:
+        type: array
+        items:
+          $ref: "#/$defs/versioned_evaluation_reference"
+
+      other_source_refs:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+
+  lineage:
+    type: object
+    additionalProperties: false
+    required:
+      - created_at
+      - updated_at
+    properties:
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      supersedes_version:
+        type: ["integer", "null"]
+        minimum: 1
+      material_change_summary:
+        type: ["string", "null"]

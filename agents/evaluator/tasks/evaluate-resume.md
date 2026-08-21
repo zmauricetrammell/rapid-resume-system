@@ -9,30 +9,27 @@
 
 # 1. TASK
 
-Evaluate the best current targeted resume against the target job using all available artifacts.
+Evaluate the current targeted resume against the target job using all relevant supplied artifacts.
 
-This is the Evaluator's primary production task.
-
-The same task is used whether:
+Use the same task whether:
 
 - This is the first evaluation.
 - A previous evaluation exists.
-- The resume has been revised.
-- A new Job Experience Analysis has been supplied.
-- New evidence has been incorporated by the Researcher.
-- Writer revisions have been completed.
+- The resume has materially changed.
+- A new Job Experience Analysis exists.
+- New supporting evidence exists.
 - Previous deficiencies remain unresolved.
-- The work item has returned to the Evaluator multiple times.
+- The task has been performed previously against an earlier artifact state.
 
 Do not treat initial evaluation and reevaluation as separate task types.
 
-Each invocation must evaluate the complete current state of the resume and determine how it is likely to perform in a real hiring process.
+Each invocation evaluates the complete current resume state and determines how the product is likely to perform in a realistic hiring process.
 
-When previous evaluations or resume versions are available, also assess what changed.
+When historical artifacts are available, also evaluate what materially improved, regressed, or remained unresolved.
 
 The task is idempotent in intent:
 
-> Given the same target job, resume, supporting artifacts, and constraints, repeated execution should converge on materially the same scores, deficiencies, and readiness determination rather than inventing new criticism.
+> Given materially identical target requirements, resume content, supporting artifacts, and constraints, repeated execution should converge on materially stable scores, deficiencies, and submission-readiness judgment.
 
 ---
 
@@ -44,60 +41,62 @@ The evaluation must answer:
 
 1. What does the target employer require?
 2. What does the resume clearly demonstrate?
-3. What does the resume only partially demonstrate?
+3. What does the resume partially demonstrate?
 4. What does the resume merely mention?
 5. What does the resume fail to demonstrate?
 6. Which claims appear credible?
-7. Which claims appear ambiguous, overstated, or insufficiently supported?
+7. Which claims appear ambiguous, overstated, unsupported, or contradictory?
 8. Which deficiencies materially threaten screening outcomes?
-9. Which agent owns resolution of each deficiency?
+9. Which aspects of the resume are strongest and should remain stable?
 10. Is the resume ready to submit?
-11. If a previous evaluation exists, what materially improved, regressed, or remains unresolved?
+11. If historical state exists, what materially improved, regressed, or remains unresolved?
 
 The Evaluator evaluates the product.
 
-The Evaluator does not independently solve evidence problems or rewrite the product.
+It does not independently solve evidence problems, rewrite the resume, or determine runtime action.
 
 ---
 
 # 3. INPUT MODEL
 
-The Evaluator must consider all relevant artifacts supplied with the work item.
-
-The presence of additional artifacts does not create a different task.
-
-It changes the available context.
+Evaluate all relevant artifacts supplied with the current invocation.
 
 ## Minimum Required Inputs
 
 - Target Job Description.
 - Current Targeted Resume.
-- Resume version or identifier.
-- Target Job identifier.
+- Corresponding Writer Content Manifest.
 
 ## Contextual Inputs
 
-When available, also consider:
+When available and relevant, also consider:
 
-- Writer Content Manifest.
+- Resume identifier and version.
 - Current Job Experience Analysis.
-- Previous Job Experience Analyses.
 - Relevant Job Experience Records.
-- Previous Adversarial Resume Evaluation.
+- Functional Role Architecture.
+- Permitted Claim Guidance.
+- Prohibited Claim Guidance.
+- Mandatory cautions.
+- Relevant authorized professional evidence.
+- Previous Resume Evaluation.
 - Previous resume version.
-- Writer Revision Log.
-- Researcher feedback.
-- Current Functional Role Architecture.
-- Evidence Request history.
-- Evidence Responses.
 - Resume Skeleton.
 - Formatting requirements.
 - Rendered resume or PDF.
-- Card comments.
-- Workflow messages.
-- Other relevant artifacts attached to the work item.
+- Other relevant supplied artifacts.
 
-All current artifacts should be reviewed before the evaluation is finalized.
+The presence of additional artifacts does not create a different task.
+
+It changes the available evaluation context.
+
+Do not require knowledge of:
+
+- Who produced an artifact.
+- Who will consume the evaluation.
+- What runtime component acts next.
+- Why the task was invoked.
+- Whether this is a first pass or later iteration.
 
 ---
 
@@ -109,7 +108,11 @@ Treat supplied artifacts according to the authority and precedence rules defined
 
 The Target Job Description is authoritative for determining what the employer requests.
 
-A prior analysis may help interpret or prioritize requirements, but it does not replace the source job description.
+A supplied analytical artifact may help normalize or prioritize requirements.
+
+It does not replace the source job description.
+
+---
 
 ## Recruiter Visibility
 
@@ -120,27 +123,40 @@ Do not give the resume credit for facts that exist only in:
 - Job Experience Records.
 - Job Experience Analysis.
 - Writer Content Manifest.
+- Supporting source material.
 - Prior conversations.
-- Hidden system context.
+- Hidden context.
 
 The governing rule is:
 
 > The recruiter evaluates the resume, not the internal evidence system.
 
+---
+
 ## Internal Validity
 
-Use internal artifacts to determine whether visible claims are factually authorized.
+Use supplied supporting artifacts to determine whether visible claims are factually authorized when possible.
 
 Relevant sources may include:
 
 - Writer Content Manifest.
 - Job Experience Analysis.
-- Confirmed Job Experience Records.
-- Researcher outputs.
+- Authoritative Job Experience Records.
+- Other supplied professional evidence.
 
-Internal evidence may prove that a visible resume deficiency is fixable.
+Internal evidence may demonstrate that a visible resume weakness could theoretically be improved.
 
-It does not make the visible deficiency disappear.
+It does not make the visible weakness disappear.
+
+---
+
+## Historical State
+
+Previous resumes and evaluations provide comparison context.
+
+They do not control the current judgment.
+
+Evaluate the current product independently before comparing versions.
 
 ---
 
@@ -160,7 +176,7 @@ Evaluate the resume as though you are an external reviewer with access only to:
 
 Do not use hidden evidence to increase the resume's apparent strength.
 
-Evaluate through three perspectives:
+Evaluate through three perspectives.
 
 ### Initial Filter / ATS
 
@@ -208,7 +224,7 @@ Assess:
 
 ## Pass 2 — Internal Evidence Audit
 
-Use available internal artifacts to verify:
+Use available supporting artifacts to verify:
 
 - Claim provenance.
 - Evidence authorization.
@@ -222,7 +238,7 @@ Use available internal artifacts to verify:
 - Experience composition.
 - Permitted claims.
 - Prohibited claims.
-- Whether stronger authorized evidence appears to have been omitted.
+- Whether strong authorized evidence appears to have been omitted.
 
 Maintain the distinction:
 
@@ -238,13 +254,15 @@ A claim may therefore be:
     = strong resume evidence.
 
     Visible but unsupported
-    = credibility problem.
+    = credibility or factual-integrity problem.
 
     Supported but not visible
-    = presentation or evidence-selection deficiency.
+    = evidence-visibility problem.
 
     Neither visible nor supported
-    = unresolved capability deficiency or genuine gap.
+    = current evidence or capability limitation.
+
+Do not collapse visibility and validity into one judgment.
 
 ---
 
@@ -269,18 +287,20 @@ Identify:
 - Likely hiring-manager priorities.
 - Potential knockout requirements.
 
-Preserve the original requirement language.
+Preserve original requirement language.
 
 Normalize each material requirement for evaluation.
 
-Prioritize:
+Prioritize approximately:
 
 1. Potential knockout requirements.
-2. Critical required requirements.
-3. Other required requirements.
-4. Central responsibilities.
-5. Preferred differentiators.
-6. Materially implied requirements.
+2. Critical required capabilities.
+3. Other required qualifications and responsibilities.
+4. Central role responsibilities.
+5. Materially implied requirements.
+6. Preferred differentiators.
+
+When supplied authoritative analysis already prioritizes requirements, use it as analytical context unless the source job description materially contradicts it.
 
 Do not allow low-priority strengths to compensate for unsupported critical requirements.
 
@@ -290,33 +310,38 @@ Do not allow low-priority strengths to compensate for unsupported critical requi
 
 Evaluate every material requirement independently.
 
-For each requirement:
+For each requirement, record as applicable:
 
-1. Record the requirement ID.
-2. Preserve the original job-description language.
-3. Record the normalized requirement.
-4. Record requirement priority.
-5. Identify visible resume evidence.
-6. Identify the resume location.
-7. Assess evidence strength.
-8. Identify missing dimensions.
-9. Identify likely recruiter objections.
-10. Determine severity.
-11. Assign a primary corrective owner when needed.
-12. Assign a requirement-level score.
+1. Requirement ID.
+2. Original job-description language.
+3. Normalized requirement.
+4. Requirement priority.
+5. Visible resume evidence.
+6. Resume location.
+7. Coverage state.
+8. Ownership clarity.
+9. Scope clarity.
+10. Result strength.
+11. Terminology alignment.
+12. Likely ATS interpretation.
+13. Likely recruiter interpretation.
+14. Likely hiring-manager interpretation.
+15. Material deficiency when present.
+16. Deficiency severity.
+17. Screening impact.
 
-Use the following coverage classifications:
+Use coverage states such as:
 
-- `clearly_demonstrated`
-- `reasonably_demonstrated`
+- `strongly_demonstrated`
+- `demonstrated`
 - `partially_demonstrated`
-- `adjacent_only`
+- `weakly_demonstrated`
 - `mentioned_without_evidence`
 - `not_demonstrated`
 - `contradicted`
 - `unclear`
 
-Do not conclude that the job hunter lacks a capability merely because the resume does not demonstrate it.
+Do not conclude that the candidate lacks a capability merely because the resume does not demonstrate it.
 
 Use:
 
@@ -326,33 +351,33 @@ rather than:
 
     candidate_does_not_have_experience
 
-unless the authoritative evidence process has already established a genuine gap.
+unless supplied authoritative professional evidence independently establishes the capability limitation.
 
 ---
 
 # 8. REQUIREMENT SCORING
 
-Use the following scale consistently.
+When numeric scoring is useful, use the following scale consistently.
 
-## Score 5 — Clearly and Strongly Demonstrated
+## Score 5 — Strongly Demonstrated
 
 Specific, credible, visible evidence strongly establishes the requirement.
 
-## Score 4 — Clearly Demonstrated
+## Score 4 — Demonstrated
 
 The requirement is visibly established with only minor limitations.
 
-## Score 3 — Reasonably Demonstrated
+## Score 3 — Partially Demonstrated
 
-Relevant evidence exists, but meaningful specificity, scope, ownership, or result detail is missing.
+Relevant evidence exists, but meaningful specificity, ownership, scope, or result detail is missing.
 
-## Score 2 — Partial or Adjacent
+## Score 2 — Weakly Demonstrated
 
-The resume demonstrates only part of the requirement or relies primarily on adjacent or transferable evidence.
+Only limited, adjacent, ambiguous, or weakly connected evidence is visible.
 
 ## Score 1 — Mentioned
 
-The requirement appears in terminology or a skills list but has little or no visible supporting evidence.
+The requirement appears in terminology or a skills list but has little supporting evidence.
 
 ## Score 0 — Not Demonstrated or Contradicted
 
@@ -366,15 +391,17 @@ The visible resume does not establish the requirement or materially contradicts 
 - Do not allow low-priority strengths to erase a critical weakness.
 - Report potential knockout risks separately from aggregate scoring.
 - Reduce confidence when information is incomplete rather than manufacturing precision.
-- Apply the same scoring standard on every invocation.
+- Apply the same scoring standard on every materially equivalent invocation.
+
+A high aggregate score cannot erase a critical unsupported requirement.
 
 ---
 
-# 9. CLAIM AUDIT
+# 9. CLAIM AND CREDIBILITY AUDIT
 
 Audit material resume claims.
 
-Break each important claim into relevant components:
+Break important claims into relevant components:
 
 - Capability.
 - Responsibility.
@@ -395,28 +422,28 @@ Flag claims when:
 - A metric lacks timeframe.
 - A metric lacks attribution.
 - A superlative is unsupported.
-- Job-description terminology appears inserted without evidence.
+- Target-job terminology appears inserted without evidence.
 - A bullet combines unrelated actions and results.
 - The claim conflicts with another resume passage.
-- Internal evidence does not support the visible wording.
-- The Writer Content Manifest cannot trace the claim.
+- Internal evidence does not support visible wording.
+- Traceability cannot identify supporting authorization.
 
-Use credibility classifications such as:
+Useful credibility states include:
 
-- `credible_as_written`
-- `credible_but_underspecified`
+- `supported`
+- `supported_but_underspecified`
 - `ambiguous`
 - `overstated_appearance`
-- `unsupported_appearance`
-- `internally_inconsistent`
-- `unverifiable_from_resume`
+- `unsupported`
+- `contradicted`
+- `unverifiable_from_supplied_context`
 
 Do not assume:
 
 - Polished language means the claim is true.
 - An impressive claim is false because it is impressive.
 
-Evaluate the evidence.
+Evaluate supplied evidence.
 
 ---
 
@@ -429,7 +456,7 @@ Evaluate:
 - Functional-role clarity.
 - Civilian readability.
 - Target seniority.
-- Technical versus management balance.
+- Technical-versus-management balance.
 - Relevant scope.
 - Career progression.
 - Overqualification risk.
@@ -437,20 +464,23 @@ Evaluate:
 - Unnecessary organizational complexity.
 - Whether unfamiliar source titles create avoidable recruiter translation burden.
 
-Do not penalize supported functional-role translation merely because the underlying source role used a different historical title.
+Do not penalize supported functional-role translation merely because the source organization used a different historical title.
 
-Instead evaluate:
+Evaluate:
 
 > Does the visible presentation truthfully and clearly communicate the professional work performed?
 
-Flag presentation only when it creates:
+Flag positioning when it creates:
 
 - False chronology.
 - False employment relationships.
 - Unsupported authority.
 - Unsupported seniority.
-- Misleading role identity.
-- Recruiter confusion.
+- Misleading professional identity.
+- Material recruiter confusion.
+- Excessive seniority signals.
+- Excessive understatement.
+- Target-role ambiguity.
 
 ---
 
@@ -481,666 +511,737 @@ It does not independently prove experience.
 
 ---
 
-# 12. DIAGNOSE BEFORE ROUTING
+# 12. CONTENT PRIORITIZATION REVIEW
 
-Do not recommend a correction until the underlying deficiency is classified.
+Evaluate whether limited resume space is being used effectively.
 
-For every material deficiency, determine whether it is primarily:
+Identify:
 
-- A presentation problem.
-- An evidence-analysis problem.
-- An evidence-authority problem.
-- A factual evidence deficiency.
-- A genuine capability gap.
-- A structural or formatting problem.
-- A non-material preference.
+- High-value evidence that is insufficiently visible.
+- Low-value evidence consuming disproportionate space.
+- Redundant accomplishments.
+- Repeated capabilities.
+- Important requirements demonstrated only indirectly.
+- Strong evidence placed too late.
+- Excessive context.
+- Missing context necessary for comprehension.
+- Imbalanced role coverage.
 
-Then assign one primary owner.
+Do not evaluate the resume as though its goal were to preserve the complete career.
 
----
-
-# 13. WRITER-OWNED DEFICIENCIES
-
-Assign the deficiency to Writer when sufficient authorized evidence already exists but the resume communicates it inadequately.
-
-Examples:
-
-- Relevant evidence is buried.
-- Wording is vague.
-- Strong scope is omitted.
-- Strong results are omitted.
-- Supported terminology is absent.
-- Content is poorly ordered.
-- Functional placement is confusing.
-- Redundancy weakens impact.
-- Summary positioning is weak.
-- Resume is difficult to scan.
-- Skeleton or formatting requirements are violated.
-- Existing authorized evidence could clearly resolve the deficiency through presentation.
-
-Destination:
-
-    Evaluator → Writer
-
-The Evaluator should specify:
-
-- What is insufficient.
-- Where the problem appears.
-- Why it matters.
-- What successful resolution should accomplish.
-
-The Evaluator should not dictate exact prose unless exact language is necessary to explain the problem.
+Its purpose is to present the strongest relevant case for the target job.
 
 ---
 
-# 14. RESEARCHER-OWNED DEFICIENCIES
+# 13. STRUCTURAL REVIEW
 
-Assign the deficiency to Researcher when the current product suggests that the analysis or evidence selection is insufficient.
+Evaluate compliance with supplied structural requirements when available.
 
-Examples:
+Assess:
 
-- A critical requirement lacks adequate visible evidence.
-- Stronger stored evidence may exist.
-- The Job Experience Analysis appears to have underweighted a requirement.
-- Evidence selection appears poorly targeted.
-- Functional-role classification may need reassessment.
-- Current evidence authorization cannot support the presentation needed.
-- A requirement needs deeper analysis.
-- New human evidence may ultimately be necessary.
+- Section order.
+- Section naming.
+- Page or length constraints.
+- Formatting consistency.
+- Bullet consistency.
+- Date presentation.
+- Location presentation.
+- Readability.
+- Density.
+- Visual hierarchy.
+- Protected static content.
+- Resume Skeleton compliance.
 
-Destination:
+Distinguish between:
 
-    Evaluator → Researcher
+- Structural noncompliance.
+- Material readability problem.
+- Non-material stylistic preference.
 
-The Evaluator's responsibility is to state the product deficiency.
-
-The Researcher determines the evidence solution.
-
-The Evaluator must not instruct the Researcher:
-
-- Which specific record must be used.
-- That new human evidence definitely must be collected.
-- That a particular transferable relationship must be accepted.
-- That a particular functional classification must be assigned.
-
-The governing boundary is:
-
-    Evaluator owns:
-    What is insufficient in the current product.
-
-    Researcher owns:
-    What evidence or analysis resolves the insufficiency.
+Do not elevate stylistic preference into a material deficiency unless it creates credible screening or comprehension risk.
 
 ---
 
-# 15. NO DIRECT INTERVIEWER ROUTING
+# 14. DEFICIENCY DIAGNOSIS
 
-The Evaluator does not directly generate human Evidence Requests.
+Diagnose material weaknesses according to professional state.
 
-If the Evaluator determines that a material requirement or claim is insufficiently supported:
+Do not assign corrective ownership.
 
-    Evaluator
-        ↓
-    Researcher
-        ↓
-    Researcher searches authoritative evidence
-        ↓
-        ├── existing evidence resolves issue
-        │       ↓
-        │   Updated analysis
-        │
-        └── factual evidence remains insufficient
-                ↓
-            Researcher generates Evidence Request
-                ↓
-            Interviewer
+Recommended deficiency categories include:
 
-This preserves the Researcher's role as authoritative custodian of professional evidence.
+## Factual Integrity
 
-The Evaluator should not bypass the Researcher.
+Use when the resume appears to contain:
+
+- Unsupported factual claims.
+- Contradicted claims.
+- Inflated ownership.
+- Inflated scope.
+- False attribution.
+- Misleading chronology.
+- Misleading provenance.
+
+## Claim Credibility
+
+Use when a claim may have some support but is presented in a way likely to cause skepticism or misunderstanding.
+
+## Evidence Visibility
+
+Use when supplied supporting context appears sufficient but the resume does not make the capability sufficiently visible.
+
+## Evidence Support
+
+Use when the visible claim or desired requirement coverage exceeds support established by supplied authoritative context.
+
+## Requirement Coverage
+
+Use when a material target requirement is absent, weakly represented, or insufficiently connected to relevant evidence.
+
+## Professional Positioning
+
+Use when the resume communicates an ineffective professional identity for the target.
+
+## Scope Alignment
+
+Use when seniority, responsibility, technical depth, or organizational scale is presented ineffectively.
+
+## Structural Compliance
+
+Use when the product violates material structural requirements.
+
+## Readability
+
+Use when organization, density, language, or layout materially reduces comprehension.
+
+## Genuine Capability Limitation
+
+Use only when supplied authoritative professional context establishes that the candidate materially lacks the capability.
+
+## Non-Material Preference
+
+Use when an alternative may be reasonable but the current presentation does not create a meaningful hiring problem.
+
+Additional categories may be used when necessary.
+
+Classifications must describe the product or evidence condition.
+
+They must not describe runtime relationships.
 
 ---
 
-# 16. DOWNSTREAM DEFICIENCY AUTHORITY
+# 15. DEFICIENCY RECORD
 
-When the Evaluator identifies a deficiency within its owned domain, upstream agents must treat that deficiency as requiring resolution.
+For every material deficiency, record:
 
-The Evaluator owns judgments such as:
-
-- A requirement is not sufficiently visible.
-- A claim appears ambiguous.
-- A recruiter would likely misinterpret a role.
-- A critical qualification is not explicit enough.
-- The current resume has a credibility problem.
-- The current product is not ready to submit.
-
-Upstream agents may determine how to resolve the deficiency within their own authority.
-
-They should not simply return the product unchanged because they disagree with the Evaluator's owned screening judgment.
-
-The Evaluator must likewise remain within its own domain and not dictate the upstream solution.
-
----
-
-# 17. PRIORITIZE CORRECTIVE ACTION
-
-Prioritize deficiencies approximately in this order:
-
-1. Potential knockout risks.
-2. Material credibility problems.
-3. Missing critical requirements.
-4. Misstated ownership or attribution.
-5. Weak presentation of strong evidence.
-6. Scope or seniority misalignment.
-7. Poor evidence targeting.
-8. Redundancy.
-9. Scanability and formatting.
-10. Minor stylistic improvements.
-
-Every material recommendation should identify:
-
-- Deficiency.
-- Supporting observation.
+- Deficiency ID.
+- Relevant requirement or resume location.
+- Deficiency type.
 - Severity.
-- Primary owner.
-- Expected screening impact.
-- Whether the problem is blocking.
+- Observation.
+- Supporting rationale.
+- Likely screening impact.
+- Evidence state when relevant.
+- Successful future state.
 
-Avoid vague recommendations such as:
+Example:
 
-- "Make this stronger."
-- "Add leadership."
-- "Use more metrics."
-- "Add more keywords."
+    Deficiency ID:
+    D-003
 
-Describe the actual missing dimension.
+    Requirement:
+    Vendor management
+
+    Type:
+    Evidence Visibility
+
+    Severity:
+    Major
+
+    Observation:
+    The resume demonstrates coordination with external providers but
+    does not clearly establish ownership of vendor performance.
+
+    Screening Impact:
+    A recruiter may conclude that direct vendor-management responsibility
+    is not demonstrated.
+
+    Successful Future State:
+    The visible resume clearly communicates the strongest supportable
+    level of vendor-performance ownership without overstating authority.
+
+The successful future state describes what a materially improved product would need to establish.
+
+Do not include:
+
+- Corrective owner.
+- Destination agent.
+- Routing target.
+- Required next task.
+- Workflow action.
 
 ---
 
-# 18. SUBMISSION BLOCKERS
+# 16. SEVERITY
 
-Treat an issue as a submission blocker when it materially threatens the candidate's ability to pass screening.
+Assign deficiency severity consistently.
 
-Possible blockers include:
+## Critical
 
-- Missing apparent knockout requirement.
-- Material unsupported claim.
-- Significant credibility conflict.
-- Critical requirement not demonstrated.
-- Serious factual inconsistency.
-- Resume structure preventing comprehension.
-- Material role or chronology misrepresentation.
-- Required qualification omitted despite being supported.
+A deficiency likely to:
 
-A blocker must be explicit.
+- Cause rejection.
+- Fail an apparent knockout requirement.
+- Create serious credibility concerns.
+- Create material factual-integrity risk.
+- Fundamentally misrepresent the candidate.
+- Prevent the resume from making a credible case for the target role.
 
-Do not bury blockers inside general recommendations.
+## Major
 
-Do not classify marginal improvements as blockers.
+A deficiency that materially weakens competitiveness or obscures an important qualification.
+
+## Moderate
+
+A meaningful weakness that reduces clarity or strength but does not independently undermine the application.
+
+## Minor
+
+A limited issue with low likely screening impact.
+
+## Non-Material
+
+A preference or improvement opportunity unlikely to materially affect screening.
+
+Severity describes likely hiring impact.
+
+It does not control runtime workflow.
 
 ---
 
-# 19. CURRENT-STATE READINESS
+# 17. CRITICAL SUBMISSION DEFICIENCIES
 
-After completing the evaluation, determine the current readiness disposition.
+Identify deficiencies severe enough that submitting the current resume would create substantial avoidable risk.
 
-Use:
+Examples may include:
 
-- `ready_to_submit`
-- `revise_with_existing_evidence`
-- `research_revision_required`
-- `major_rework_required`
-- `weak_fit_reconsider_application`
+- Material unsupported claims.
+- Serious factual contradictions.
+- Failure to demonstrate an apparent knockout requirement.
+- Professional positioning that fundamentally misrepresents target fit.
+- Severe structural or readability problems.
+- Critical target requirements that remain materially unsupported.
+
+A Critical Submission Deficiency is a product-readiness judgment.
+
+It is not a workflow-blocking instruction.
+
+The Evaluator may conclude:
+
+> I would not recommend submitting this resume in its current state.
+
+The Evaluator must not conclude:
+
+> The workflow must stop.
+
+---
+
+# 18. SUBMISSION READINESS
+
+Determine current resume submission readiness independently from deficiency diagnosis.
+
+Use one of:
 
 ## Ready to Submit
 
-Use when:
+The resume presents a credible and sufficiently strong case for the target job.
 
-- Critical supported requirements are visibly addressed.
-- No material credibility problem remains.
-- No unresolved apparent knockout condition remains.
-- Professional positioning is clear.
-- Structural constraints are satisfied.
-- Remaining weaknesses are non-blocking.
+Minor or moderate improvement opportunities may remain.
 
-A resume does not need to be perfect to be ready to submit.
+Perfect alignment is not required.
 
-## Revise With Existing Evidence
+## Not Ready to Submit
 
-Use when:
-
-- Sufficient authorized evidence exists.
-- Writer-owned presentation changes can materially improve the resume.
-
-## Research Revision Required
-
-Use when:
-
-- The current analysis or authorized evidence is insufficient to resolve a material product deficiency.
-- Researcher review is required before Writer can safely correct the product.
-
-## Major Rework Required
-
-Use when:
-
-- Multiple critical deficiencies exist.
-- Positioning is fundamentally unclear.
-- The resume requires substantial restructuring before realistic screening.
+One or more material deficiencies create substantial avoidable screening, credibility, factual-integrity, or positioning risk.
 
 ## Weak Fit — Reconsider Application
 
-Use when:
+The resume may accurately represent the candidate, but supplied professional context indicates the underlying fit is weak enough that resume refinement alone is unlikely to produce a competitive application.
 
-- Material required capabilities remain unsupported after the appropriate evidence process.
-- Genuine gaps materially weaken candidacy.
-- Further resume iteration is unlikely to solve the underlying fit problem.
+Keep readiness separate from deficiency type.
+
+Example:
+
+    Readiness:
+    Not Ready to Submit
+
+    Material Deficiencies:
+    - Evidence Visibility
+    - Requirement Coverage
+    - Professional Positioning
+
+Readiness describes the current product state.
+
+It does not prescribe runtime action.
+
+---
+
+# 19. STRONGEST ASPECTS
+
+Identify what the current resume does particularly well.
+
+Examples may include:
+
+- Strong target alignment.
+- Strong quantified results.
+- Clear ownership.
+- Appropriate technical depth.
+- Strong leadership evidence.
+- Effective civilian translation.
+- Good professional positioning.
+- Strong ATS terminology.
+- Appropriate scope.
+- Effective functional-role presentation.
+- Strong readability.
+
+Positive findings help distinguish what should remain stable from what materially requires improvement.
+
+A rigorous evaluation is not purely negative.
 
 ---
 
 # 20. HISTORICAL COMPARISON
 
-When a previous evaluation and prior resume version exist, perform a historical comparison after evaluating the current resume.
+When a previous resume or evaluation is supplied:
 
-Do not begin by asking whether previous comments were followed.
+1. Evaluate the current resume independently first.
+2. Compare current and prior states.
+3. Identify:
+   - Material improvements.
+   - Material regressions.
+   - Resolved deficiencies.
+   - Persistent deficiencies.
+   - Newly introduced deficiencies.
+   - Strong content that was lost.
+   - Weak content appropriately removed.
+   - Changes in requirement visibility.
+   - Changes in professional positioning.
+   - Changes in factual credibility.
+   - Changes in submission readiness.
 
-First evaluate the current resume on its own merit.
+Do not treat change itself as improvement.
 
-Then compare it with the prior state.
-
-For each previous material issue, classify it as:
-
-- `resolved`
-- `partially_resolved`
-- `unresolved`
-- `accepted_risk`
-- `no_longer_applicable`
-- `worsened`
-
-Also identify:
-
-- New deficiencies introduced by revision.
-- Removed strengths.
-- Improved requirement coverage.
-- Improved credibility.
-- Reduced ambiguity.
-- Changed scores.
-- Changed readiness.
-
-Do not reopen resolved issues without new evidence.
-
-Do not preserve an old criticism simply because it appeared in the prior evaluation.
-
-Do not assume a revision is better merely because it changed.
+Judge the current product on current merit.
 
 ---
 
 # 21. REGRESSION REVIEW
 
-When prior artifacts exist, explicitly check for regressions.
-
-Possible regressions include:
-
-- Critical evidence removed.
-- Scope weakened.
-- Ownership made less clear.
-- Supported keywords lost.
-- New ambiguity introduced.
-- Professional identity weakened.
-- Resume became less readable.
-- Factual meaning changed.
-- New unsupported claims introduced.
-- Improvements in one requirement displaced stronger evidence elsewhere.
-
-A revision is not successful if it fixes one deficiency while creating a more serious one.
-
----
-
-# 22. IDEMPOTENT BEHAVIOR
-
-This task is explicitly designed to be idempotent.
-
-Given the same:
-
-- Target Job Description.
-- Targeted Resume.
-- Job Experience Analysis.
-- Writer Content Manifest.
-- Supporting evidence.
-- Previous evaluation history.
-- Constraints.
-
-the Evaluator should converge on materially the same evaluation.
-
-Idempotence does not require identical prose.
-
-It requires stability of:
-
-- Requirement interpretation.
-- Requirement scoring.
-- Material deficiencies.
-- Credibility judgments.
-- Corrective owners.
-- Submission blockers.
-- Readiness disposition.
-- Overall fit assessment.
-
-Do not invent new criticisms merely because the task is invoked again.
-
-## When New Information Is Present
-
-New information may justify a changed evaluation.
+Explicitly test whether attempts to improve one area weakened another.
 
 Examples:
 
-- Revised resume.
-- Updated Job Experience Analysis.
-- New evidence authorization.
-- Corrected facts.
-- Revised Writer Content Manifest.
-- Changed target job.
-- New structural constraints.
+- Better civilian translation but weaker factual precision.
+- Better target alignment but lost high-value evidence.
+- Reduced overqualification risk but excessive understatement.
+- Better concision but lost requirement coverage.
+- Stronger language but weaker attribution accuracy.
+- Improved ATS terminology but unnatural prose.
+- Better functional-role presentation but confusing provenance.
 
-Reevaluate the complete current product.
+A newer resume is not automatically better.
 
-## When Nothing Material Changed
-
-If the current resume and authoritative context are materially unchanged:
-
-- Preserve stable requirement scores.
-- Preserve stable findings.
-- Preserve stable readiness.
-- Do not create novelty for novelty's sake.
-- Revalidate the product and return the same material judgment.
+Record material regressions.
 
 ---
 
-# 23. OUTPUTS
+# 22. DIMINISHING RETURNS
 
-The Evaluator may produce one or more outputs from a single invocation.
+Do not continue identifying changes merely because further improvement is theoretically possible.
 
-## Primary Output
+A resume may be ready when:
 
-### Adversarial Resume Evaluation
+- Critical supported requirements are sufficiently visible.
+- Material credibility concerns are resolved.
+- Critical submission deficiencies are absent.
+- Professional positioning is clear.
+- Structural requirements are satisfied.
+- Remaining issues are unlikely to materially change screening outcomes.
 
-Produce the complete current evaluation using the authoritative schema under:
+Minor imperfections do not automatically make a resume not ready.
 
-    /schemas/adversarial-resume-evaluation.yaml
+The goal is a strong competitive product, not theoretical perfection.
 
-The evaluation should include, at minimum:
+---
+
+# 23. IDEMPOTENT EVALUATION
+
+This task is explicitly idempotent.
+
+Given materially identical:
+
+- Target Job Description.
+- Current resume.
+- Supporting analysis.
+- Supporting evidence context.
+- Writer Content Manifest.
+- Structural constraints.
+- Historical comparison artifacts.
+
+the Evaluator should converge on materially the same assessment.
+
+Idempotence does not require identical prose.
+
+It requires stability in:
+
+- Requirement assessment.
+- Requirement scores.
+- Material deficiencies.
+- Deficiency classification.
+- Severity.
+- Screening-impact judgment.
+- Factual-integrity findings.
+- Professional-positioning findings.
+- Submission readiness.
+- Historical comparison.
+
+Do not manufacture new deficiencies merely because the task is executed again.
+
+Do not remove an unresolved deficiency merely because it was previously identified.
+
+Change the evaluation when the underlying product or supporting state materially changes.
+
+---
+
+# 24. OUTPUT
+
+Produce one self-contained Resume Evaluation.
+
+Use the authoritative Resume Evaluation schema under:
+
+    /schemas/resume-evaluation.yaml
+
+when defined.
+
+The evaluation should contain, as applicable:
+
+## Identification
 
 - Evaluation ID.
-- Resume ID and version.
+- Resume ID.
+- Resume version.
 - Target Job ID.
-- Requirement-level evaluations.
-- Coverage classifications.
-- Requirement scores.
-- Screening perspective findings.
-- Claim credibility findings.
-- Submission blockers.
-- Corrective actions.
-- Corrective owners.
-- Overall fit assessment.
-- Readiness disposition.
-- Evaluation confidence.
+- Evaluation version.
 
----
+## Executive Assessment
 
-## Conditional Output
+- Overall fit communicated by the resume.
+- Submission readiness.
+- Critical submission deficiencies.
+- Concise explanation of readiness.
 
-### Writer Revision Requests
+## Strongest Aspects
 
-Produce when a material deficiency is resolvable using currently authorized evidence and belongs to Writer.
+- Strongest visible qualifications.
+- Strongest evidence.
+- Strongest positioning choices.
+- Elements worth preserving.
 
-Destination:
+## Requirement Assessment
 
-    Evaluator → Writer
+For each material requirement:
 
----
+- Requirement ID.
+- Requirement.
+- Importance.
+- Coverage state.
+- Score when used.
+- Visible evidence.
+- Resume location.
+- Screening interpretation.
+- Material deficiency when applicable.
 
-## Conditional Output
+## ATS Assessment
 
-### Research Revision Requests
+- Strong alignment.
+- Missing supported terminology.
+- Terminology risks.
+- Unsupported keyword concerns.
 
-Produce when a material deficiency requires renewed Researcher analysis, evidence retrieval, evidence authorization, or possible factual investigation.
+## Recruiter Assessment
 
-Destination:
+- Immediate professional identity.
+- Scanability.
+- Apparent fit.
+- Likely concerns.
+- Overqualification or underqualification signals.
 
-    Evaluator → Researcher
+## Hiring-Manager Assessment
 
-Use the appropriate shared feedback or deficiency schema when defined.
+- Relevant depth.
+- Ownership.
+- Scope.
+- Results.
+- Technical credibility.
+- Leadership credibility.
+- Operational credibility.
+- Transferability where visible.
 
-Do not generate an Interviewer Evidence Request directly.
+## Claim Audit
 
----
+- Supported claims.
+- Ambiguous claims.
+- Unsupported claims.
+- Contradicted claims.
+- Ownership concerns.
+- Attribution concerns.
+- Scope concerns.
 
-## Conditional Output
+## Professional Positioning
 
-### Evaluation Comparison
+- Current identity.
+- Target alignment.
+- Seniority alignment.
+- Functional-role clarity.
+- Material positioning concerns.
 
-Produce when a previous evaluation or resume version exists.
+## Material Deficiencies
 
-The comparison should identify:
+For each:
 
-- Previous evaluation ID.
-- Previous resume version.
-- Current resume version.
-- Prior issue dispositions.
-- Score changes.
-- New deficiencies.
+- Deficiency ID.
+- Type.
+- Severity.
+- Observation.
+- Rationale.
+- Screening impact.
+- Evidence state when relevant.
+- Successful future state.
+
+## Historical Comparison
+
+When historical artifacts exist:
+
+- Improvements.
 - Regressions.
+- Resolved deficiencies.
+- Persistent deficiencies.
+- New deficiencies.
 - Readiness change.
 
----
+## Final Judgment
 
-## Conditional Output
+- Submission readiness.
+- Principal reasons.
+- Most consequential strengths.
+- Most consequential weaknesses.
 
-### Process Feedback
-
-Generate when the Evaluator identifies recurring or material system friction involving:
-
-- Contract ambiguity.
-- Repeated bad handoffs.
-- Weak schema design.
-- Repeated Researcher underweighting.
-- Repeated Writer presentation failures.
-- Evaluation criteria ambiguity.
-- Workflow inefficiency.
-- Persistent routing confusion.
-- Repeated unnecessary iteration.
-- Missing diagnostic fields.
-
-Destination:
-
-    Evaluator → Supervisor
-
-Process Feedback is separate from the production evaluation.
-
----
-
-# 24. HANDOFF DECISION
-
-After evaluation, route the work according to the primary unresolved deficiency.
-
-## Ready to Submit
-
-When readiness is:
-
-    ready_to_submit
-
-complete the evaluation stage and route the work item to the appropriate completion or human-submission state.
-
----
-
-## Writer Revision
-
-When the primary deficiencies are presentational and current authorized evidence is sufficient:
-
-    Evaluator → Writer
-
-The Writer should receive:
-
-- Specific deficiency.
-- Resume location.
-- Requirement affected.
-- Screening impact.
-- Resolution criteria.
-
----
-
-## Research Revision
-
-When the current evidence analysis is insufficient to support a required correction:
-
-    Evaluator → Researcher
-
-The Researcher determines whether:
-
-- Better existing evidence exists.
-- Evidence should be reweighted.
-- Functional classification should change.
-- Current evidence remains insufficient.
-- A new Evidence Request must be generated.
-
----
-
-## Major Rework
-
-When several upstream components require renewed work, route to the earliest authoritative owner capable of resolving the primary deficiency.
-
-Do not scatter the work item simultaneously across multiple execution agents unless the workflow explicitly supports parallel ownership.
-
-Prefer a clear primary owner.
+The Resume Evaluation must stand on its own as a professional assessment artifact.
 
 ---
 
 # 25. PROCESS FEEDBACK
 
-When a recurring system-level issue is identified, generate Process Feedback for the Supervisor.
+Produce Process Feedback only when recurring or materially significant system-level friction is identified.
 
-Examples:
+Process Feedback must conform to:
 
-- The Evaluator repeatedly detects the same Researcher omission.
-- Writer feedback repeatedly returns without resolving the same class of issue.
-- Ownership boundaries create recurring loops.
-- Evaluation schema cannot express a recurring problem.
-- Readiness rules produce ambiguous outcomes.
-- The same requirement repeatedly generates excessive cycles.
-- The same form of unsupported claim appears across Writer outputs.
+    /schemas/process-feedback.yaml
 
-Process Feedback should identify:
+Process Feedback should preserve:
 
-- Observed pattern.
-- Frequency when known.
+- Feedback owner.
+- Proposal timestamp.
+- Observed system behavior.
+- Recurrence or materiality basis.
 - Operational impact.
-- Suspected system layer.
-- Relevant artifacts.
-- Suggested area for Supervisor investigation.
+- Supporting artifacts, examples, or other evidence.
+- Suspected architectural layer.
+- Confidence in the suspected cause.
+- Proposed solution.
+- Confidence in the proposed solution.
+- Known alternatives or risks when materially useful.
 
-The Evaluator should not independently modify contracts, schemas, or workflow rules.
+The producing function may:
+
+- Describe the observed problem.
+- Identify a suspected cause.
+- Identify the architectural layer it believes may be responsible.
+- Propose a solution.
+- Explain why it believes that solution may help.
+
+These are advisory professional observations.
+
+The producing function does **not** determine:
+
+- Authoritative architectural root cause.
+- Governance disposition.
+- Corrective ownership.
+- Required implementation.
+- Runtime routing.
+- Workflow sequence.
+- Approval of a proposed change.
+
+Process Feedback describes a system observation and a proposed interpretation of that observation.
+
+Governance authority remains separate from the function producing the feedback.
 
 ---
 
-# 26. VALIDATION
+# 26. PARTNER INDEPENDENCE
+
+The Evaluator operates from:
+
+- Its contract.
+- This task instruction.
+- Target Job Description.
+- Current Targeted Resume.
+- Relevant supplied supporting artifacts.
+
+The Evaluator does not need to know:
+
+- Who created the resume.
+- Who created supporting evidence.
+- Who will consume the evaluation.
+- Which runtime component could improve a deficiency.
+- Which runtime component acts next.
+- Whether another iteration will occur.
+
+The Evaluator produces:
+
+    Resume Evaluation
+    + Conditional Process Feedback
+
+Stop there.
+
+---
+
+# 27. VALIDATION
 
 Before completing the task, verify:
 
-- [ ] The complete Target Job Description was reviewed.
-- [ ] The current resume was reviewed in full.
-- [ ] Every explicitly required requirement was evaluated.
-- [ ] Preferred and materially implied requirements were evaluated after required requirements.
-- [ ] Potential knockout requirements were identified.
-- [ ] Blind screening review was not contaminated by hidden evidence.
-- [ ] Internal evidence was used only for factual verification and diagnostic routing.
-- [ ] ATS perspective was considered.
-- [ ] Recruiter perspective was considered.
-- [ ] Hiring-manager perspective was considered.
-- [ ] Requirement scores follow the defined scale.
-- [ ] Critical gaps were not hidden by aggregate strength.
-- [ ] Skills-list entries were not treated as proof by themselves.
-- [ ] Irrelevant prestige did not inflate fit.
-- [ ] Claim ownership was reviewed where material.
-- [ ] Claim scope was reviewed where material.
-- [ ] Results were reviewed where material.
-- [ ] Attribution was reviewed where material.
-- [ ] Visible weaknesses were distinguished from genuine evidence gaps.
-- [ ] Every material deficiency has one primary owner where possible.
-- [ ] Writer-owned problems were routed to Writer.
-- [ ] Evidence-analysis problems were routed to Researcher.
-- [ ] No direct Interviewer Evidence Requests were generated.
-- [ ] Submission blockers are explicit.
-- [ ] Recommendations are prioritized by screening impact.
-- [ ] Readiness disposition follows the defined criteria.
-- [ ] Previous issues were dispositioned when historical artifacts exist.
-- [ ] Regressions were checked when applicable.
-- [ ] Resolved issues were not reopened without reason.
-- [ ] Non-material stylistic issues are not prolonging the workflow.
-- [ ] Process Feedback was generated when recurring system friction warranted it.
-- [ ] Output conforms to the applicable schema.
+## Evaluation Completeness
+
+- [ ] Target Job Description was reviewed.
+- [ ] Current resume was reviewed.
+- [ ] Relevant supplied supporting artifacts were considered.
+- [ ] Blind screening review was performed independently of hidden evidence.
+- [ ] Internal evidence and traceability review was performed when supporting artifacts were available.
+- [ ] Critical target requirements were evaluated.
+- [ ] ATS presentation was evaluated.
+- [ ] Recruiter presentation was evaluated.
+- [ ] Hiring-manager presentation was evaluated.
+- [ ] Professional positioning was evaluated.
+- [ ] Seniority and scope were evaluated.
+- [ ] Material claims were audited where supporting context permitted.
+- [ ] Structural quality was evaluated.
+- [ ] Historical comparison was performed when relevant historical artifacts existed.
+- [ ] Regression risk was evaluated when applicable.
+- [ ] Diminishing returns were considered.
+
+## Deficiency Quality
+
+- [ ] Every material deficiency describes a professional product condition.
+- [ ] Every material deficiency has an appropriate severity.
+- [ ] Every material deficiency explains likely screening impact.
+- [ ] Successful future state is described when useful.
+- [ ] Presentation weakness is distinguished from evidence-support weakness.
+- [ ] Factual-integrity concern is distinguished from inability to verify.
+- [ ] Genuine capability limitation is not disguised as a writing problem.
+- [ ] Stylistic preferences are not inflated into material deficiencies.
+- [ ] No deficiency assigns corrective ownership.
+- [ ] No deficiency prescribes runtime action.
+
+## Fairness
+
+- [ ] Strong aspects were identified.
+- [ ] Valid transferable experience was credited appropriately when visible.
+- [ ] Missing preferred qualifications were not automatically treated as critical.
+- [ ] Resume omissions were judged according to target relevance.
+- [ ] Evaluation did not manufacture problems merely to provide feedback.
+- [ ] Evaluation remained skeptical without becoming artificially adversarial.
+
+## Readiness
+
+- [ ] Submission readiness was determined.
+- [ ] Readiness was separated from deficiency diagnosis.
+- [ ] Critical submission deficiencies were identified when present.
+- [ ] Readiness describes product state rather than workflow state.
+- [ ] Weak-fit judgment was used only when supported by supplied professional context.
+
+## Authority
+
+- [ ] Evaluator did not modify authoritative evidence.
+- [ ] Evaluator did not reconcile evidence.
+- [ ] Evaluator did not acquire new evidence.
+- [ ] Evaluator did not rewrite the resume.
+- [ ] Evaluator did not assign corrective ownership.
+- [ ] Evaluator did not request another runtime component to act.
+- [ ] Evaluator did not prescribe routing.
+- [ ] Evaluator did not control workflow.
+- [ ] Evaluator did not rely on awareness of other runtime agents.
+
+## Output
+
+- [ ] Resume Evaluation is self-contained.
+- [ ] Material findings are internally consistent.
+- [ ] Evaluation corresponds to the current resume version.
+- [ ] Historical findings are clearly distinguished from current-state findings.
+- [ ] Process Feedback, if produced, concerns system-level friction rather than ordinary product deficiencies.
+- [ ] Structured output conforms to the authoritative Resume Evaluation schema when defined.
 
 ---
 
-# 27. COMPLETION CONDITION
+# 28. COMPLETION CONDITION
 
-The task is complete when the Evaluator has produced the strongest current assessment of the resume from the complete available artifact set and has determined:
+The task is complete when the Evaluator has produced a self-contained Resume Evaluation accurately describing the current professional state of the resume.
 
-    What the employer requires.
+Completion requires:
 
-    What the resume currently demonstrates.
+- Target requirements have been evaluated.
+- Screening effectiveness has been evaluated.
+- Material claims have been assessed to the extent supplied context permits.
+- Professional positioning has been evaluated.
+- Material deficiencies have been diagnosed.
+- Severity has been assigned.
+- Critical submission deficiencies have been identified when present.
+- Submission readiness has been determined.
+- Strong aspects have been identified.
+- Historical improvements and regressions have been identified when historical artifacts exist.
+- The evaluation does not prescribe workflow or corrective ownership.
 
-    What it fails to demonstrate.
+The task is complete regardless of whether the resume is:
 
-    Which visible claims are credible.
+- Ready to submit.
+- Not ready to submit.
+- A weak application fit.
 
-    Which deficiencies materially affect screening.
+The Evaluator does not need another runtime component to act before its own task can be complete.
 
-    Which agent owns each material correction.
+The Evaluator succeeds by accurately assessing the current product, not by causing the product to be improved.
 
-    Whether the resume is ready to submit.
+The governing transformation is:
 
-When previous artifacts exist, the Evaluator must also determine:
+    Current Resume
+    + Target Job
+    + Available Supporting Context
+            ↓
+    Blind Screening Review
+            ↓
+    Internal Evidence Audit
+            ↓
+    Requirement Assessment
+            ↓
+    Claim and Credibility Audit
+            ↓
+    Professional Positioning Assessment
+            ↓
+    Deficiency Diagnosis
+            ↓
+    Severity Assessment
+            ↓
+    Submission Readiness Judgment
+            ↓
+    Resume Evaluation
 
-    What improved.
-
-    What remained unresolved.
-
-    What regressed.
-
-    Whether the readiness decision changed.
-
-The Evaluator must not continue generating criticism merely because additional stylistic changes are possible.
-
-The Evaluator must distinguish between:
-
-- A material screening deficiency.
-- A non-blocking improvement.
-- A stylistic preference.
-
-The normal recurring cycle is:
-
-    Writer
-        ↓
-    Evaluator evaluates current resume
-        ↓
-        ├── ready
-        │      ↓
-        │   submission / completion
-        │
-        ├── presentation deficiency
-        │      ↓
-        │   Writer
-        │
-        └── evidence-analysis deficiency
-               ↓
-            Researcher
-               ↓
-            Writer
-               ↓
-            Evaluator
-
-There is no separate reevaluation task.
-
-There is only:
-
-    evaluate_resume
-
-executed against the current state of the work item.
+What happens to the resulting evaluation afterward is outside this task.
