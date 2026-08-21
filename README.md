@@ -352,6 +352,8 @@ They do not need to encode:
 
 This allows the same reasoning architecture to operate manually today and through different automation approaches later.
 
+Governance work may additionally produce human-readable Governance Proposals, System Analyses, and Process Feedback Syntheses; these are governance documents rather than production-pipeline artifacts.
+
 ---
 
 # How to Use the Current Version
