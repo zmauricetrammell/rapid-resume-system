@@ -53,8 +53,7 @@ Produce an analysis that establishes:
 8. What claims require qualification.
 9. Where evidence remains partial or ambiguous.
 10. Where factual evidence remains insufficient.
-11. What additional factual evidence would materially improve the professional state.
-12. Where reasonable research indicates a genuine unsupported requirement.
+11. What material factual evidence needs remain unresolved and would benefit from human investigation.12. Where reasonable research indicates a genuine unsupported requirement.
 
 The output must represent the Researcher's best current analytical judgment based on the complete relevant artifact and evidence set.
 
@@ -481,48 +480,56 @@ Do not classify partial evidence as direct evidence.
 
 ---
 
-### Additional Factual Evidence Could Materially Improve the State
+### Material Evidence Need
 
-When reasonable career-wide research cannot resolve a material factual question but additional human evidence may exist, produce an Evidence Request.
+When reasonable career-wide research cannot resolve a material factual question but additional human factual evidence could materially improve the analytical state, record an Evidence Need within the Job Experience Analysis.
 
-The Evidence Request should establish:
+An Evidence Need should establish, as applicable:
 
-- Target requirement or analytical question.
+- Evidence Need ID.
+- Related requirement ID.
+- Related evidence IDs.
+- Factual issue.
 - Current known evidence.
-- Missing evidence dimensions.
-- Adjacent experience worth investigating.
+- Missing factual dimensions.
+- Relevant professional context.
 - Facts that must not be assumed.
-- What evidence would fully resolve the question.
-- What evidence would partially resolve the question.
-- What evidence would confirm a genuine gap.
-- Why the unresolved question is material.
+- Materiality.
+- Analytical impact.
+- Current supported position.
+- Current claim constraint.
+- Why human factual investigation could materially improve the state.
 
-The Evidence Request must be partner-independent.
+The Evidence Need identifies:
 
-It describes the factual information needed.
+> That a material factual investigation need exists.
 
-It does not specify:
+It does not attempt to construct the complete investigation specification.
 
-- Who must investigate it.
-- Where it must be sent.
-- What runtime action occurs next.
-- Whether workflow should stop.
+Do not define:
+
+- Full interview strategy.
+- Detailed resolution conditions.
+- Scripted questions.
+- Runtime destination.
+- Workflow state.
+
+Formal Evidence Request generation is a distinct professional operation.
 
 ---
 
 ### Reasonable Research Finds No Support
 
-When reasonable career-wide research finds no support:
+When reasonable career-wide research finds no support and no meaningful factual investigation remains justified:
 
 - Mark the requirement unsupported.
 - Preserve relevant adjacent or transferable evidence separately.
 - Identify prohibited claims.
 - Preserve the genuine limitation.
 
-Do not manufacture evidence merely because the requirement is important.
+Do not create an Evidence Need merely because evidence would be desirable.
 
-An unsupported requirement is a valid analytical result.
-
+A genuine unsupported requirement is a valid analytical result.
 ---
 
 ## Phase 9 — Construct the Current Job Experience Analysis
@@ -583,11 +590,28 @@ Assess:
 
 The Job Experience Analysis should be sufficiently self-contained that another professional function does not need to independently perform career-wide evidence retrieval, transferability analysis, or functional classification to understand the candidate's support for the target role.
 
+### Material Evidence Needs
+
+For each unresolved factual issue where human investigation could materially improve the analytical state:
+
+- Evidence Need ID.
+- Related requirement.
+- Current evidence.
+- Missing factual dimensions.
+- Relevant professional context.
+- Facts that must not be assumed.
+- Materiality.
+- Analytical impact.
+- Current supported position.
+- Claim constraints.
+
+Evidence Needs remain part of the Job Experience Analysis.
+
+They are not formal Evidence Requests.
+
 ---
 
 # 6. OUTPUTS
-
-The Researcher may produce one or more professional artifacts from the same task invocation.
 
 ## Primary Output
 
@@ -608,32 +632,27 @@ Conceptually:
 
 Every invocation performs the same professional operation.
 
+The Job Experience Analysis should contain, as applicable:
+
+- Target Role Analysis.
+- Requirement-to-Evidence Mapping.
+- Priority Evidence.
+- Evidence-strength assessment.
+- Transferability assessment.
+- Functional Role Architecture.
+- Supported Claim Guidance.
+- Prohibited Claim Guidance.
+- Mandatory cautions.
+- Evidence limitations.
+- Unsupported requirements.
+- Relevant evidence conflicts.
+- Skill-area fit assessment.
+- Overall fit assessment.
+- Material Evidence Needs.
+
 The current analysis supersedes obsolete analytical conclusions while preserving stable identifiers and useful provenance where appropriate.
 
 Use the authoritative Job Experience Analysis schema under `/schemas/` when available.
-
----
-
-## Conditional Output
-
-### Evidence Request
-
-Produce an Evidence Request when additional factual investigation could materially improve or resolve an analytical question.
-
-The Evidence Request must:
-
-- Describe the professional evidence need.
-- Preserve known evidence.
-- Identify unresolved dimensions.
-- Identify facts that must not be assumed.
-- Define useful resolution criteria.
-- Remain independent of runtime routing.
-
-Use the authoritative Evidence Request schema under `/schemas/` when available.
-
-The existence of an Evidence Request does not make the Job Experience Analysis incomplete.
-
-The current analysis should still represent the strongest current analytical state.
 
 ---
 
@@ -644,7 +663,7 @@ The current analysis should still represent the strongest current analytical sta
 Produce Process Feedback when recurring or material system-level friction is identified concerning:
 
 - Contract ambiguity.
-- Task instruction ambiguity.
+- Task-instruction ambiguity.
 - Schema weakness.
 - Missing fields.
 - Repeated interface problems.
@@ -654,10 +673,35 @@ Produce Process Feedback when recurring or material system-level friction is ide
 
 Process Feedback is for system improvement.
 
-It must not replace normal professional outputs.
+It must not replace normal analytical output.
 
-It must not specify a runtime destination.
+It must not specify runtime destination or corrective ownership.
 
+---
+
+## Evidence Request Boundary
+
+This task does **not** produce a formal Evidence Request.
+
+When analysis establishes that additional human factual investigation could materially improve the evidence state:
+
+    generate_analysis
+        ↓
+    Record Material Evidence Need in JEA
+
+The dedicated:
+
+    request_evidence
+
+task transforms that identified analytical need into a formal Evidence Request.
+
+This separation preserves distinct task identity:
+
+    generate_analysis
+    = determine whether and where material factual evidence is needed.
+
+    request_evidence
+    = define the factual investigation required to address that need.
 ---
 
 # 7. IDEMPOTENT BEHAVIOR
@@ -673,8 +717,9 @@ Every invocation performs:
     Generate Analysis
             ↓
     Current Job Experience Analysis
-    + Conditional Evidence Requests
     + Conditional Process Feedback
+
+Material Evidence Needs, when present, are contained within the Job Experience Analysis.
 
 There is no separate:
 
@@ -685,38 +730,6 @@ There is no separate:
 - Evidence-integration task.
 
 New professional state becomes additional input to the same analytical operation.
-
----
-
-## Stable State
-
-When materially identical inputs are supplied:
-
-- Preserve stable requirement priorities.
-- Preserve stable evidence rankings.
-- Preserve stable classifications.
-- Preserve stable gap determinations.
-- Preserve stable permitted and prohibited claims.
-- Preserve stable Functional Role Architecture.
-- Preserve stable overall-fit conclusions.
-
-Do not manufacture analytical change merely because the task is invoked again.
-
----
-
-## Changed State
-
-When material new information is supplied:
-
-- Reconsider affected conclusions.
-- Reconsider dependent conclusions.
-- Preserve unaffected conclusions when they remain optimal.
-- Update only what the new state justifies.
-
-The objective is convergence toward the strongest current analysis.
-
-Not perpetual analytical churn.
-
 ---
 
 # 8. PARTNER INDEPENDENCE
@@ -801,10 +814,11 @@ Before completing the task, verify:
 ## Evidence Sufficiency
 
 - [ ] Material gaps are disclosed.
-- [ ] Evidence Requests were generated when additional facts could materially improve the analysis.
-- [ ] Evidence Requests are partner-independent.
+- [ ] Material Evidence Needs were recorded when additional human facts could materially improve the analysis.
+- [ ] Evidence Needs identify factual need without attempting to become full Evidence Requests.
 - [ ] Genuine unsupported requirements were not disguised.
 - [ ] Nice-to-have evidence was distinguished from materially useful evidence.
+- [ ] No formal Evidence Request was generated by this task.
 
 ## Output Quality
 
@@ -824,10 +838,13 @@ The task is complete when the Researcher has produced the strongest current Job 
 
 Completion may include:
 
-- A fully supported analysis.
-- An analysis containing partial evidence.
-- An analysis containing genuine unsupported requirements.
-- One or more Evidence Requests.
+- Fully supported requirements.
+- Partially supported requirements.
+- Genuine unsupported requirements.
+- Material Evidence Needs.
+- Evidence conflicts.
+- Qualified claims.
+- Prohibited claims.
 - Process Feedback.
 - Any combination of the above.
 
@@ -835,27 +852,30 @@ The Researcher must not delay analytical completion merely because future inform
 
 Distinguish between:
 
-- Evidence that could materially change professional state.
-- Evidence that would merely be useful to have.
+- Factual information that could materially change professional state.
+- Information that would merely be useful to have.
 
-When material evidence remains unknown:
+When material factual evidence remains unknown:
 
 - Preserve the current analytical conclusion.
-- Produce an Evidence Request when appropriate.
+- Record a Material Evidence Need when human investigation could materially improve the state.
 - Complete the Job Experience Analysis.
 
-The existence of an unresolved Evidence Request does not invalidate the current analysis.
+The existence of a Material Evidence Need does not make the Job Experience Analysis incomplete.
 
-The task ends when no further material improvement is available through Researcher-owned reasoning using the current supplied state.
+This task does not generate the formal Evidence Request.
+
+The task ends when no further material improvement is available through Researcher-owned analytical reasoning using the current supplied state.
 
 It does not end by:
 
+- Constructing a detailed investigation specification.
 - Selecting a downstream owner.
 - Routing an artifact.
 - Determining what task happens next.
 - Waiting for another professional function.
 - Declaring a workflow blocked.
 
-The Researcher produces professional state.
+The Researcher produces the strongest current analytical state.
 
-Coordination occurs outside this task.
+What happens afterward is outside this task.
