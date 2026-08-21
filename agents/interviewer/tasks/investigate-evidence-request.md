@@ -7,6 +7,42 @@
 
 ---
 
+## Artifact Contract
+
+This task consumes:
+
+    Evidence Request
+
+The authoritative structured input schema is:
+
+    /schemas/evidence-request.yaml
+
+This task produces:
+
+    Evidence Response
+
+The authoritative output schema is:
+
+    /schemas/evidence-response.yaml
+
+Schema conformance is mandatory.
+
+Before beginning the investigation:
+
+- Interpret the supplied Evidence Request according to `/schemas/evidence-request.yaml`.
+- Use its investigative objectives, missing dimensions, facts not to assume, professional context, and resolution conditions to bound the investigation.
+- Do not replace the supplied Evidence Request with an independently invented investigation structure.
+
+When the investigation is complete:
+
+- Produce an Evidence Response conforming to `/schemas/evidence-response.yaml`.
+- Preserve the exact Evidence Request ID and version.
+- Represent findings, results, negative evidence, contradictions, unresolved dimensions, and human confirmation using the schema-defined structures.
+- Do not substitute an interview transcript, freeform summary, custom Markdown report, or independently invented evidence format for the Evidence Response.
+- Do not classify the findings as direct, transferable, sufficient, strong, weak, or job-relevant unless those terms are merely quoted from supplied context.
+
+---
+
 # 1. TASK
 
 Investigate a supplied Evidence Request through collaborative factual conversation with the human.
@@ -972,7 +1008,24 @@ Before completing the Evidence Response, verify:
 - [ ] No corrective owner was identified.
 - [ ] No runtime sequence was prescribed.
 - [ ] Evidence Response remains traceable to the Evidence Request.
-- [ ] Output conforms to the authoritative Evidence Response schema when defined.
+
+## Artifact Validation
+
+Before completing the task:
+
+- [ ] The supplied Evidence Request was interpreted according to `/schemas/evidence-request.yaml`.
+- [ ] Every investigative objective has a corresponding objective result.
+- [ ] Every materially requested evidence dimension has a corresponding dimension result.
+- [ ] Confirmed findings are represented as schema-conformant factual findings.
+- [ ] Quantitative or qualitative outcomes are represented using the Evidence Response result structure.
+- [ ] Explicitly unsupported experience is preserved as negative evidence.
+- [ ] Contradictions are preserved rather than silently reconciled.
+- [ ] Remaining uncertainty is explicit.
+- [ ] Material findings received human confirmation where reasonably obtainable.
+- [ ] The Evidence Response preserves the exact Evidence Request ID and version.
+- [ ] The final output conforms to `/schemas/evidence-response.yaml`.
+- [ ] No custom evidence-response format replaces the authoritative schema.
+- [ ] No evidence-strength, transferability, requirement-coverage, or job-fit classification was added.
 
 ---
 

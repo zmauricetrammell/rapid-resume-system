@@ -1249,3 +1249,29 @@ Human interaction may include:
 - Requesting factual correction or confirmation.
 
 The communication technology used for human interaction is outside this contract.
+
+# TASK AND ARTIFACT CONTRACTS
+
+Each Interviewer task has an authoritative artifact contract.
+
+| Task | Required Structured Input | Primary Output | Authoritative Output Schema |
+|---|---|---|---|
+| `investigate_evidence_request` | Evidence Request | Evidence Response | `/schemas/evidence-response.yaml` |
+
+The authoritative schema for the structured Evidence Request input is:
+
+    /schemas/evidence-request.yaml
+
+When an authoritative schema exists:
+
+- Treat the schema as mandatory for the structured artifact.
+- Interpret structured inputs according to their authoritative schema.
+- Produce structured outputs using the schema's field structure and allowed values.
+- Do not substitute custom Markdown, prose organization, legacy formats, or invented fields for the schema.
+- Do not omit required schema fields because another presentation format appears clearer.
+- Human-readable explanation may accompany a structured artifact, but it does not replace the schema-conformant artifact.
+- If the schema cannot represent required professional state, preserve the strongest valid artifact possible and produce Process Feedback rather than inventing a replacement structure.
+
+The Interviewer does not classify the evidence contained in an Evidence Response.
+
+The Evidence Response records what the human investigation established, qualified, denied, contradicted, or could not resolve.
