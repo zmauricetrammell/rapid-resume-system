@@ -10,7 +10,6 @@ description: >
   classifications.
 
 type: object
-
 additionalProperties: false
 
 required:
@@ -32,31 +31,19 @@ properties:
 
   schema_version:
     type: string
-    description: >
-      Version of this schema against which the Job Experience Record was created.
     pattern: "^[0-9]+\\.[0-9]+$"
-    examples:
-      - "2.0"
+    examples: ["2.0"]
 
   jer_id:
     type: string
-    description: >
-      Stable human-readable identifier for this professional episode.
-      The identifier should remain stable across ordinary record revisions.
     pattern: "^JER-[0-9]{4,}$"
-    examples:
-      - "JER-0001"
 
   record_version:
     type: integer
     minimum: 1
-    description: >
-      Monotonically increasing version number for this Job Experience Record.
 
   status:
     type: string
-    description: >
-      Current lifecycle state of the Job Experience Record.
     enum:
       - active
       - superseded
@@ -72,18 +59,12 @@ properties:
 
   experience_points:
     type: array
-    description: >
-      Individually addressable atomic factual evidence elements belonging to
-      this professional episode.
     minItems: 1
     items:
       $ref: "#/$defs/experience_point"
 
   results:
     type: array
-    description: >
-      Individually addressable outcomes or results associated with one or more
-      experience points in this professional episode.
     items:
       $ref: "#/$defs/result"
 
@@ -92,57 +73,40 @@ properties:
 
   unresolved_conflicts:
     type: array
-    description: >
-      Material factual conflicts that cannot currently be resolved without
-      overstating certainty.
     items:
       $ref: "#/$defs/evidence_conflict"
 
   known_unknowns:
     type: array
-    description: >
-      Material factual dimensions known to be unavailable, uncertain, or
-      insufficiently documented.
     items:
       $ref: "#/$defs/known_unknown"
 
   source_references:
     type: array
-    description: >
-      Source materials supporting, contextualizing, qualifying, or contradicting
-      evidence within this record.
     items:
       $ref: "#/$defs/source_reference"
 
   lineage:
     $ref: "#/$defs/lineage"
 
-
 $defs:
 
   provenance:
     type: object
     additionalProperties: false
-
     required:
       - employer
       - overall_start_date
       - overall_end_date
       - source_roles
-
     properties:
 
       employer:
         type: string
         minLength: 1
-        description: >
-          Factual employer or employing organization under which the professional
-          episode occurred.
 
       employment_type:
-        type:
-          - string
-          - "null"
+        type: ["string", "null"]
         enum:
           - full_time
           - part_time
@@ -154,16 +118,9 @@ $defs:
           - self_employed
           - other
           - null
-        description: >
-          Employment relationship when materially relevant.
 
       location:
-        type:
-          - string
-          - "null"
-        description: >
-          Geographic location associated with the employment relationship or
-          professional episode when relevant.
+        type: ["string", "null"]
 
       overall_start_date:
         $ref: "#/$defs/partial_date"
@@ -176,44 +133,28 @@ $defs:
 
       source_roles:
         type: array
-        description: >
-          Historical roles, billets, titles, or assignments associated with the
-          professional episode. These preserve provenance and do not independently
-          determine civilian professional classification.
         minItems: 1
         items:
           $ref: "#/$defs/source_role"
 
-
   source_role:
     type: object
     additionalProperties: false
-
     required:
       - source_role_id
       - title
-
     properties:
 
       source_role_id:
         type: string
         pattern: "^ROLE-[0-9]{4,}$"
-        description: >
-          Stable human-readable identifier for the historical role or assignment.
 
       title:
         type: string
         minLength: 1
-        description: >
-          Historical title, billet, assignment, or role name.
 
       organization:
-        type:
-          - string
-          - "null"
-        description: >
-          Organization, department, unit, team, or business area associated
-          with the historical role.
+        type: ["string", "null"]
 
       start_date:
         oneOf:
@@ -228,48 +169,28 @@ $defs:
           - type: "null"
 
       notes:
-        type:
-          - string
-          - "null"
-        description: >
-          Additional provenance context that does not itself establish
-          professional capability.
-
+        type: ["string", "null"]
 
   professional_episode:
     type: object
     additionalProperties: false
-
     required:
       - title
       - summary
-
     properties:
 
       title:
         type: string
         minLength: 1
-        description: >
-          Neutral descriptive name for the coherent professional episode.
-          This is not necessarily a historical title or resume title.
-        examples:
-          - "Enterprise Wireless Modernization"
-          - "Service Desk Transformation"
-          - "Cloud Collaboration Migration"
 
       summary:
         type: string
         minLength: 1
-        description: >
-          Concise factual summary describing the professional episode without
-          target-job interpretation or resume-style embellishment.
 
       start_date:
         oneOf:
           - $ref: "#/$defs/partial_date"
           - type: "null"
-        description: >
-          Approximate or known beginning of the episode when available.
 
       end_date:
         oneOf:
@@ -279,35 +200,20 @@ $defs:
           - type: "null"
 
       context:
-        type:
-          - string
-          - "null"
-        description: >
-          Relevant organizational, technical, operational, business, or mission
-          context surrounding the professional episode.
+        type: ["string", "null"]
 
       environment:
-        type:
-          - string
-          - "null"
-        description: >
-          Relevant environment in which the work occurred, such as production,
-          enterprise, campus, distributed, regulated, classified, cloud,
-          hybrid, or field environment.
+        type: ["string", "null"]
 
       stakeholders:
         type: array
-        description: >
-          Stakeholder categories relevant to the episode.
         uniqueItems: true
         items:
           type: string
 
-
   experience_point:
     type: object
     additionalProperties: false
-
     required:
       - experience_point_id
       - statement
@@ -317,24 +223,15 @@ $defs:
       - attribution
       - source_refs
       - related_result_ids
-
     properties:
 
       experience_point_id:
         type: string
         pattern: "^EP-[0-9]{4,}-[0-9]{2,}$"
-        description: >
-          Stable identifier for one atomic professional evidence point.
-        examples:
-          - "EP-0001-01"
 
       statement:
         type: string
         minLength: 1
-        description: >
-          Neutral factual statement describing the professional evidence.
-          This should preserve the strongest supportable factual meaning without
-          resume-style optimization.
 
       evidence_type:
         type: string
@@ -360,21 +257,12 @@ $defs:
           - automation
           - training
           - other
-        description: >
-          General reusable factual character of the evidence point. This is not
-          a target-job fit classification.
 
       responsibility:
-        type:
-          - string
-          - "null"
-        description: >
-          Responsibility represented by this evidence point when applicable.
+        type: ["string", "null"]
 
       actions:
         type: array
-        description: >
-          Specific actions personally performed or materially contributed to.
         items:
           type: string
 
@@ -386,68 +274,31 @@ $defs:
           - contributory
           - support
           - unknown
-        description: >
-          Factual degree of ownership over the work represented by this
-          evidence point.
 
       decision_authority:
-        type:
-          - string
-          - "null"
-        description: >
-          Factual description of decisions the job hunter could independently
-          make, approve, direct, enforce, or recommend.
+        type: ["string", "null"]
 
       scope:
         type: array
-        description: >
-          Structured factual scale associated with the evidence point.
         items:
           $ref: "#/$defs/scope_item"
 
       systems_tools:
         type: array
-        description: >
-          Systems, technologies, platforms, products, or tools directly associated
-          with this evidence point.
         uniqueItems: true
         items:
           type: string
 
       methods:
         type: array
-        description: >
-          Processes, methodologies, standards, frameworks, or approaches
-          associated with this evidence point.
         uniqueItems: true
         items:
           type: string
 
       duration_frequency:
-        type:
-          - object
-          - "null"
-        additionalProperties: false
-        properties:
-
-          duration:
-            type:
-              - string
-              - "null"
-            description: >
-              How long the activity or responsibility persisted.
-
-          frequency:
-            type:
-              - string
-              - "null"
-            description: >
-              How often the activity occurred.
-
-          recurring:
-            type:
-              - boolean
-              - "null"
+        oneOf:
+          - $ref: "#/$defs/duration_frequency"
+          - type: "null"
 
       attribution:
         type: string
@@ -457,37 +308,25 @@ $defs:
           - contributory
           - organizational
           - unknown
-        description: >
-          Factual relationship between the job hunter and the work or outcome.
 
       factual_status:
         $ref: "#/$defs/factual_status"
 
       confidence:
-        type:
-          - string
-          - "null"
+        type: ["string", "null"]
         enum:
           - high
           - medium
           - low
           - null
-        description: >
-          Confidence in the factual precision of the evidence point.
-          This does not represent target-job evidence strength.
 
       qualifications:
         type: array
-        description: >
-          Material caveats or qualifications that must accompany interpretation
-          of this evidence point.
         items:
           type: string
 
       source_refs:
         type: array
-        description: >
-          IDs of source references supporting or contextualizing this evidence.
         uniqueItems: true
         items:
           type: string
@@ -495,18 +334,14 @@ $defs:
 
       related_result_ids:
         type: array
-        description: >
-          IDs of results legitimately associated with this evidence point.
         uniqueItems: true
         items:
           type: string
           pattern: "^RES-[0-9]{4,}-[0-9]{2,}$"
 
-
   result:
     type: object
     additionalProperties: false
-
     required:
       - result_id
       - statement
@@ -515,22 +350,15 @@ $defs:
       - factual_status
       - related_experience_point_ids
       - source_refs
-
     properties:
 
       result_id:
         type: string
         pattern: "^RES-[0-9]{4,}-[0-9]{2,}$"
-        description: >
-          Stable identifier for one professional result.
-        examples:
-          - "RES-0001-01"
 
       statement:
         type: string
         minLength: 1
-        description: >
-          Neutral factual description of the observed or measured result.
 
       result_type:
         type: string
@@ -559,35 +387,16 @@ $defs:
           - type: "null"
 
       qualitative:
-        type:
-          - string
-          - "null"
-        description: >
-          Specific observable qualitative outcome when no meaningful numerical
-          measure exists or when qualitative context supplements a metric.
+        type: ["string", "null"]
 
       baseline:
-        type:
-          - string
-          - number
-          - "null"
-        description: >
-          Starting condition or value when known.
+        type: ["string", "number", "null"]
 
       final_state:
-        type:
-          - string
-          - number
-          - "null"
-        description: >
-          Ending condition or value when known.
+        type: ["string", "number", "null"]
 
       timeframe:
-        type:
-          - string
-          - "null"
-        description: >
-          Period over which the result occurred or was measured.
+        type: ["string", "null"]
 
       attribution:
         type: string
@@ -597,8 +406,6 @@ $defs:
           - contributory
           - organizational
           - unknown
-        description: >
-          Factual attribution of the result.
 
       related_experience_point_ids:
         type: array
@@ -623,67 +430,38 @@ $defs:
           type: string
           pattern: "^SRC-[0-9]{4,}-[0-9]{2,}$"
 
-
   quantitative_result:
     type: object
     additionalProperties: false
-
     properties:
 
       value:
-        type:
-          - number
-          - "null"
+        type: ["number", "null"]
 
       minimum:
-        type:
-          - number
-          - "null"
+        type: ["number", "null"]
 
       maximum:
-        type:
-          - number
-          - "null"
+        type: ["number", "null"]
 
       unit:
-        type:
-          - string
-          - "null"
-        description: >
-          Measurement unit such as percent, dollars, days, users, incidents,
-          sites, devices, hours, or another appropriate unit.
+        type: ["string", "null"]
 
       precision:
-        type:
-          - string
-          - "null"
-        enum:
-          - exact
-          - approximate
-          - range
-          - minimum
-          - maximum
-          - order_of_magnitude
-          - null
+        oneOf:
+          - $ref: "#/$defs/precision"
+          - type: "null"
 
       comparison:
-        type:
-          - string
-          - "null"
-        description: >
-          Human-readable comparison or transformation such as
-          "33 days to 3 days" or "24 percent to 95 percent".
-
+        type: ["string", "null"]
 
   scope_item:
     type: object
     additionalProperties: false
-
     required:
       - dimension
       - value
       - factual_status
-
     properties:
 
       dimension:
@@ -721,65 +499,72 @@ $defs:
           - other
 
       value:
-        type:
-          - string
-          - number
+        type: ["string", "number"]
 
       unit:
-        type:
-          - string
-          - "null"
+        type: ["string", "null"]
 
       precision:
-        type:
-          - string
-          - "null"
-        enum:
-          - exact
-          - approximate
-          - range
-          - minimum
-          - maximum
-          - descriptive
-          - null
+        oneOf:
+          - $ref: "#/$defs/precision"
+          - type: "null"
 
       factual_status:
         $ref: "#/$defs/factual_status"
 
       qualification:
-        type:
-          - string
-          - "null"
+        type: ["string", "null"]
 
+  duration_frequency:
+    type: object
+    additionalProperties: false
+    properties:
+
+      duration:
+        type: ["string", "null"]
+
+      frequency:
+        type: ["string", "null"]
+
+      recurring:
+        type: ["boolean", "null"]
+
+      precision:
+        oneOf:
+          - $ref: "#/$defs/precision"
+          - type: "null"
+
+  precision:
+    type: string
+    enum:
+      - exact
+      - approximate
+      - range
+      - minimum
+      - maximum
+      - order_of_magnitude
+      - qualitative
+      - unknown
 
   classifications:
     type: object
     additionalProperties: false
-
     required:
       - capabilities
       - functional_roles
       - technical_domains
       - management_domains
       - industries
-
     properties:
 
       capabilities:
         type: array
-        description: >
-          Reusable professional capability tags supported by the underlying
-          evidence. These improve retrieval but do not independently establish fact.
         uniqueItems: true
         items:
           type: string
 
       functional_roles:
         type: array
-        description: >
-          Reusable civilian professional-function classifications supported by
-          the underlying work. These are not necessarily historical titles and
-          are not target-job priority recommendations.
         uniqueItems: true
         items:
           type: string
@@ -798,24 +583,18 @@ $defs:
 
       industries:
         type: array
-        description: >
-          Industries in which the episode actually occurred. Do not use this
-          field to claim target-industry experience that did not occur.
         uniqueItems: true
         items:
           type: string
 
-
   evidence_conflict:
     type: object
     additionalProperties: false
-
     required:
       - conflict_id
       - description
       - conflicting_values
       - status
-
     properties:
 
       conflict_id:
@@ -850,26 +629,16 @@ $defs:
             - value
             - source_refs
           properties:
-
             value:
-              description: >
-                Factual value or interpretation in conflict.
-              type:
-                - string
-                - number
-                - boolean
-
+              type: ["string", "number", "boolean"]
             source_refs:
               type: array
               uniqueItems: true
               items:
                 type: string
                 pattern: "^SRC-[0-9]{4,}-[0-9]{2,}$"
-
             qualification:
-              type:
-                - string
-                - "null"
+              type: ["string", "null"]
 
       possible_explanations:
         type: array
@@ -884,12 +653,7 @@ $defs:
           - resolved
 
       resolution:
-        type:
-          - string
-          - "null"
-        description: >
-          Authoritative factual reconciliation when the conflict has been
-          supportably resolved.
+        type: ["string", "null"]
 
       resolution_source_refs:
         type: array
@@ -898,16 +662,13 @@ $defs:
           type: string
           pattern: "^SRC-[0-9]{4,}-[0-9]{2,}$"
 
-
   known_unknown:
     type: object
     additionalProperties: false
-
     required:
       - unknown_id
       - description
       - materiality
-
     properties:
 
       unknown_id:
@@ -940,20 +701,15 @@ $defs:
           - low
 
       notes:
-        type:
-          - string
-          - "null"
-
+        type: ["string", "null"]
 
   source_reference:
     type: object
     additionalProperties: false
-
     required:
       - source_id
       - source_type
       - title
-
     properties:
 
       source_id:
@@ -990,22 +746,13 @@ $defs:
           - type: "null"
 
       locator:
-        type:
-          - string
-          - "null"
-        description: >
-          File name, URI, repository path, document section, page, paragraph,
-          record ID, or other stable locator when available.
+        type: ["string", "null"]
 
       notes:
-        type:
-          - string
-          - "null"
+        type: ["string", "null"]
 
       evidentiary_role:
-        type:
-          - string
-          - "null"
+        type: ["string", "null"]
         enum:
           - confirms
           - supports
@@ -1015,17 +762,14 @@ $defs:
           - source_only
           - null
 
-
   lineage:
     type: object
     additionalProperties: false
-
     required:
       - created_at
       - updated_at
       - merge_source_ids
       - split_source_ids
-
     properties:
 
       created_at:
@@ -1037,15 +781,11 @@ $defs:
         format: date-time
 
       supersedes_version:
-        type:
-          - integer
-          - "null"
+        type: ["integer", "null"]
         minimum: 1
 
       merge_source_ids:
         type: array
-        description: >
-          JER IDs merged into this record when applicable.
         uniqueItems: true
         items:
           type: string
@@ -1053,21 +793,13 @@ $defs:
 
       split_source_ids:
         type: array
-        description: >
-          JER IDs from which this record was split when applicable.
         uniqueItems: true
         items:
           type: string
           pattern: "^JER-[0-9]{4,}$"
 
       change_summary:
-        type:
-          - string
-          - "null"
-        description: >
-          Concise semantic description of material changes from the previous
-          version. This is evidence-record history, not workflow state.
-
+        type: ["string", "null"]
 
   factual_status:
     type: string
@@ -1079,17 +811,7 @@ $defs:
       - qualified
       - conflicting
       - unknown
-    description: >
-      Factual status of the information itself. This does not indicate
-      target-job relevance or evidence strength.
-
 
   partial_date:
     type: string
-    description: >
-      ISO-like date representation allowing year, year-month, or full date.
     pattern: "^[0-9]{4}(-[0-9]{2})?(-[0-9]{2})?$"
-    examples:
-      - "2024"
-      - "2024-03"
-      - "2024-03-15"
