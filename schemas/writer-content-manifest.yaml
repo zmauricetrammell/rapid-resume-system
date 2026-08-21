@@ -1,98 +1,88 @@
-$schema: "https://json-schema.org/draft/2020-12/schema"
-$id: "https://rapid-resume-system.local/schemas/writer-content-manifest.yaml"
-
-title: "Writer Content Manifest"
-description: >
-  Semantic traceability artifact for a targeted resume. It records how visible
-  resume content relates to authorized analytical state and version-specific
-  authoritative professional evidence.
-
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://rapid-resume-system.local/schemas/writer-content-manifest.yaml
+title: Writer Content Manifest
+description: Semantic traceability artifact for a targeted resume. It records how visible resume content
+  relates to authorized analytical state, version-specific authoritative professional evidence, applicable
+  product feedback, keyword usage, functional-role presentation, terminology translation, presentation
+  decisions, omissions, limitations, and validation results. It describes current presentation state and
+  does not function as a revision log, workflow artifact, routing instruction, or corrective request.
 type: object
 additionalProperties: false
-
 required:
-  - schema_version
-  - manifest_id
-  - manifest_version
-  - status
-  - resume_reference
-  - analysis_reference
-  - content_entries
-  - role_presentations
-  - omitted_priority_evidence
-  - presentation_decisions
-  - limitations
-  - lineage
-
+- schema_version
+- manifest_id
+- manifest_version
+- status
+- resume_reference
+- analysis_reference
+- product_feedback_refs
+- content_entries
+- role_presentations
+- omitted_priority_evidence
+- presentation_decisions
+- limitations
+- lineage
 properties:
-
   schema_version:
     type: string
-    pattern: "^[0-9]+\\.[0-9]+$"
-
+    pattern: ^[0-9]+\.[0-9]+$
   manifest_id:
     type: string
-    pattern: "^WCM-[0-9]{4,}$"
-
+    pattern: ^WCM-[0-9]{4,}$
   manifest_version:
     type: integer
     minimum: 1
-
   status:
     type: string
     enum:
-      - active
-      - superseded
-      - deprecated
-
+    - active
+    - superseded
+    - deprecated
   resume_reference:
-    $ref: "#/$defs/resume_reference"
-
+    $ref: '#/$defs/resume_reference'
   analysis_reference:
-    $ref: "#/$defs/analysis_reference"
-
+    $ref: '#/$defs/analysis_reference'
+  product_feedback_refs:
+    type: array
+    description: Versioned Resume Evaluation artifacts materially used as product feedback in producing
+      the current resume. The array may be empty when no prior product feedback was supplied.
+    items:
+      $ref: '#/$defs/versioned_evaluation_reference'
   content_entries:
     type: array
     minItems: 1
     items:
-      $ref: "#/$defs/content_entry"
-
+      $ref: '#/$defs/content_entry'
   role_presentations:
     type: array
     items:
-      $ref: "#/$defs/role_presentation"
-
+      $ref: '#/$defs/role_presentation'
   omitted_priority_evidence:
     type: array
     items:
-      $ref: "#/$defs/omitted_priority_evidence"
-
+      $ref: '#/$defs/omitted_priority_evidence'
   presentation_decisions:
     type: array
     items:
-      $ref: "#/$defs/presentation_decision"
-
+      $ref: '#/$defs/presentation_decision'
   limitations:
     type: array
     items:
-      $ref: "#/$defs/writer_limitation"
-
+      $ref: '#/$defs/writer_limitation'
   lineage:
-    $ref: "#/$defs/lineage"
-
+    $ref: '#/$defs/lineage'
 $defs:
-
   resume_reference:
     type: object
     additionalProperties: false
     required:
-      - resume_id
-      - resume_version
-      - target_job_id
+    - resume_id
+    - resume_version
+    - target_job_id
     properties:
       resume_id:
         type: string
-        pattern: "^RESUME-[0-9]{4,}$"
+        pattern: ^RESUME-[0-9]{4,}$
       resume_version:
         type: integer
         minimum: 1
@@ -100,27 +90,30 @@ $defs:
         type: string
         minLength: 1
       resume_file_reference:
-        type: ["string", "null"]
+        type:
+        - string
+        - 'null'
       resume_format:
-        type: ["string", "null"]
+        type:
+        - string
+        - 'null'
         enum:
-          - docx
-          - pdf
-          - markdown
-          - plaintext
-          - other
-          - null
-
+        - docx
+        - pdf
+        - markdown
+        - plaintext
+        - other
+        - null
   analysis_reference:
     type: object
     additionalProperties: false
     required:
-      - jea_id
-      - analysis_version
+    - jea_id
+    - analysis_version
     properties:
       jea_id:
         type: string
-        pattern: "^JEA-[0-9]{4,}$"
+        pattern: ^JEA-[0-9]{4,}$
       analysis_version:
         type: integer
         minimum: 1
@@ -129,226 +122,251 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^FRA-ROLE-[0-9]{3,}$"
+          pattern: ^FRA-ROLE-[0-9]{3,}$
       source_artifact_refs:
         type: array
         uniqueItems: true
         items:
           type: string
-
+  versioned_evaluation_reference:
+    type: object
+    additionalProperties: false
+    required:
+    - evaluation_id
+    - evaluation_version
+    properties:
+      evaluation_id:
+        type: string
+        pattern: ^EVAL-[0-9]{4,}$
+      evaluation_version:
+        type: integer
+        minimum: 1
   content_entry:
     type: object
     additionalProperties: false
     required:
-      - content_id
-      - content_type
-      - resume_location
-      - final_text
-      - requirement_ids
-      - supported_claim_ids
-      - evidence_mapping_ids
-      - evidence_refs
-      - functional_role_ids
-      - composition
-      - terminology
-      - caution_ids
-      - limitation_ids
-      - qualifications_preserved
-      - validations
-      - prohibited_claim_validation
+    - content_id
+    - content_type
+    - resume_location
+    - final_text
+    - requirement_ids
+    - supported_claim_ids
+    - evidence_mapping_ids
+    - evidence_refs
+    - functional_role_ids
+    - composition
+    - terminology
+    - keyword_usage
+    - caution_ids
+    - limitation_ids
+    - qualifications_preserved
+    - validations
+    - prohibited_claim_validation
     properties:
-
       content_id:
         type: string
-        pattern: "^CONTENT-[0-9]{3,}$"
-
+        pattern: ^CONTENT-[0-9]{3,}$
       content_type:
         type: string
         enum:
-          - summary_statement
-          - role_heading
-          - role_description
-          - experience_bullet
-          - skill
-          - skill_group
-          - certification
-          - education
-          - qualification
-          - static_content
-          - other
-
+        - summary_statement
+        - role_heading
+        - role_description
+        - experience_bullet
+        - skill
+        - skill_group
+        - certification
+        - education
+        - qualification
+        - static_content
+        - other
       resume_location:
-        $ref: "#/$defs/resume_location"
-
+        $ref: '#/$defs/resume_location'
       final_text:
         type: string
         minLength: 1
-
       requirement_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^REQ-[0-9]{3,}$"
-
+          pattern: ^REQ-[0-9]{3,}$
       supported_claim_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^CLAIM-[0-9]{3,}$"
-
+          pattern: ^CLAIM-[0-9]{3,}$
       evidence_mapping_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^MAP-[0-9]{3,}-[0-9]{2,}$"
-
+          pattern: ^MAP-[0-9]{3,}-[0-9]{2,}$
       evidence_refs:
         type: array
         items:
-          $ref: "#/$defs/evidence_reference"
-
+          $ref: '#/$defs/evidence_reference'
       functional_role_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^FRA-ROLE-[0-9]{3,}$"
-
+          pattern: ^FRA-ROLE-[0-9]{3,}$
       presentation_role_id:
-        type: ["string", "null"]
-        pattern: "^PROLE-[0-9]{3,}$"
-
+        type:
+        - string
+        - 'null'
+        pattern: ^PROLE-[0-9]{3,}$
       composition:
-        $ref: "#/$defs/composition"
-
+        $ref: '#/$defs/composition'
       terminology:
-        $ref: "#/$defs/terminology"
-
+        $ref: '#/$defs/terminology'
+      keyword_usage:
+        type: array
+        description: Target-relevant keyword and terminology usage materially expressed by this visible
+          content. May be empty when no keyword usage is material to the content.
+        items:
+          $ref: '#/$defs/keyword_usage'
       caution_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^CAUTION-[0-9]{3,}$"
-
+          pattern: ^CAUTION-[0-9]{3,}$
       limitation_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^LIM-[0-9]{3,}$"
-
+          pattern: ^LIM-[0-9]{3,}$
       qualifications_preserved:
         type: array
         items:
           type: string
-
       prohibited_claim_validation:
-        $ref: "#/$defs/prohibited_claim_validation"
-
+        $ref: '#/$defs/prohibited_claim_validation'
       validations:
-        $ref: "#/$defs/content_validations"
-
+        $ref: '#/$defs/content_validations'
       material_omissions:
         type: array
         items:
           type: string
-
       notes:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
+  keyword_usage:
+    type: object
+    additionalProperties: false
+    required:
+    - term
+    - usage_type
+    properties:
+      term:
+        type: string
+        minLength: 1
+      usage_type:
+        type: string
+        enum:
+        - exact_target_term
+        - supported_equivalent
+        - civilian_normalization
+        - acronym_expansion
+      requirement_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: ^REQ-[0-9]{3,}$
   resume_location:
     type: object
     additionalProperties: false
     required:
-      - section
-      - ordinal
+    - section
+    - ordinal
     properties:
-
       section:
         type: string
         enum:
-          - header
-          - professional_summary
-          - core_competencies
-          - skills
-          - professional_experience
-          - consulting_experience
-          - education
-          - certifications
-          - additional_information
-          - other
-
+        - header
+        - professional_summary
+        - core_competencies
+        - skills
+        - professional_experience
+        - consulting_experience
+        - education
+        - certifications
+        - additional_information
+        - other
       section_label:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
       presentation_role_id:
-        type: ["string", "null"]
-        pattern: "^PROLE-[0-9]{3,}$"
-
+        type:
+        - string
+        - 'null'
+        pattern: ^PROLE-[0-9]{3,}$
       subsection:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
       ordinal:
         type: integer
         minimum: 1
-
       page:
-        type: ["integer", "null"]
+        type:
+        - integer
+        - 'null'
         minimum: 1
-
   composition:
     type: object
     additionalProperties: false
     required:
-      - type
-      - component_evidence_refs
-      - rationale
+    - type
+    - component_evidence_refs
+    - rationale
     properties:
-
       type:
         type: string
         enum:
-          - direct_single
-          - direct_composite
-          - summarized_multiple
-          - terminology_translation
-          - static_content
-          - other
-
+        - direct_single
+        - direct_composite
+        - summarized_multiple
+        - terminology_translation
+        - static_content
+        - other
       component_evidence_refs:
         type: array
         items:
-          $ref: "#/$defs/evidence_reference"
-
+          $ref: '#/$defs/evidence_reference'
       rationale:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
       composition_preserves_single_function:
-        type: ["boolean", "null"]
-
+        type:
+        - boolean
+        - 'null'
   terminology:
     type: object
     additionalProperties: false
     required:
-      - translations
+    - translations
     properties:
       translations:
         type: array
         items:
-          $ref: "#/$defs/terminology_translation"
-
+          $ref: '#/$defs/terminology_translation'
   terminology_translation:
     type: object
     additionalProperties: false
     required:
-      - source_term
-      - presented_term
-      - translation_type
-      - basis
+    - source_term
+    - presented_term
+    - translation_type
+    - basis
     properties:
       source_term:
         type: string
@@ -359,253 +377,243 @@ $defs:
       translation_type:
         type: string
         enum:
-          - civilian_equivalent
-          - acronym_expansion
-          - target_terminology
-          - plain_language
-          - functional_role_translation
-          - other
+        - civilian_equivalent
+        - acronym_expansion
+        - target_terminology
+        - plain_language
+        - functional_role_translation
+        - other
       basis:
         type: string
         minLength: 1
       functional_role_id:
-        type: ["string", "null"]
-        pattern: "^FRA-ROLE-[0-9]{3,}$"
-
+        type:
+        - string
+        - 'null'
+        pattern: ^FRA-ROLE-[0-9]{3,}$
   prohibited_claim_validation:
     type: object
     additionalProperties: false
     required:
-      - checked_claim_ids
-      - violations
+    - checked_claim_ids
+    - violations
     properties:
       checked_claim_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^PCLAIM-[0-9]{3,}$"
+          pattern: ^PCLAIM-[0-9]{3,}$
       violations:
         type: array
         items:
-          $ref: "#/$defs/prohibited_claim_violation"
-
+          $ref: '#/$defs/prohibited_claim_violation'
   prohibited_claim_violation:
     type: object
     additionalProperties: false
     required:
-      - prohibited_claim_id
-      - description
+    - prohibited_claim_id
+    - description
     properties:
       prohibited_claim_id:
         type: string
-        pattern: "^PCLAIM-[0-9]{3,}$"
+        pattern: ^PCLAIM-[0-9]{3,}$
       description:
         type: string
         minLength: 1
-
   content_validations:
     type: object
     additionalProperties: false
     required:
-      - factual_support
-      - ownership
-      - scope
-      - attribution
-      - employer_provenance
-      - chronology
-      - prohibited_claims
-      - qualification_preservation
+    - factual_support
+    - ownership
+    - scope
+    - attribution
+    - employer_provenance
+    - chronology
+    - prohibited_claims
+    - qualification_preservation
     properties:
       factual_support:
-        $ref: "#/$defs/validation_result"
+        $ref: '#/$defs/validation_result'
       ownership:
-        $ref: "#/$defs/validation_result"
+        $ref: '#/$defs/validation_result'
       scope:
-        $ref: "#/$defs/validation_result"
+        $ref: '#/$defs/validation_result'
       attribution:
-        $ref: "#/$defs/validation_result"
+        $ref: '#/$defs/validation_result'
       employer_provenance:
-        $ref: "#/$defs/validation_result"
+        $ref: '#/$defs/validation_result'
       chronology:
-        $ref: "#/$defs/validation_result"
+        $ref: '#/$defs/validation_result'
       prohibited_claims:
-        $ref: "#/$defs/validation_result"
+        $ref: '#/$defs/validation_result'
       qualification_preservation:
-        $ref: "#/$defs/validation_result"
+        $ref: '#/$defs/validation_result'
       terminology_accuracy:
         oneOf:
-          - $ref: "#/$defs/validation_result"
-          - type: "null"
-
+        - $ref: '#/$defs/validation_result'
+        - type: 'null'
   validation_result:
     type: object
     additionalProperties: false
     required:
-      - status
+    - status
     properties:
       status:
         type: string
         enum:
-          - passed
-          - passed_with_qualification
-          - not_applicable
-          - failed
+        - passed
+        - passed_with_qualification
+        - not_applicable
+        - failed
       qualification:
-        type: ["string", "null"]
+        type:
+        - string
+        - 'null'
       related_evidence_refs:
         type: array
         items:
-          $ref: "#/$defs/evidence_reference"
-
+          $ref: '#/$defs/evidence_reference'
   role_presentation:
     type: object
     additionalProperties: false
     required:
-      - presentation_role_id
-      - visible_label
-      - employment_envelope
-      - source_role_refs
-      - functional_role_ids
-      - evidence_refs
-      - presentation_basis
-      - provenance_validation
-      - chronology_validation
+    - presentation_role_id
+    - visible_label
+    - employment_envelope
+    - source_role_refs
+    - functional_role_ids
+    - evidence_refs
+    - presentation_basis
+    - provenance_validation
+    - chronology_validation
     properties:
-
       presentation_role_id:
         type: string
-        pattern: "^PROLE-[0-9]{3,}$"
-
+        pattern: ^PROLE-[0-9]{3,}$
       visible_label:
         type: string
         minLength: 1
-
       employment_envelope:
-        $ref: "#/$defs/employment_envelope"
-
+        $ref: '#/$defs/employment_envelope'
       source_role_refs:
         type: array
         uniqueItems: true
         items:
-          $ref: "#/$defs/source_role_reference"
-
+          $ref: '#/$defs/source_role_reference'
       functional_role_ids:
         type: array
         minItems: 1
         uniqueItems: true
         items:
           type: string
-          pattern: "^FRA-ROLE-[0-9]{3,}$"
-
+          pattern: ^FRA-ROLE-[0-9]{3,}$
       evidence_refs:
         type: array
         items:
-          $ref: "#/$defs/evidence_reference"
-
+          $ref: '#/$defs/evidence_reference'
       content_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^CONTENT-[0-9]{3,}$"
-
+          pattern: ^CONTENT-[0-9]{3,}$
       presentation_basis:
         type: string
         minLength: 1
-
       chronology_note:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
       provenance_note:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
       provenance_validation:
-        $ref: "#/$defs/validation_result"
-
+        $ref: '#/$defs/validation_result'
       chronology_validation:
-        $ref: "#/$defs/validation_result"
-
+        $ref: '#/$defs/validation_result'
       functional_role_validation:
         oneOf:
-          - $ref: "#/$defs/validation_result"
-          - type: "null"
-
+        - $ref: '#/$defs/validation_result'
+        - type: 'null'
   source_role_reference:
     type: object
     additionalProperties: false
     required:
-      - jer_id
-      - jer_version
-      - source_role_id
+    - jer_id
+    - jer_version
+    - source_role_id
     properties:
-
       jer_id:
         type: string
-        pattern: "^JER-[0-9]{4,}$"
-
+        pattern: ^JER-[0-9]{4,}$
       jer_version:
         type: integer
         minimum: 1
-
       source_role_id:
         type: string
-        pattern: "^ROLE-[0-9]{4,}$"
-
+        pattern: ^ROLE-[0-9]{4,}$
   employment_envelope:
     type: object
     additionalProperties: false
     required:
-      - employer
-      - overall_start_date
-      - overall_end_date
+    - employer
+    - overall_start_date
+    - overall_end_date
     properties:
       employer:
         type: string
         minLength: 1
       location:
-        type: ["string", "null"]
+        type:
+        - string
+        - 'null'
       employment_type:
-        type: ["string", "null"]
+        type:
+        - string
+        - 'null'
       overall_start_date:
-        $ref: "#/$defs/partial_date"
+        $ref: '#/$defs/partial_date'
       overall_end_date:
         oneOf:
-          - $ref: "#/$defs/partial_date"
-          - type: string
-            const: present
+        - $ref: '#/$defs/partial_date'
+        - type: string
+          const: present
       displayed_date_text:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
   omitted_priority_evidence:
     type: object
     additionalProperties: false
     required:
-      - omission_id
-      - priority_evidence_id
-      - reason_type
-      - reason
-      - requirement_ids
-      - material_impact
+    - omission_id
+    - priority_evidence_id
+    - reason_type
+    - reason
+    - requirement_ids
+    - material_impact
     properties:
       omission_id:
         type: string
-        pattern: "^OMIT-[0-9]{3,}$"
+        pattern: ^OMIT-[0-9]{3,}$
       priority_evidence_id:
         type: string
-        pattern: "^PE-[0-9]{3,}$"
+        pattern: ^PE-[0-9]{3,}$
       reason_type:
         type: string
         enum:
-          - space
-          - redundancy
-          - lower_relevance
-          - narrative_coherence
-          - seniority_control
-          - scope_control
-          - structural_constraint
-          - superseded_by_stronger_evidence
-          - other
+        - space
+        - redundancy
+        - lower_relevance
+        - narrative_coherence
+        - seniority_control
+        - scope_control
+        - structural_constraint
+        - superseded_by_stronger_evidence
+        - other
       reason:
         type: string
         minLength: 1
@@ -614,49 +622,48 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^REQ-[0-9]{3,}$"
+          pattern: ^REQ-[0-9]{3,}$
       material_impact:
         type: string
         enum:
-          - none
-          - low
-          - moderate
-          - high
+        - none
+        - low
+        - moderate
+        - high
       substitute_content_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^CONTENT-[0-9]{3,}$"
-
+          pattern: ^CONTENT-[0-9]{3,}$
   presentation_decision:
     type: object
     additionalProperties: false
     required:
-      - decision_id
-      - decision_type
-      - description
-      - rationale
-      - related_content_ids
-      - related_requirement_ids
+    - decision_id
+    - decision_type
+    - description
+    - rationale
+    - related_content_ids
+    - related_requirement_ids
     properties:
       decision_id:
         type: string
-        pattern: "^PDEC-[0-9]{3,}$"
+        pattern: ^PDEC-[0-9]{3,}$
       decision_type:
         type: string
         enum:
-          - functional_role_translation
-          - evidence_consolidation
-          - evidence_omission
-          - seniority_control
-          - scope_control
-          - terminology_normalization
-          - section_allocation
-          - chronology_presentation
-          - structural_compression
-          - target_identity_emphasis
-          - other
+        - functional_role_translation
+        - evidence_consolidation
+        - evidence_omission
+        - seniority_control
+        - scope_control
+        - terminology_normalization
+        - section_allocation
+        - chronology_presentation
+        - structural_compression
+        - target_identity_emphasis
+        - other
       description:
         type: string
         minLength: 1
@@ -668,52 +675,51 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^CONTENT-[0-9]{3,}$"
+          pattern: ^CONTENT-[0-9]{3,}$
       related_requirement_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^REQ-[0-9]{3,}$"
+          pattern: ^REQ-[0-9]{3,}$
       related_functional_role_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^FRA-ROLE-[0-9]{3,}$"
+          pattern: ^FRA-ROLE-[0-9]{3,}$
       related_evidence_refs:
         type: array
         items:
-          $ref: "#/$defs/evidence_reference"
-
+          $ref: '#/$defs/evidence_reference'
   writer_limitation:
     type: object
     additionalProperties: false
     required:
-      - limitation_id
-      - limitation_type
-      - description
-      - related_content_ids
-      - related_requirement_ids
-      - source_limitation_ids
-      - presentation_impact
+    - limitation_id
+    - limitation_type
+    - description
+    - related_content_ids
+    - related_requirement_ids
+    - source_limitation_ids
+    - presentation_impact
     properties:
       limitation_id:
         type: string
-        pattern: "^WLIM-[0-9]{3,}$"
+        pattern: ^WLIM-[0-9]{3,}$
       limitation_type:
         type: string
         enum:
-          - evidence
-          - analysis
-          - factual_ambiguity
-          - structural
-          - space
-          - chronology
-          - provenance
-          - functional_role
-          - terminology
-          - other
+        - evidence
+        - analysis
+        - factual_ambiguity
+        - structural
+        - space
+        - chronology
+        - provenance
+        - functional_role
+        - terminology
+        - other
       description:
         type: string
         minLength: 1
@@ -722,47 +728,48 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^CONTENT-[0-9]{3,}$"
+          pattern: ^CONTENT-[0-9]{3,}$
       related_requirement_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^REQ-[0-9]{3,}$"
+          pattern: ^REQ-[0-9]{3,}$
       source_limitation_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^LIM-[0-9]{3,}$"
+          pattern: ^LIM-[0-9]{3,}$
       source_evidence_need_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^EN-[0-9]{3,}$"
+          pattern: ^EN-[0-9]{3,}$
       presentation_impact:
         type: string
         enum:
-          - critical
-          - high
-          - moderate
-          - low
+        - critical
+        - high
+        - moderate
+        - low
       handling:
-        type: ["string", "null"]
-
+        type:
+        - string
+        - 'null'
   evidence_reference:
     type: object
     additionalProperties: false
     required:
-      - jer_id
-      - jer_version
-      - experience_point_ids
-      - result_ids
+    - jer_id
+    - jer_version
+    - experience_point_ids
+    - result_ids
     properties:
       jer_id:
         type: string
-        pattern: "^JER-[0-9]{4,}$"
+        pattern: ^JER-[0-9]{4,}$
       jer_version:
         type: integer
         minimum: 1
@@ -771,24 +778,22 @@ $defs:
         uniqueItems: true
         items:
           type: string
-          pattern: "^EP-[0-9]{4,}-[0-9]{2,}$"
+          pattern: ^EP-[0-9]{4,}-[0-9]{2,}$
       result_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: "^RES-[0-9]{4,}-[0-9]{2,}$"
-
+          pattern: ^RES-[0-9]{4,}-[0-9]{2,}$
   partial_date:
     type: string
-    pattern: "^[0-9]{4}(-[0-9]{2})?(-[0-9]{2})?$"
-
+    pattern: ^[0-9]{4}(-[0-9]{2})?(-[0-9]{2})?$
   lineage:
     type: object
     additionalProperties: false
     required:
-      - created_at
-      - updated_at
+    - created_at
+    - updated_at
     properties:
       created_at:
         type: string
@@ -797,7 +802,11 @@ $defs:
         type: string
         format: date-time
       supersedes_version:
-        type: ["integer", "null"]
+        type:
+        - integer
+        - 'null'
         minimum: 1
       material_change_summary:
-        type: ["string", "null"]
+        type:
+        - string
+        - 'null'
