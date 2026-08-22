@@ -1,10 +1,9 @@
 $schema: https://json-schema.org/draft/2020-12/schema
 $id: https://rapid-resume-system.local/schemas/resume-evaluation.yaml
 title: Resume Evaluation
-description: 'Professional-state artifact representing the authoritative evaluation of a targeted resume
-  against a target job.
-
-  '
+description: Professional-state artifact representing authoritative evaluation of a targeted resume against
+  a target job. Material findings are classified as Product Defects, Evidence Uncertainties, or Candidate
+  Limitations so product readiness is not confused with candidate perfection.
 type: object
 additionalProperties: false
 required:
@@ -21,8 +20,8 @@ required:
 - claim_audit
 - professional_positioning
 - strongest_aspects
-- deficiencies
-- critical_submission_deficiency_ids
+- findings
+- blocking_finding_ids
 - submission_readiness
 - historical_comparison
 - lineage
@@ -67,16 +66,18 @@ properties:
     type: array
     items:
       $ref: '#/$defs/strongest_aspect'
-  deficiencies:
+  findings:
     type: array
     items:
-      $ref: '#/$defs/deficiency'
-  critical_submission_deficiency_ids:
+      $ref: '#/$defs/finding'
+  blocking_finding_ids:
     type: array
     uniqueItems: true
     items:
       type: string
-      pattern: ^DEF-[0-9]{3,}$
+      pattern: ^FIND-[0-9]{3,}$
+    description: Material Product Defects or Evidence Uncertainties that block submission. Candidate Limitations
+      must never appear here.
   submission_readiness:
     $ref: '#/$defs/submission_readiness'
   historical_comparison:
@@ -202,12 +203,13 @@ $defs:
         items:
           type: string
           pattern: ^STRENGTH-[0-9]{3,}$
-      principal_deficiency_ids:
+      principal_finding_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: ^DEF-[0-9]{3,}$
+          pattern: ^FIND-[0-9]{3,}$
+        description: Most important findings affecting product effectiveness or candidate fit.
   requirement_assessment:
     type: object
     additionalProperties: false
@@ -251,12 +253,12 @@ $defs:
         $ref: '#/$defs/requirement_validity'
       screening_interpretation:
         $ref: '#/$defs/requirement_screening_interpretation'
-      deficiency_ids:
+      finding_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: ^DEF-[0-9]{3,}$
+          pattern: ^FIND-[0-9]{3,}$
       notes:
         type:
         - string
@@ -607,12 +609,12 @@ $defs:
       finding:
         type: string
         minLength: 1
-      deficiency_ids:
+      finding_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: ^DEF-[0-9]{3,}$
+          pattern: ^FIND-[0-9]{3,}$
   claim_dimension_state:
     type: string
     enum:
@@ -661,12 +663,12 @@ $defs:
         type: array
         items:
           type: string
-      related_deficiency_ids:
+      related_finding_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: ^DEF-[0-9]{3,}$
+          pattern: ^FIND-[0-9]{3,}$
   strongest_aspect:
     type: object
     additionalProperties: false
@@ -721,102 +723,6 @@ $defs:
         type:
         - string
         - 'null'
-  deficiency:
-    type: object
-    additionalProperties: false
-    required:
-    - deficiency_id
-    - deficiency_type
-    - severity
-    - requirement_ids
-    - content_ids
-    - observation
-    - rationale
-    - screening_impact
-    - evidence_state
-    - successful_future_state
-    properties:
-      deficiency_id:
-        type: string
-        pattern: ^DEF-[0-9]{3,}$
-      deficiency_type:
-        type: string
-        enum:
-        - factual_integrity
-        - claim_credibility
-        - evidence_visibility
-        - evidence_support
-        - requirement_coverage
-        - professional_positioning
-        - scope_alignment
-        - structural_compliance
-        - readability
-        - genuine_capability_limitation
-        - non_material_preference
-      severity:
-        type: string
-        enum:
-        - critical
-        - major
-        - moderate
-        - minor
-        - non_material
-      requirement_ids:
-        type: array
-        uniqueItems: true
-        items:
-          type: string
-          pattern: ^REQ-[0-9]{3,}$
-      content_ids:
-        type: array
-        uniqueItems: true
-        items:
-          type: string
-          pattern: ^CONTENT-[0-9]{3,}$
-      claim_audit_ids:
-        type: array
-        uniqueItems: true
-        items:
-          type: string
-          pattern: ^AUDIT-[0-9]{3,}$
-      observation:
-        type: string
-        minLength: 1
-      rationale:
-        type: string
-        minLength: 1
-      screening_impact:
-        type: string
-        minLength: 1
-      evidence_state:
-        type: string
-        enum:
-        - visible_and_supported
-        - visible_but_unsupported
-        - supported_but_insufficiently_visible
-        - partially_supported
-        - ambiguous
-        - contradicted
-        - unsupported
-        - unverifiable
-        - not_applicable
-      evidence_mapping_ids:
-        type: array
-        uniqueItems: true
-        items:
-          type: string
-          pattern: ^MAP-[0-9]{3,}-[0-9]{2,}$
-      evidence_refs:
-        type: array
-        items:
-          $ref: '#/$defs/evidence_reference'
-      successful_future_state:
-        type: string
-        minLength: 1
-      confidence:
-        oneOf:
-        - $ref: '#/$defs/confidence_scale'
-        - type: 'null'
   submission_readiness:
     type: object
     additionalProperties: false
@@ -824,7 +730,9 @@ $defs:
     - state
     - rationale
     - principal_strength_ids
-    - principal_deficiency_ids
+    - principal_finding_ids
+    - blocking_finding_ids
+    - candidate_limitation_ids
     - confidence
     properties:
       state:
@@ -842,14 +750,28 @@ $defs:
         items:
           type: string
           pattern: ^STRENGTH-[0-9]{3,}$
-      principal_deficiency_ids:
+      principal_finding_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: ^DEF-[0-9]{3,}$
+          pattern: ^FIND-[0-9]{3,}$
       confidence:
         $ref: '#/$defs/confidence_scale'
+      blocking_finding_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: ^FIND-[0-9]{3,}$
+        description: Only blocking Product Defects or Evidence Uncertainties.
+      candidate_limitation_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: ^FIND-[0-9]{3,}$
+        description: Known candidate limitations reported separately from product readiness.
   historical_comparison:
     type: object
     additionalProperties: false
@@ -879,24 +801,27 @@ $defs:
         type: array
         items:
           $ref: '#/$defs/regression'
-      resolved_deficiency_ids:
+      resolved_finding_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: ^DEF-[0-9]{3,}$
-      persistent_deficiency_ids:
+          pattern: ^FIND-[0-9]{3,}$
+        description: Findings resolved since the prior evaluation.
+      persistent_finding_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: ^DEF-[0-9]{3,}$
-      new_deficiency_ids:
+          pattern: ^FIND-[0-9]{3,}$
+        description: Findings that persist from the prior evaluation.
+      new_finding_ids:
         type: array
         uniqueItems: true
         items:
           type: string
-          pattern: ^DEF-[0-9]{3,}$
+          pattern: ^FIND-[0-9]{3,}$
+        description: Findings newly identified in the current evaluation.
       readiness_change:
         oneOf:
         - $ref: '#/$defs/readiness_change'
@@ -1113,3 +1038,153 @@ $defs:
         type:
         - string
         - 'null'
+  finding:
+    type: object
+    additionalProperties: false
+    required:
+    - finding_id
+    - finding_class
+    - finding_type
+    - severity
+    - blocks_submission
+    - requirement_ids
+    - content_ids
+    - observation
+    - rationale
+    - screening_impact
+    - evidence_state
+    - successful_state
+    properties:
+      finding_id:
+        type: string
+        pattern: ^FIND-[0-9]{3,}$
+      finding_class:
+        type: string
+        enum:
+        - product_defect
+        - evidence_uncertainty
+        - candidate_limitation
+        description: 'Product Defect: current authorized state can materially improve the resume. Evidence
+          Uncertainty: a material factual question remains unresolved and additional evidence could materially
+          change the strongest truthful product. Candidate Limitation: authoritative state establishes
+          a genuine mismatch with no material factual uncertainty remaining.'
+      finding_type:
+        type: string
+        enum:
+        - factual_integrity
+        - claim_credibility
+        - evidence_visibility
+        - evidence_support
+        - requirement_coverage
+        - professional_positioning
+        - scope_alignment
+        - structural_compliance
+        - readability
+        - page_utilization
+        - qualification_mismatch
+        - capability_mismatch
+        - experience_mismatch
+        - other
+      severity:
+        type: string
+        enum:
+        - critical
+        - major
+        - moderate
+        - minor
+        - non_material
+      blocks_submission:
+        type: boolean
+        description: True only when a material Product Defect or Evidence Uncertainty prevents submission
+          readiness. Candidate Limitations cannot block submission.
+      requirement_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: ^REQ-[0-9]{3,}$
+      content_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: ^CONTENT-[0-9]{3,}$
+      claim_audit_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: ^AUDIT-[0-9]{3,}$
+      observation:
+        type: string
+        minLength: 1
+      rationale:
+        type: string
+        minLength: 1
+      screening_impact:
+        type: string
+        minLength: 1
+      evidence_state:
+        type: string
+        enum:
+        - visible_and_supported
+        - visible_but_unsupported
+        - supported_but_insufficiently_visible
+        - partially_supported
+        - ambiguous
+        - contradicted
+        - unsupported
+        - known_absent
+        - unverifiable
+        - not_applicable
+      evidence_mapping_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: ^MAP-[0-9]{3,}-[0-9]{2,}$
+      evidence_refs:
+        type: array
+        items:
+          $ref: '#/$defs/evidence_reference'
+      successful_state:
+        type: string
+        minLength: 1
+        description: For Product Defects, the successful visible product state. For Evidence Uncertainties,
+          the factual state that resolves the uncertainty. For Candidate Limitations, the truthful settled
+          state and its consequence; do not prescribe remediation when the limitation is irreducible.
+      supported_outcome:
+        type:
+        - string
+        - 'null'
+        description: For Evidence Uncertainty, the factual outcome if support is established.
+      unsupported_outcome:
+        type:
+        - string
+        - 'null'
+        description: For Evidence Uncertainty, the factual outcome if support is not established.
+      confidence:
+        oneOf:
+        - $ref: '#/$defs/confidence_scale'
+        - type: 'null'
+    allOf:
+    - if:
+        properties:
+          finding_class:
+            const: candidate_limitation
+        required:
+        - finding_class
+      then:
+        properties:
+          blocks_submission:
+            const: false
+    - if:
+        properties:
+          finding_class:
+            const: evidence_uncertainty
+        required:
+        - finding_class
+      then:
+        required:
+        - supported_outcome
+        - unsupported_outcome

@@ -4,51 +4,114 @@
 Evaluate whether the current Targeted Resume is the strongest truthful and effective product reasonably supported by the current state for the target job.
 
 ## Artifact Contract
-This task produces a Resume Evaluation conforming to `/schemas/resume-evaluation.yaml`.
+This task produces:
+
+    Resume Evaluation
+
+Authoritative schema:
+
+    /schemas/resume-evaluation.yaml
+
+Schema conformance is mandatory.
+
+A human-readable explanation may accompany the artifact, but it does not replace the schema-conformant Resume Evaluation.
 
 ## Required Inputs
 - Target Job Description.
 - Current Targeted Resume.
-- Corresponding WCM.
-- Resume Evaluation schema.
+- Corresponding Writer Content Manifest.
+- `/schemas/resume-evaluation.yaml`.
 
-Use supplied JEA, evidence, and product feedback when available and applicable.
+Use supplied JEA, professional evidence, prior evaluations, and other authoritative context when available and applicable.
 
 ## Method
+
 ### 1. Evaluate the Visible Product
-Assess ATS, recruiter, and hiring-manager effectiveness: target identity, requirement visibility, specificity, credibility, differentiation, chronology, readability, and page utilization. Do not give external credit for internal-only information.
+Assess the resume as ATS, recruiter, and hiring-manager audiences would see it.
+
+Evaluate:
+- Target identity.
+- Requirement visibility.
+- Evidence specificity.
+- Credibility.
+- Differentiation.
+- Chronology and clarity.
+- Readability and page utilization.
+
+Do not give external screening credit for information visible only in internal artifacts.
 
 ### 2. Verify Writer-Generated Content
-Use WCM and supplied analytical state for generated/modified content. Do not require WCM entries for unchanged protected skeleton content.
+Use the WCM and supplied analytical state to verify content generated or modified within Writer authority.
+
+Do not require WCM traceability for unchanged protected Resume Skeleton content.
+
+Protected static content may still be assessed for visible screening risk or for a factual conflict explicitly established by authoritative state.
 
 ### 3. Classify Every Material Finding
-Use exactly one:
-- **Product Defect:** current authorized state can materially improve the resume.
-- **Evidence Uncertainty:** a material factual question remains unresolved and additional evidence could materially change the product.
-- **Candidate Limitation:** authoritative state establishes a genuine mismatch with no unresolved factual question.
+Every material finding must use exactly one `finding_class` defined by the schema:
 
-Do not convert a Candidate Limitation into a Product Defect merely because it creates screening risk.
+**Product Defect**
+- The resume can be materially improved using current authorized state.
+- Examples: authorized evidence omitted, unsupported wording, avoidable ambiguity, weak page utilization when additional authorized evidence exists, or Resume/WCM mismatch.
 
-### 4. Define Successful State
-For Product Defects, define the successful visible product state.
+**Evidence Uncertainty**
+- A material target-relevant factual question remains unresolved.
+- Current state does not conclusively establish support or absence.
+- Additional factual evidence could materially change the strongest truthful product.
+- Define both supported and unsupported factual outcomes.
 
-For Evidence Uncertainties, define the factual condition that resolves the uncertainty, including supported and unsupported outcomes when useful. Do not prescribe who acts or how work is routed.
+**Candidate Limitation**
+- Authoritative state establishes that the candidate does not possess a requested qualification, capability, experience, or scope.
+- No material factual uncertainty remains.
+- Report the fit/screening risk without treating it as a resume defect.
 
-For Candidate Limitations, state the mismatch and likely external impact. Do not create remediation unless the resume misrepresents it.
+Do not classify a truthful irreducible mismatch as a Product Defect.
 
-### 5. Assess Submission Readiness
-Mark not ready only when a material Product Defect remains or a material Evidence Uncertainty prevents confidence that this is the strongest truthful product reasonably available.
+### 4. Determine Blocking Status
+`blocks_submission` may be true only for a material Product Defect or Evidence Uncertainty.
+
+A Candidate Limitation must never block submission.
+
+A nonblocking Product Defect or Evidence Uncertainty may remain when the resume is still the strongest truthful product reasonably available and the issue does not create substantial avoidable screening risk.
+
+### 5. Define Successful State
+For a Product Defect:
+- Define the successful visible product state.
+
+For an Evidence Uncertainty:
+- Define the factual state needed to resolve the uncertainty.
+- Record supported and unsupported outcomes.
+- Do not prescribe who investigates, who rewrites, where work is routed, or what workflow step occurs.
+
+For a Candidate Limitation:
+- State the settled truthful condition and likely screening impact.
+- Do not invent remediation for an irreducible limitation.
+
+### 6. Assess Submission Readiness
+A resume is `ready_to_submit` when it is the strongest truthful presentation reasonably supported by current professional and analytical state and no blocking finding remains.
+
+A resume is `not_ready_to_submit` only when one or more material Product Defects or Evidence Uncertainties block readiness.
+
+`weak_fit_reconsider_application` may be used when candidate limitations or overall fit make the application strategically weak, but this is a fit judgment rather than a product-remediation state.
 
 Do not block submission solely because the candidate does not meet a known requirement.
 
 ## Validation
-- [ ] Output conforms to schema.
-- [ ] External assessment uses visible resume content.
-- [ ] Protected static content is not penalized for lacking WCM traceability.
-- [ ] Every material finding uses the correct class.
-- [ ] Known mismatches are not mislabeled as product defects.
-- [ ] Evidence Uncertainties define factual resolution conditions without ownership/routing.
-- [ ] Readiness reflects product quality rather than perfect candidate fit.
+Before completing:
+
+- [ ] Output conforms to `/schemas/resume-evaluation.yaml`.
+- [ ] All required schema fields are present.
+- [ ] External assessment uses only visible resume content.
+- [ ] WCM verification is limited to Writer-generated or modified content.
+- [ ] Every material finding is classified as `product_defect`, `evidence_uncertainty`, or `candidate_limitation`.
+- [ ] Every Evidence Uncertainty defines supported and unsupported outcomes.
+- [ ] Every Candidate Limitation has `blocks_submission: false`.
+- [ ] `blocking_finding_ids` contains only blocking Product Defects or Evidence Uncertainties.
+- [ ] Submission readiness reflects product readiness rather than perfect candidate fit.
+- [ ] No finding assigns corrective ownership, routing, or a downstream agent.
+- [ ] Human-readable prose does not replace the schema-conformant artifact.
 
 ## Output
 Return the schema-conformant Resume Evaluation.
+
+A concise human-readable summary may accompany it.
