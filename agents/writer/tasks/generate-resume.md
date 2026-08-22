@@ -1,16 +1,14 @@
 # Task: Generate Resume
 
 ## Purpose
-Produce the strongest truthful targeted resume permitted by the current JEA while preserving the Resume Skeleton and creating a complete WCM.
+Produce the strongest truthful targeted resume permitted by the current JEA while preserving the Resume Skeleton, using the available page budget effectively, and creating a complete WCM.
 
 ## Artifact Contract
-This task produces two coupled outputs:
+This task produces:
 1. Targeted Resume.
 2. Writer Content Manifest.
 
-Authoritative WCM schema:
-
-    /schemas/writer-content-manifest.yaml
+Authoritative WCM schema: `/schemas/writer-content-manifest.yaml`.
 
 Schema conformance is mandatory. Resume and WCM must describe the same final product state.
 
@@ -19,86 +17,49 @@ Schema conformance is mandatory. Resume and WCM must describe the same final pro
 - Current JEA.
 - Resume Skeleton.
 - Applicable Prompt Bank or dynamic content instructions.
-- `/schemas/writer-content-manifest.yaml`.
+- WCM schema.
 
-Use applicable product feedback only when supplied as authorized input. Do not independently rediscover professional evidence.
+Do not independently rediscover professional evidence.
 
 ## Method
-
 ### 1. Establish the Editable Surface
-Before writing, distinguish protected skeleton content from editable prompt-designated content.
+Distinguish protected skeleton content from editable prompt-designated content. Preserve protected populated dates, employers, locations, education, certifications, headings, section order, and other static fields unless explicitly authorized.
 
-Preserve protected content exactly unless explicit authority permits modification. Protected content includes populated dates, employers, locations, education facts, certification facts, headings, section order, and other static fields not designated for generation.
+### 2. Read the JEA
+Identify requirements, priority evidence, FRA, supported/prohibited claims, cautions, limitations, and presentation value. Do not exceed those boundaries.
 
-A placeholder or prompt authorizes changes only within its defined region.
+### 3. Plan and Write
+Place the strongest authorized evidence within the skeleton. Prefer relevant, concrete, quantified, distinctive evidence. Avoid repetition. Execute prompts only within their designated regions. Preserve ownership, scope, attribution, chronology, and exact credential status.
 
-### 2. Read the Analytical State
-Use the JEA to identify target requirements, priority evidence, FRA, supported and prohibited claims, cautions, limitations, and presentation value. Do not exceed those boundaries.
+FRA changes presentation, not history.
 
-### 3. Plan Evidence Placement
-Choose authorized evidence that best supports the target while fitting the skeleton. Prefer relevant, concrete, quantified, distinctive evidence useful to the intended functional role.
+### 4. Optimize Page Utilization
+After a complete factual draft, inspect the rendered document.
 
-Avoid repetitive evidence. Do not omit distinctive evidence that the JEA identifies as materially useful merely because another item satisfies the same requirement.
+If substantial usable space remains:
+1. Revisit JEA Priority Evidence and FRA.
+2. Identify authorized evidence not yet presented.
+3. Rank it by relevance, differentiation, result strength, scale, and contribution to role credibility.
+4. Add the strongest non-redundant evidence.
+5. Render and reassess.
 
-### 4. Apply Functional Role Architecture
-Use authorized civilian functional labels and groupings only within skeleton-permitted structure.
+Continue until the page budget is used effectively, no additional evidence would materially improve the resume, or further content would materially reduce readability.
 
-FRA changes presentation, not history. Do not invent or change dates, duplicate one employment period across apparent standalone jobs unless the skeleton explicitly provides that structure, change employers, or turn concurrent functions into false sequential roles.
+For substantive roles, prefer at least three strong result bullets when evidence and space permit. Do not stop merely because every requirement already has some coverage.
 
-### 5. Write Editable Regions
-Execute each applicable prompt only within its designated region.
+### 5. Build and Synchronize the WCM
+Trace every material generated or modified visible element. Protected static skeleton content does not require traceability unless modified. The WCM must identify the exact final resume product state.
 
-Preserve factual ownership, scope, attribution, and qualifications. Prefer measurable results when authorized. Use target terminology only when factually equivalent.
-
-For summaries and skills, include only demonstrated JEA-authorized capability.
-
-For credentials, preserve exact earned status. Never convert candidacy, study, or planned certification into an earned credential.
-
-### 6. Build the WCM
-Create WCM entries as final resume content is established.
-
-Every material generated or modified visible element must be traceable. The WCM must correspond to the exact final resume ID, version, and file reference and contain the schema-required evidence, role-presentation, composition, terminology, keyword, qualification, limitation, omission, decision, and validation state.
-
-Static skeleton content need not be treated as Writer-generated evidence unless required by schema/task, but any static content materially altered by the Writer becomes generated/modified content and must be traced.
-
-### 7. Validate the Final Coupled Product
-Validate only after all writing, editing, and formatting changes are complete. Any later resume change requires the WCM to be synchronized before completion.
-
-## Completion Validation
-
-### Skeleton Integrity
-- [ ] Only authorized editable regions changed.
-- [ ] Protected dates, employers, locations, education, credentials, headings, and section order are unchanged.
-- [ ] No targeting decision silently altered protected skeleton content.
-
-### Factual Integrity
-- [ ] Every generated factual claim is JEA-authorized.
-- [ ] Ownership, scope, attribution, qualifications, and prohibited-claim boundaries are preserved.
-- [ ] No unsupported credential or capability is implied.
-
-### Chronology and Functional Roles
-- [ ] Employer provenance and chronology remain truthful.
-- [ ] No employment period was created or duplicated without explicit skeleton authority.
-- [ ] Concurrent functions were not presented as false independent employment.
-
-### Resume–Manifest Integrity
-- [ ] WCM conforms to `/schemas/writer-content-manifest.yaml`.
-- [ ] Every material generated/modified visible element has a WCM entry.
-- [ ] Every WCM entry corresponds to final visible content.
-- [ ] WCM references the exact current resume ID, version, and file.
-- [ ] Evidence references use correct artifact versions.
-- [ ] Resume and WCM represent the same final state.
-
-### Presentation Quality
+### 6. Validate
+- [ ] Protected skeleton content is preserved.
+- [ ] Generated claims are JEA-authorized.
+- [ ] Provenance, chronology, qualifications, and prohibited-claim boundaries are preserved.
 - [ ] Material requirements receive appropriate visible emphasis.
-- [ ] Distinctive authorized evidence is preserved when materially useful.
-- [ ] Content is concise and non-redundant.
-- [ ] Target terminology is supported.
-- [ ] Formatting and page limits follow the skeleton and prompts.
+- [ ] Distinctive authorized evidence is preserved when useful.
+- [ ] Available page space is used effectively.
+- [ ] Substantive roles have at least three strong results when evidence and space reasonably permit.
+- [ ] No weak/repetitive content was added solely to fill space.
+- [ ] WCM conforms to schema and matches the final resume.
 
 ## Output
-Return:
-1. Completed Targeted Resume in the required format.
-2. Schema-conformant Writer Content Manifest.
-
-A short completion note may accompany them but does not replace either artifact.
+Return the completed Targeted Resume and schema-conformant WCM.

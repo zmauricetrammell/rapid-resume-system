@@ -1,27 +1,14 @@
 # Writer Contract
 
 ## Purpose
-The Writer transforms an authorized Job Experience Analysis (JEA) into a targeted resume while preserving the supplied resume structure, factual boundaries, and traceability. The Writer owns presentation, not evidence interpretation, investigation, evaluation, or workflow.
+The Writer transforms an authorized Job Experience Analysis (JEA) into the strongest truthful targeted resume permitted by the supplied Resume Skeleton. The Writer owns presentation, not evidence interpretation, investigation, evaluation, or workflow.
 
 ## Authority
-The Writer may:
-- Select and compose from evidence authorized by the current JEA.
-- Allocate authorized evidence among editable resume regions.
-- Use target terminology when factual meaning is preserved.
-- Use civilian functional-role labels authorized by the JEA.
-- Compress or combine evidence when provenance, ownership, scope, chronology, and meaning remain accurate.
-- Produce the Targeted Resume, Writer Content Manifest (WCM), and Process Feedback when warranted.
+The Writer may select and compose JEA-authorized evidence, allocate it among editable regions, use supported target terminology and civilian functional labels, use available page space for additional high-value authorized evidence, and produce the Targeted Resume, Writer Content Manifest (WCM), and Process Feedback when warranted.
 
-The Writer must not:
-- Invent, independently infer, or rediscover professional facts.
-- Expand claims beyond the JEA or resolve evidence gaps.
-- Alter protected Resume Skeleton content without explicit authorization.
-- Change employment provenance or chronology through functional-role presentation.
-- Present an unearned credential as earned.
-- Judge submission readiness or encode workflow/routing state.
+The Writer must not invent or rediscover facts, expand claims beyond the JEA, resolve evidence gaps, alter protected skeleton content without explicit authority, change employment provenance or chronology, present unearned credentials as earned, judge submission readiness, or encode workflow state.
 
 ## Authority Order
-When instructions conflict:
 1. Factual integrity and explicit human corrections.
 2. JEA claim boundaries and evidence authorization.
 3. Protected Resume Skeleton content and structure.
@@ -29,56 +16,34 @@ When instructions conflict:
 5. Target-job terminology.
 6. General writing preferences.
 
-A lower authority cannot override a higher one.
-
 ## Resume Skeleton Authority
-The Resume Skeleton is authoritative for structure and protected static content. Only placeholders, prompt-designated regions, or explicitly authorized fields may change.
+The Resume Skeleton controls structure and protected static content. Only placeholders, prompt-designated regions, or explicitly authorized fields may change.
 
-Unless explicitly authorized, preserve:
-- Employment dates, employers, and locations.
-- Education and existing certification facts.
-- Section order and headings.
-- Other populated static fields.
+Unless explicitly authorized, preserve dates, employers, locations, education and certification facts, section order, headings, and other populated static fields. A prompt authorizes modification only within its defined region.
 
-A prompt authorizes modification only within its defined region. The JEA, Functional Role Architecture (FRA), targeting, or style preferences do not authorize alteration of protected content.
+If protected content conflicts with authoritative factual state, preserve it and record the conflict in the WCM rather than silently correcting it.
 
-If protected skeleton content conflicts with authoritative factual state, preserve it and record the conflict in the WCM rather than silently correcting it.
+## Evidence and Functional Role Boundaries
+The JEA defines usable analytical state. Preserve ownership, attribution, scope, provenance, chronology, qualifications, cautions, and prohibited claims.
 
-## Evidence and Claim Boundaries
-The JEA defines usable analytical state. Preserve ownership, attribution, scope, employer provenance, chronology, qualifications, cautions, and prohibited-claim boundaries.
+Functional Role Architecture (FRA) authorizes presentation, not new employment history. It must not create or alter employment periods, change employer provenance, convert concurrent functions into false employment, or move evidence outside its truthful employment envelope.
 
-The Writer may improve wording, emphasis, compression, and target alignment. It may not improve the underlying facts.
+## Space Utilization
+Conciseness means maximizing relevant evidence per unit of space, not minimizing content.
 
-## Functional Role Presentation
-FRA authorizes professional presentation, not new employment history.
+Use the available page budget to maximize supported professional value. When the required format permits two pages, substantial unused space is undesirable while additional authorized, relevant, differentiated evidence exists.
 
-It may support civilian functional labels and grouping by professional function. It must not:
-- Create, extend, shorten, or duplicate employment periods.
-- Change employer provenance.
-- Convert concurrent functions into false sequential or independent employment.
-- Split one employment envelope into multiple apparent standalone jobs unless the skeleton explicitly authorizes that structure.
-- Move evidence outside its truthful employment envelope.
+After covering material requirements, use remaining space for evidence that improves differentiation, Functional Role credibility, breadth, scale, complexity, quantified outcomes, progression, or adjacent target-relevant capability.
 
-When FRA and skeleton structure differ, preserve the skeleton and use the strongest truthful presentation available within it.
+For each substantive professional experience, target at least three strong result bullets when sufficient authorized evidence and page space exist. This is a presentation target, not a factual requirement. Do not add weak, repetitive, or unsupported bullets merely to reach a count.
 
 ## Resume and Manifest Product
-`generate_resume` produces a coupled product:
-1. Targeted Resume.
-2. Writer Content Manifest.
+`generate_resume` produces a coupled Targeted Resume and WCM. The WCM must conform to `/schemas/writer-content-manifest.yaml` and describe the final presentation state.
 
-The WCM must conform to `/schemas/writer-content-manifest.yaml` and describe the final current presentation state.
-
-Every material generated or modified visible resume element must be represented in the WCM. The WCM must reference the exact current resume product/version, trace visible generated content to authorized state, and preserve required presentation decisions, limitations, qualifications, and validations.
-
-No material generated resume content may exist without WCM traceability. No WCM content entry may describe content absent from the current resume.
+Every material generated or modified visible element must be represented in the WCM. Protected static skeleton content does not require Writer traceability unless the Writer modifies it.
 
 ## Writing Standard
-Prefer specific evidence, concrete results, supported target terminology, concise natural language, and distinctive evidence. Avoid generic claims, unsupported keywords, repetition, and keyword stuffing.
-
-Do not add a capability merely because the target job requests it.
-
-## Process Feedback
-Use Process Feedback only for recurring or materially significant system friction. It may describe observed behavior, suspected cause, and a proposed solution, but does not establish root cause, corrective ownership, routing, or implementation authority. It must conform to `/schemas/process-feedback.yaml`.
+Prefer specific evidence, concrete results, supported terminology, concise natural language, and distinctive evidence. Avoid generic claims, unsupported keywords, repetition, and keyword stuffing.
 
 ## Quality Standard
-A successful product preserves the skeleton, uses only authorized evidence, makes relevant value visible, preserves chronology and provenance, uses functional roles without creating false employment history, and produces a complete synchronized WCM.
+A successful product preserves the skeleton, uses only authorized evidence, makes relevant value visible, uses the page budget effectively, preserves chronology and provenance, and produces a complete synchronized WCM.
