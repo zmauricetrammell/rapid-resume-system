@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.3 — FIX-007 and FIX-008 applied
+Draft V0.4 — FIX-007, FIX-008, and FIX-009 applied
 
 ## Purpose
 
@@ -957,6 +957,67 @@ because a crash between those steps can permanently lose required work.
 
 Likewise, persisting the Command and only later marking the Event processed is safe only with Command deduplication; the atomic SQLite transaction is preferred and required when both records are local SQLite state.
 
+
+## Nonprofessional Command Completion
+
+When a nonprofessional Command changes authoritative SQLite-resident runtime state, its successful completion is one SQLite transaction:
+
+```text
+BEGIN
+
+apply authoritative runtime mutation
+persist required resulting Event(s)
+mark Command completed
+
+COMMIT
+```
+
+This prevents:
+
+```text
+state changed
+→ crash
+→ Command still appears pending
+```
+
+and:
+
+```text
+Command marked completed
+→ crash
+→ required resulting Event missing
+```
+
+If the transaction fails, the Command must remain nonterminal and eligible for deterministic recovery/retry.
+
+Examples include:
+- routing evaluation that commits a lifecycle transition,
+- Interaction completion/cancellation,
+- Job cancellation,
+- retry scheduling,
+- other local control-plane mutations.
+
+### External Side-Effect Commands
+
+SQLite cannot atomically commit with Discord, Trello, or another external provider.
+
+For an external-side-effect Command, persistence should use durable local intent and reconciliation:
+
+```text
+1. Persist external action intent / delivery record.
+2. Commit that intent locally.
+3. Call external provider.
+4. Persist provider result or provider identity.
+5. Persist resulting Event if required.
+6. Mark Command completed.
+```
+
+If the process fails between steps 3 and 4, recovery treats the outcome as ambiguous and reconciles provider state before repeating when possible.
+
+The authoritative runtime mutation must not depend on an external projection transaction succeeding.
+
+Projection failures are retried independently and may set runtime health to `degraded`.
+
 ---
 
 # 34. SQLite Command Queue
@@ -1651,6 +1712,8 @@ The Persistence Model is acceptable when:
 - [ ] Event history and retry state survive restart.
 - [ ] Command/work state can survive restart.
 - [ ] Event-produced Commands and Event successful completion commit atomically when both are SQLite-resident.
+- [ ] Nonprofessional SQLite-local Command mutation, required resulting Event(s), and Command completion commit atomically.
+- [ ] External provider effects use durable local intent and reconciliation rather than pretending cross-system atomicity.
 - [ ] Failed Event-to-Command transactions leave the Event retryable and do not lose required work.
 - [ ] Human Interaction state survives restart.
 - [ ] Trello and Discord remain reconstructable projections.

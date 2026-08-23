@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.3 — FIX-007 and FIX-008 applied
+Draft V0.4 — FIX-007, FIX-008, and FIX-009 applied
 
 ## Purpose
 
@@ -686,6 +686,88 @@ schedule_evaluate_resume
 ```
 
 unless implementation evidence shows separate command types are useful.
+
+---
+
+# 18.1 Nonprofessional Command Completion
+
+Nonprofessional Commands perform runtime/control-plane work rather than professional AI reasoning.
+
+Examples:
+
+```text
+evaluate_routing
+open_interaction
+complete_interaction
+cancel_job
+retry_operation
+sync_projection
+```
+
+A Command must not be marked `completed` merely because its handler started or returned without error.
+
+For SQLite-local authoritative effects, the canonical completion transaction is:
+
+```text
+BEGIN
+apply authoritative local runtime mutation
+persist all required resulting Event(s)
+mark Command completed
+COMMIT
+```
+
+Examples:
+
+```text
+evaluate_routing
+→ routing/lifecycle mutation
+→ lifecycle_changed Event
+→ Command completed
+```
+
+```text
+complete_interaction
+→ Interaction.status = completed
+→ interaction_completed Event
+→ Command completed
+```
+
+If the transaction fails:
+
+```text
+authoritative mutation is not committed
+required Event(s) are not committed
+Command is not completed
+```
+
+The Command remains recoverable/retryable according to Command policy.
+
+## External Side Effects
+
+External systems such as Discord cannot participate in the SQLite transaction.
+
+For Commands whose primary effect is external:
+
+```text
+prepare/persist durable local intent
+→ perform external side effect
+→ persist external-result/reconciliation state
+→ persist resulting Event when required
+→ mark Command completed
+```
+
+The durable local intent must exist before the external call whenever losing knowledge of the intended action would make recovery unsafe.
+
+A crash after the external system accepts the action but before local acknowledgement may create an ambiguous outcome. Recovery must reconcile provider state or use provider/idempotency keys where supported before repeating the external side effect.
+
+The runtime must not assume:
+
+```text
+external timeout
+= external action definitely did not happen
+```
+
+Projection-only failures may degrade runtime health without rolling back already-committed authoritative professional or lifecycle state.
 
 ---
 
@@ -1598,6 +1680,9 @@ The Event Model is acceptable when:
 - [ ] Provider event deduplication exists conceptually.
 - [ ] Event processing is idempotent.
 - [ ] Event-produced Commands and successful Event completion persist atomically in one SQLite transaction.
+- [ ] Nonprofessional SQLite-local Commands commit authoritative mutation, required resulting Event(s), and Command completion atomically.
+- [ ] External-side-effect Commands persist durable local intent before unsafe-to-repeat provider actions where practical.
+- [ ] Ambiguous external outcomes are reconciled rather than blindly repeated.
 - [ ] An Event cannot be marked processed before all required resulting Commands are durable.
 - [ ] Operation-key idempotency provides additional duplicate protection.
 - [ ] Event payloads reference artifacts rather than embed them.

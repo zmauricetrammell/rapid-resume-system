@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.2 — FIX-008 applied
+Draft V0.3 — FIX-008 and FIX-009 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -111,11 +111,33 @@ SQLite Command Store
 → validate
 → dispatch
 → handler/runtime service
-→ persist resulting state/Events
-→ mark completed
+```
+
+For SQLite-local nonprofessional Commands:
+
+```text
+BEGIN
+apply authoritative local mutation
+persist required resulting Event(s)
+mark Command completed
+COMMIT
+```
+
+For professional-operation scheduling, the Command may complete once it has durably created/claimed the Execution that owns the longer-running professional work.
+
+For external-side-effect Commands:
+
+```text
+persist durable local intent
+→ call provider
+→ persist provider result/reconciliation state
+→ persist resulting Event if required
+→ mark Command completed
 ```
 
 Commands survive restart.
+
+A Command is never considered complete merely because a handler returned; its required durable local effects must be persisted.
 
 ## 6. Event Flow
 
@@ -586,6 +608,8 @@ At any nonterminal point, restarting the container must not require manual recon
 - [ ] Active Discord investigation resumes after restart.
 - [ ] Command/Event processors use durable SQLite records.
 - [ ] Event-produced Commands and successful Event completion commit atomically in SQLite.
+- [ ] SQLite-local nonprofessional Command effects, required resulting Event(s), and Command completion are atomic.
+- [ ] External-side-effect Commands use durable local intent plus reconciliation instead of assuming cross-system atomicity.
 - [ ] Professional invocations may run asynchronously.
 - [ ] Global professional-invocation concurrency is configurable.
 - [ ] Per-Job pointer mutation remains protected.
