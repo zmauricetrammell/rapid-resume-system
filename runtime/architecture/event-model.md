@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.2 — FIX-007 applied
+Draft V0.3 — FIX-007 and FIX-008 applied
 
 ## Purpose
 
@@ -328,6 +328,30 @@ This prevents:
 - Dangerous webhook redelivery.
 - Lost events during application crashes.
 - Coupling external service latency to agent execution.
+
+
+## Event-to-Command Atomicity
+
+If processing an Event produces durable Commands, those Commands and the Event's successful processing state must commit together.
+
+Canonical transaction:
+
+```text
+BEGIN
+insert resulting Command(s)
+mark Event processed
+COMMIT
+```
+
+On transaction failure:
+
+```text
+no resulting Command becomes durable
+AND
+Event remains eligible for retry
+```
+
+The Event processor must never mark an Event processed before all required Commands are durably persisted.
 
 ---
 
@@ -682,7 +706,7 @@ artifact_committed(JEA)
 CMD evaluate_routing
 
 EVT-004
-routing_decided
+lifecycle_changed
 analysis → evidence_request
     ↓
 CMD schedule_operation(request_evidence)
@@ -691,11 +715,25 @@ EVT-005
 artifact_committed(ERQ)
 
 EVT-006
-routing_decided
+lifecycle_changed
 evidence_request → investigation
     ↓
 CMD open_interaction
 ```
+
+When Event processing emits one or more durable Commands, the runtime commits:
+
+```text
+new Command row(s)
++
+Event processing status = processed
+```
+
+in one SQLite transaction.
+
+This prevents both:
+- losing required work by marking an Event processed before its Command is durable, and
+- creating avoidable duplicate Commands after a crash between Command persistence and Event completion.
 
 This creates a transparent runtime audit path.
 
@@ -1559,6 +1597,8 @@ The Event Model is acceptable when:
 - [ ] At-least-once delivery is supported safely.
 - [ ] Provider event deduplication exists conceptually.
 - [ ] Event processing is idempotent.
+- [ ] Event-produced Commands and successful Event completion persist atomically in one SQLite transaction.
+- [ ] An Event cannot be marked processed before all required resulting Commands are durable.
 - [ ] Operation-key idempotency provides additional duplicate protection.
 - [ ] Event payloads reference artifacts rather than embed them.
 - [ ] Human-input Events reference Interaction/Message records.

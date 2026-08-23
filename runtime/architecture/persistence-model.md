@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.2 — FIX-007 applied
+Draft V0.3 — FIX-007 and FIX-008 applied
 
 ## Purpose
 
@@ -914,23 +914,48 @@ Trello synchronization happens afterward and is not part of the routing transact
 
 # 33. Event and Command Persistence
 
-Events should persist before processing.
+Events persist before asynchronous processing.
 
-Commands should also be durable if they represent work that must survive restart.
+Commands are durable when they represent work that must survive restart.
 
-Recommended logical sequence:
+When Event processing produces one or more Commands, Command creation and Event completion are one SQLite transaction:
 
 ```text
-Event processed
-↓
-Command persisted
-↓
-Event marked processed
+BEGIN
+
+insert resulting Command(s)
+mark Event processed
+
+COMMIT
 ```
 
-when the command must not be lost.
+This transaction provides the V0.1 transactional Event-to-Command boundary.
 
-Exact command queue implementation may use SQLite.
+Failure behavior:
+
+```text
+transaction commits
+→ Commands are durable
+→ Event is processed
+```
+
+```text
+transaction fails
+→ no resulting Command is committed
+→ Event is not marked processed
+→ Event remains recoverable/retryable
+```
+
+The runtime must never use:
+
+```text
+mark Event processed
+→ later persist Command
+```
+
+because a crash between those steps can permanently lose required work.
+
+Likewise, persisting the Command and only later marking the Event processed is safe only with Command deduplication; the atomic SQLite transaction is preferred and required when both records are local SQLite state.
 
 ---
 
@@ -1625,6 +1650,8 @@ The Persistence Model is acceptable when:
 - [ ] Execution history survives restart.
 - [ ] Event history and retry state survive restart.
 - [ ] Command/work state can survive restart.
+- [ ] Event-produced Commands and Event successful completion commit atomically when both are SQLite-resident.
+- [ ] Failed Event-to-Command transactions leave the Event retryable and do not lose required work.
 - [ ] Human Interaction state survives restart.
 - [ ] Trello and Discord remain reconstructable projections.
 - [ ] Coupled Resume/WCM pointer updates are atomic in SQLite.

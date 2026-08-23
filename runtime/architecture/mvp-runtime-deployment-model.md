@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.1
+Draft V0.2 — FIX-008 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -123,11 +123,23 @@ Commands survive restart.
 SQLite Event Store
 → claim Event
 → process normalized fact
-→ persist resulting Command(s)
-→ mark processed
+→ BEGIN SQLite transaction
+     persist resulting Command(s)
+     mark Event processed
+  COMMIT
+```
+
+If that transaction fails:
+
+```text
+no resulting Command is durable
+AND
+Event remains retryable
 ```
 
 Events are not correctness-dependent on in-memory queues.
+
+The Event Processor must not mark an Event processed before all required resulting Commands are durable.
 
 ## 7. Professional Operation Flow
 
@@ -573,6 +585,7 @@ At any nonterminal point, restarting the container must not require manual recon
 - [ ] Incomplete Executions/Events/Commands recover safely.
 - [ ] Active Discord investigation resumes after restart.
 - [ ] Command/Event processors use durable SQLite records.
+- [ ] Event-produced Commands and successful Event completion commit atomically in SQLite.
 - [ ] Professional invocations may run asynchronously.
 - [ ] Global professional-invocation concurrency is configurable.
 - [ ] Per-Job pointer mutation remains protected.
