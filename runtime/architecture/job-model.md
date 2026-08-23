@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.1
+Draft V0.2 — FIX-001 applied
 
 ## Purpose
 
@@ -36,6 +36,9 @@ The Runtime Job is intentionally small. Historical professional artifacts, execu
 10. Trello and other integrations project Runtime Job state but are not authoritative for it.
 11. Historical professional artifacts remain immutable outside the Runtime Job.
 12. Terminal jobs do not automatically reopen.
+13. Every successful authoritative Runtime Job mutation increments `identity.revision` exactly once.
+14. Runtime Job writes use optimistic compare-and-swap semantics against the expected revision.
+15. Runtime Job revision protects mutation concurrency; professional freshness is determined from exact operation dependencies, not revision alone.
 
 ---
 
@@ -47,6 +50,7 @@ runtime_job:
 
   identity:
     job_id: JOB-0001
+    revision: 18
     created_at: 2026-08-22T19:00:00-07:00
     updated_at: 2026-08-22T19:14:00-07:00
     completed_at: null
@@ -126,6 +130,7 @@ runtime_job:
 ```yaml
 identity:
   job_id: JOB-0001
+  revision: integer
   created_at: datetime
   updated_at: datetime
   completed_at: datetime | null
@@ -133,9 +138,57 @@ identity:
 
 Rules:
 - `job_id` is immutable.
+- `revision` is a monotonic positive integer representing the authoritative Runtime Job mutation version.
+- A newly created Runtime Job begins at `revision: 1`.
+- Every successful authoritative Runtime Job mutation increments `revision` exactly once.
+- Failed or rejected mutations do not increment `revision`.
 - `created_at` is immutable.
 - `updated_at` changes on every successful Runtime Job mutation.
 - `completed_at` is null until the Job reaches `complete`.
+
+
+## 1.1 Revision and Optimistic Concurrency
+
+Runtime Job mutations use optimistic compare-and-swap semantics.
+
+Conceptually:
+
+```text
+load JOB-0001 at revision 18
+        ↓
+prepare authoritative mutation
+        ↓
+commit only if current revision is still 18
+        ↓
+success → apply mutation and revision becomes 19
+conflict → reject mutation and reload current Job state
+```
+
+A repository implementation may express this as:
+
+```sql
+UPDATE runtime_jobs
+SET revision = 19, ...
+WHERE job_id = 'JOB-0001'
+  AND revision = 18;
+```
+
+If no row is updated, the mutation encountered a concurrency conflict.
+
+The caller must not silently overwrite current state.
+
+Important distinction:
+
+```text
+Runtime Job revision
+= concurrency protection for Runtime Job writes
+
+Professional freshness dependencies
+= whether the professional inputs consumed by an Execution are still current
+```
+
+An unrelated Runtime Job mutation may increment `revision` without making a professional Execution stale. After a compare-and-swap conflict, the runtime reloads the Job and separately evaluates the operation's exact freshness dependencies before deciding whether the mutation can be retried or the Execution is stale.
+
 
 ---
 
