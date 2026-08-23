@@ -418,6 +418,7 @@ They are not agent-internal workflow rules.
 
 # Repository Structure
 
+```
 rapid-resume-system/
 │
 ├── agents/
