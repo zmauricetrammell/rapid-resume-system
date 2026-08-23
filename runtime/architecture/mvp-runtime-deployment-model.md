@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.10 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, FIX-022, and FIX-026 applied
+Draft V0.11 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, and FIX-036 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -110,11 +110,18 @@ Handles expired leases, stuck processing state, retry deadlines, paused Interact
 
 ```text
 SQLite Command Store
-→ claim Command
+→ atomically claim Command with:
+     runtime_instance_id
+     worker_id
+     lease_expires_at
 → validate
 → dispatch
 → handler/runtime service
 ```
+
+Command leases are short-lived queue-processing leases.
+
+If processing legitimately exceeds the lease, the current worker renews it before expiry.
 
 For SQLite-local nonprofessional Commands:
 
@@ -126,7 +133,19 @@ mark Command completed
 COMMIT
 ```
 
-For professional-operation scheduling, the Command may complete once it has durably created/claimed the Execution that owns the longer-running professional work.
+For `schedule_operation`:
+
+```text
+claim schedule_operation
+→ derive/reuse operation_key
+→ durably create or reuse active Execution
+→ persist required scheduling state/Event
+→ mark Command completed
+→ release Command lease
+→ Execution owns the long-running professional invocation
+```
+
+The Command lease is not held through the model/API call.
 
 For external-side-effect Commands:
 
@@ -140,34 +159,31 @@ persist durable local intent
 
 Commands survive restart.
 
-Deterministic Commands produced from durable Events use a `command_dedupe_key`. Reprocessing the same causal Event therefore reuses the existing Command instead of creating duplicate requested runtime actions.
-
 A Command is never considered complete merely because a handler returned; its required durable local effects must be persisted.
 
 ## 6. Event Flow
 
 ```text
 SQLite Event Store
-→ claim Event
+→ atomically claim Event with lease ownership
 → process normalized fact
 → BEGIN SQLite transaction
      derive command_dedupe_key where applicable
      persist or reuse resulting Command(s)
      mark Event processed
   COMMIT
+→ release Event lease
 ```
 
-If that transaction fails:
+Event leases cover Event processing only.
 
-```text
-no resulting Command is durable
-AND
-Event remains retryable
-```
+They do not remain held while downstream Commands or professional Executions run.
+
+If Event processing legitimately exceeds its lease, the worker renews it.
+
+If the lease expires or its runtime instance dies, the Event becomes reclaimable according to recovery rules.
 
 Events are not correctness-dependent on in-memory queues.
-
-The Event Processor must not mark an Event processed before all required resulting Commands are durable.
 
 ## 7. Professional Operation Flow
 
@@ -463,9 +479,21 @@ Do not blindly re-invoke AI when the prior attempt may already have persisted va
 
 
 ## 25. Event / Command Recovery
-Event and Command claims record both local `worker_id` and owning `runtime_instance_id`.
+Event and Command claims record:
+
+```text
+runtime_instance_id
+worker_id
+lease_expires_at
+```
 
 Expired leases or claims owned by a prior runtime instance return work to a claimable retry state.
+
+Active workers may renew leases for legitimate short processing overruns.
+
+Professional model calls are not recovered through Command leases because `schedule_operation` releases its lease after durably creating/reusing the Execution.
+
+Interrupted model work is recovered from Execution state.
 
 Idempotency protects duplicate processing.
 
@@ -795,6 +823,9 @@ At any nonterminal point, restarting the container must not require manual recon
 - [ ] Incomplete Executions/Events/Commands recover safely.
 - [ ] Every daemon start generates a unique `runtime_instance_id`.
 - [ ] Execution and lease ownership records the daemon instance that owns the work.
+- [ ] Event and Command leases are short-lived, renewable, and reclaimable after expiry or daemon loss.
+- [ ] `schedule_operation` releases its Command lease after durable Execution creation/reuse.
+- [ ] Long model/API calls are owned by Execution lifecycle rather than queue leases.
 - [ ] Startup recovery can reclaim work owned by prior runtime instances.
 - [ ] A provider invocation cannot remain `running` after its owning runtime instance dies.
 - [ ] Runtime interruption retries professional work through a new Execution attempt under the same logical `operation_key`.

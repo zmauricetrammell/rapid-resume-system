@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.9 — FIX-007, FIX-008, FIX-009, FIX-014, FIX-016, FIX-019, FIX-020, FIX-022, and FIX-026 applied
+Draft V0.10 — FIX-007, FIX-008, FIX-009, FIX-014, FIX-016, FIX-019, FIX-020, FIX-022, FIX-026, and FIX-036 applied
 
 ## Purpose
 
@@ -49,6 +49,7 @@ These concepts remain separate.
 18. A committed Evidence Response precedes `interaction_completed`; professional commit and Interaction completion are distinct causal events.
 19. An inbound authorized Discord human message and its `human_input_received` Event are persisted atomically.
 20. Event/Command processing ownership may include `runtime_instance_id` so restart recovery can distinguish prior daemon ownership from current work.
+21. Event and Command leases protect only queue-processing ownership; a long-running professional model invocation is owned by its Execution and must not hold a Command lease for the full provider-call duration.
 
 ---
 
@@ -770,6 +771,8 @@ sync_projection
 ```
 
 A Command must not be marked `completed` merely because its handler started or returned without error.
+
+For `schedule_operation`, successful durable creation or reuse of the target Execution is the completion boundary for the Command. The subsequent professional invocation belongs to the Execution lifecycle.
 
 For SQLite-local authoritative effects, the canonical completion transaction is:
 
@@ -1714,9 +1717,11 @@ An Event left in `processing` by a crashed worker must not remain permanently st
 
 ---
 
-# 50. Event Processing Lease
+# 50. Event and Command Lease Lifecycle
 
-Event processing ownership should record:
+Event and Command processing use short-lived ownership leases for queue work.
+
+Recommended claim metadata:
 
 ```yaml
 processing:
@@ -1725,24 +1730,72 @@ processing:
   lease_expires_at: ...
 ```
 
-`runtime_instance_id` identifies the daemon process lifetime.
-
-`worker_id` identifies the cooperative worker inside that daemon.
-
-On restart:
+Canonical lifecycle:
 
 ```text
-processing Event
-+ owner runtime_instance_id belongs to prior daemon
-→ treat ownership as abandoned
-→ return to recoverable/claimable processing state
+pending / retry_pending
+→ atomically claim
+→ processing
+→ complete before lease expiry
 ```
 
-Lease expiry remains useful for detecting stuck work inside a still-running daemon.
+If processing legitimately exceeds the current lease:
 
-The architectural requirement is:
+```text
+worker renews lease
+```
 
-> Abandoned Event processing must be recoverable without confusing a new daemon process with the dead owner.
+If:
+
+```text
+lease expires
+OR
+owner runtime_instance_id belongs to a prior daemon
+```
+
+the record becomes reclaimable according to retry/recovery policy.
+
+Leases are not professional operation identity and do not participate in `operation_key`.
+
+## Professional Scheduling Command Boundary
+
+A `schedule_operation` Command must not hold its Command lease for the duration of a model/API invocation.
+
+Instead:
+
+```text
+schedule_operation Command claimed
+↓
+resolve/derive operation_key
+↓
+create or reuse active Execution durably
+↓
+persist any required scheduling Event
+↓
+mark schedule_operation Command completed
+↓
+release Command lease
+↓
+Execution owns long-running professional invocation
+```
+
+The Execution record, not the Command lease, represents the active professional attempt.
+
+This prevents long provider calls from requiring artificially long queue leases and cleanly separates:
+
+```text
+Command
+= short-lived requested runtime action
+
+Execution
+= long-lived professional attempt
+```
+
+The same principle applies to Event processing: Event leases cover Event handling only, not downstream professional model execution.
+
+Architectural requirement:
+
+> Expired queue leases recover queue work; Execution recovery handles interrupted professional provider calls.
 
 ---
 

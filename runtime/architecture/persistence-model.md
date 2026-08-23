@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.11 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, FIX-017, FIX-018, FIX-019, FIX-022, and FIX-026 applied
+Draft V0.12 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, and FIX-036 applied
 
 ## Purpose
 
@@ -1098,6 +1098,9 @@ causation_event_id
 payload
 created_at
 claimed_at
+owner_runtime_instance_id
+worker_id
+lease_expires_at
 completed_at
 attempt_count
 ```
@@ -1197,14 +1200,11 @@ Runtime instance identity is operational metadata, not professional state.
 
 ---
 
-# 35. Worker Claiming
+# 35. Worker Claiming and Lease Lifecycle
 
-A worker atomically claims:
+Events and Commands use short-lived processing leases.
 
-- Event processing work.
-- Command execution work.
-
-Claim metadata should include:
+Claim metadata:
 
 ```text
 runtime_instance_id
@@ -1212,28 +1212,77 @@ worker_id
 lease_expires_at
 ```
 
-Conceptually:
+Canonical state flow:
 
 ```text
 pending / retry_pending
 → processing
-
-owner_runtime_instance_id = current runtime instance
-worker_id = local async worker identity
-lease_expires_at = ...
+→ completed
 ```
 
-`runtime_instance_id` identifies the owning daemon process.
+Claim occurs atomically.
 
-`worker_id` identifies the cooperative worker/task inside that process.
+If processing needs more time:
 
-If the lease expires or the owning runtime instance is no longer alive, the work may be reclaimed according to recovery rules.
+```text
+current owner renews lease before expiry
+```
+
+If:
+
+```text
+lease expires
+```
+
+or:
+
+```text
+owner_runtime_instance_id belongs to a prior daemon instance
+```
+
+the work becomes eligible for recovery/reclaim according to retry policy.
+
+The implementation must prevent two active owners from simultaneously treating the same queue record as exclusively claimed.
+
+## Lease Scope
+
+A lease covers only the immediate processing of the Event or Command record.
+
+It must not be used as the durable representation of a long-running professional provider call.
+
+For `schedule_operation`:
+
+```text
+claim Command
+→ derive/reuse operation_key
+→ create or reuse active Execution durably
+→ mark Command completed
+→ release Command ownership
+```
+
+Then:
+
+```text
+Execution
+→ owns professional provider invocation
+→ may remain running independently of the completed scheduling Command
+```
+
+The Command lease therefore remains short even if the professional model call takes minutes.
+
+Similarly:
+
+```text
+Event lease
+→ covers Event processing and durable Command creation
+→ does not remain held while downstream Command/Execution work runs
+```
+
+This separates queue recovery from professional Execution recovery.
 
 Architectural requirement:
 
-> Abandoned work must be recoverable after worker/container failure without confusing a new daemon instance with the dead owner.
-
-Long-running professional provider work is represented by the Execution record; Command leases should not be held merely to represent the entire duration of model inference.
+> Abandoned queue work is recovered by lease/ownership rules; interrupted model work is recovered from Execution state.
 
 ---
 
