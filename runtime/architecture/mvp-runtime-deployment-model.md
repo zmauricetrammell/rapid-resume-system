@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.7 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, and FIX-022 applied
+Draft V0.8 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, and FIX-022 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -96,6 +96,8 @@ Owns staging, validation coordination, freshness checks, immutable artifact pers
 
 ### Interaction Processor
 Owns long-lived Interviewer continuation using persisted ERQ and conversation state.
+
+For ordinary conversational continuation, it atomically marks the exact consumed human-message batch processed and persists the next Interviewer message before Discord delivery.
 
 ### Discord Adapter
 Owns Discord provider ingress/egress only; no professional reasoning.
@@ -428,6 +430,25 @@ Do not blindly re-invoke AI when the prior attempt may already have persisted va
 ## 25. Event / Command Recovery
 Expired processing ownership returns work to a claimable retry state. Idempotency protects duplicate processing.
 
+## 25.1 Interviewer Continuation Persistence
+
+Before invoking the Interviewer, the Interaction Processor resolves the stable ordered batch of currently unprocessed human messages.
+
+When the Interviewer returns another conversational turn:
+
+```text
+BEGIN SQLite transaction
+  mark exact consumed human-message IDs processed
+  persist next Interviewer message
+  update Interaction continuation metadata
+COMMIT
+→ deliver persisted Interviewer message to Discord
+```
+
+A failed transaction leaves the human batch unprocessed so the continuation can retry safely.
+
+If the Interviewer returns a completed Evidence Response, the professional commit pipeline owns the artifact result and its downstream Interaction completion semantics.
+
 ## 26. Interaction Recovery
 
 After restart or Discord reconnect:
@@ -715,6 +736,8 @@ At any nonterminal point, restarting the container must not require manual recon
 - [ ] Runtime interruption retries professional work through a new Execution attempt under the same logical `operation_key`.
 - [ ] Intact staged output may resume validation after restart without unnecessary model re-invocation.
 - [ ] Active Discord investigation resumes after restart.
+- [ ] Interviewer continuation atomically consumes its exact human-message batch and persists the next conversational turn.
+- [ ] Discord delivery occurs only after the next Interviewer message is durable.
 - [ ] Discord startup/reconnect fetches unseen messages for active/paused Interactions using the persisted provider boundary.
 - [ ] Messages sent during daemon downtime do not depend on live gateway replay for recovery.
 - [ ] Command/Event processors use durable SQLite records.

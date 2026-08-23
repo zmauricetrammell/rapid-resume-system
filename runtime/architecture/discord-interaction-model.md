@@ -1,7 +1,7 @@
 # RRS V3 Discord Interaction Model
 
 ## Status
-Draft V0.3 — FIX-016 and FIX-017 applied
+Draft V0.4 — FIX-016, FIX-017, and FIX-018 applied
 
 ## Purpose
 The Discord Interaction Model defines how V3 uses Discord as the human conversation surface for Evidence Request investigation.
@@ -37,6 +37,7 @@ one active Evidence Request investigation per Runtime Job at a time
 15. Interaction history must survive container restart.
 16. An inbound authorized human message and its `human_input_received` Event persist atomically in one SQLite transaction.
 17. On reconnect/startup, every active or paused Discord Interaction reconciles provider thread history after the last known provider message so messages received during runtime downtime are not lost.
+18. When Interviewer continuation produces another conversational turn, consumed human-message state and the persisted next Interviewer message commit atomically.
 
 ## 1. Discord Topology
 
@@ -386,6 +387,61 @@ or:
 ```text
 no_longer_material
 ```
+
+## Continuation Commit Boundary
+
+When the Interaction Processor invokes the Interviewer, it consumes a stable ordered batch of currently unprocessed human messages.
+
+If the Interviewer returns another conversational turn, the runtime commits:
+
+```text
+BEGIN SQLITE TRANSACTION
+
+mark consumed human-message batch processed
+persist next Interviewer message / continuation state
+
+COMMIT
+```
+
+The next Interviewer message must be persisted before delivery to Discord.
+
+This prevents both failure modes:
+
+```text
+human messages marked processed
+→ crash
+→ next Interviewer question lost
+```
+
+and:
+
+```text
+next Interviewer question persisted
+→ crash
+→ same human messages still appear unprocessed
+→ duplicate Interviewer continuation
+```
+
+If the transaction fails:
+
+```text
+consumed human messages remain unprocessed
+AND
+next Interviewer message is not committed
+```
+
+The same continuation may then be retried safely.
+
+After successful local commit:
+
+```text
+persisted Interviewer message
+→ Discord delivery
+```
+
+Discord delivery remains an external side effect and may be retried/reconciled independently.
+
+If the Interviewer instead returns a completed Evidence Response, consumed-message processing must be coordinated with the professional artifact commit path rather than treating the result as an ordinary conversational turn.
 
 ## 13. Stale ERQ Handling
 

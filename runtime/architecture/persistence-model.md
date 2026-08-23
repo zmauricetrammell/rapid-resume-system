@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.8 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, FIX-017, and FIX-022 applied
+Draft V0.9 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, FIX-017, FIX-018, and FIX-022 applied
 
 ## Purpose
 
@@ -698,6 +698,37 @@ rather than duplicating full message content.
 This guarantees that restart cannot observe a durable human answer without a durable Event capable of waking the Interaction Processor.
 
 Exact message-content representation depends on privacy and implementation choices.
+
+
+## Interviewer Continuation Transaction
+
+When a continuation consumes one or more unprocessed human messages and produces a new conversational Interviewer message:
+
+```text
+BEGIN
+
+mark exact consumed human-message IDs processed
+insert next Interviewer Interaction Message
+update Interaction continuation metadata as needed
+
+COMMIT
+```
+
+The human-message IDs form the exact consumed batch.
+
+The next Interviewer message is persisted before external Discord delivery.
+
+On transaction failure:
+
+```text
+no consumed message is marked processed
+AND
+no next Interviewer message is committed
+```
+
+This keeps retry behavior deterministic.
+
+If the continuation produces a completed Evidence Response rather than another conversational message, the professional artifact commit path owns completion semantics for that result; ordinary conversational-message processing must not independently finalize the professional result.
 
 ---
 
