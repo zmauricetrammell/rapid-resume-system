@@ -1,7 +1,7 @@
 # RRS V3 Discord Interaction Model
 
 ## Status
-Draft V0.4 — FIX-016, FIX-017, and FIX-018 applied
+Draft V0.5 — FIX-016, FIX-017, FIX-018, and FIX-019 applied
 
 ## Purpose
 The Discord Interaction Model defines how V3 uses Discord as the human conversation surface for Evidence Request investigation.
@@ -38,6 +38,7 @@ one active Evidence Request investigation per Runtime Job at a time
 16. An inbound authorized human message and its `human_input_received` Event persist atomically in one SQLite transaction.
 17. On reconnect/startup, every active or paused Discord Interaction reconciles provider thread history after the last known provider message so messages received during runtime downtime are not lost.
 18. When Interviewer continuation produces another conversational turn, consumed human-message state and the persisted next Interviewer message commit atomically.
+19. Evidence Response professional commit and Interaction completion are separate authoritative mutations; Interaction completion occurs only after the exact Evidence Response has committed successfully.
 
 ## 1. Discord Topology
 
@@ -495,6 +496,78 @@ Temporary provider failure must not alter professional state.
 Interaction may become `paused` while delivery/input retry occurs.
 
 Runtime health may become `degraded`. Repeated inability to conduct required human interaction may escalate according to retry/recovery policy.
+
+## Evidence Response Commit and Interaction Completion
+
+A completed Interviewer result is a professional Evidence Response, not merely conversation state.
+
+The professional commit path owns:
+
+```text
+Evidence Response artifact persistence
++
+RuntimeJob.unintegrated_evidence_responses ADD
++
+Execution finalization
++
+artifact_committed Event
+```
+
+Only after that exact Evidence Response commit succeeds may the runtime complete the Interaction.
+
+Canonical ordering:
+
+```text
+Interviewer returns Evidence Response
+↓
+professional Evidence Response commit succeeds
+↓
+artifact_committed Event is durable
+↓
+complete_interaction Command
+↓
+BEGIN SQLite transaction
+  Interaction.status = completed
+  Interaction.completed_at = ...
+  persist interaction_completed Event
+  mark complete_interaction Command completed
+COMMIT
+```
+
+The Interaction Processor does not mark the Interaction completed inside the professional artifact commit transaction.
+
+This separation keeps professional artifact authority and conversational runtime authority distinct.
+
+### Crash Recovery
+
+The safe asymmetry is:
+
+```text
+Evidence Response committed
+Interaction still active
+```
+
+because startup/recovery can detect:
+
+```text
+active Interaction
++
+exact committed Evidence Response for current ERQ/version
+```
+
+and complete the Interaction deterministically.
+
+The unsafe asymmetry must not occur:
+
+```text
+Interaction completed
+Evidence Response not committed
+```
+
+Therefore Interaction completion must always follow successful professional commit.
+
+Discord thread closure/status updates are projection effects and occur after authoritative Interaction completion.
+
 
 ## 16. Restart and Reconnect Recovery
 

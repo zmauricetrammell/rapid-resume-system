@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.8 — FIX-007, FIX-008, FIX-009, FIX-014, FIX-016, FIX-020, and FIX-022 applied
+Draft V0.8 — FIX-007, FIX-008, FIX-009, FIX-014, FIX-019, FIX-020, and FIX-022 applied
 
 ## Purpose
 
@@ -46,7 +46,7 @@ These concepts remain separate.
 15. Event history is auditable.
 16. `artifact_committed` is the sole canonical professional-state routing trigger; `execution_committed` is audit/telemetry only.
 17. Commands produced from Events may carry a deterministic `command_dedupe_key` so duplicate Event processing cannot create duplicate requested runtime actions.
-18. An inbound authorized Discord human message and its `human_input_received` Event are persisted atomically.
+18. A committed Evidence Response precedes `interaction_completed`; professional commit and Interaction completion are distinct causal events.
 
 ---
 
@@ -1157,62 +1157,70 @@ The Interviewer professional operation eventually produces a schema-conformant E
 
 # 30. Discord Message Handling
 
-Recommended inbound flow:
+Recommended flow:
 
 ```text
 Discord provider message
         ↓
-validate provider/source + active Interaction
+normalize/persist message in Interaction store
         ↓
-BEGIN SQLite transaction
-  deduplicate provider_message_id
-  persist Interaction Message
-  persist human_input_received Event referencing message_id
-COMMIT
+emit human_input_received
         ↓
 interaction processor
         ↓
 continue professional Interviewer interaction
 ```
 
-Events reference:
+Events should reference:
 
 ```text
 interaction_id
 message_ref
 ```
 
-rather than embedding full human messages.
-
-The message and Event must not be committed independently.
-
-Failure before transaction commit leaves the provider input eligible for retry/reconciliation.
-
-Successful transaction commit guarantees that both the durable human message and its continuation trigger survive restart.
+rather than embed full human messages.
 
 ---
 
 # 31. Interaction Completion
 
-Discord or another human interface may indicate conversational completion.
+`interaction_completed` records successful completion of authoritative Interaction state.
 
-However:
+For Evidence Request investigation, it may occur only after the exact professional Evidence Response has committed.
 
-```text
-interaction_completed
-```
-
-does not by itself modify professional evidence.
-
-The relevant professional artifact must still:
+Canonical causal chain:
 
 ```text
-stage
-validate
-commit
+Interviewer returns Evidence Response
+↓
+artifact_committed(Evidence Response)
+↓
+complete_interaction Command
+↓
+Interaction.status = completed
++
+interaction_completed Event
 ```
 
-through the normal execution model.
+`artifact_committed(Evidence Response)` and `interaction_completed` are not interchangeable.
+
+The first means:
+
+```text
+professional evidence output is committed
+```
+
+The second means:
+
+```text
+runtime conversational state is completed
+```
+
+If `artifact_committed(Evidence Response)` is processed more than once, Command deduplication ensures only one logical `complete_interaction` action is requested.
+
+If recovery discovers an active Interaction whose exact Evidence Response is already committed, it may safely schedule `complete_interaction`.
+
+An `interaction_completed` Event with no committed Evidence Response for the current ERQ/version represents invalid runtime state and must not be used as proof of successful investigation.
 
 ---
 

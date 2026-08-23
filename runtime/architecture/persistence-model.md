@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.9 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, FIX-017, FIX-018, and FIX-022 applied
+Draft V0.10 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, FIX-017, FIX-018, FIX-019, and FIX-022 applied
 
 ## Purpose
 
@@ -1318,6 +1318,58 @@ retry_pending
 or equivalent claimable state.
 
 Idempotency guarantees safe reprocessing.
+
+---
+
+# 38.1 Evidence Response / Interaction Completion Ordering
+
+Professional Evidence Response commit and Interaction completion use separate authoritative transactions.
+
+Professional commit transaction:
+
+```text
+Evidence Response artifact metadata
++
+RuntimeJob.unintegrated_evidence_responses ADD
++
+Execution committed
++
+artifact_committed Event
+```
+
+After that transaction succeeds, a nonprofessional `complete_interaction` Command performs:
+
+```text
+BEGIN
+Interaction.status = completed
+Interaction.completed_at = ...
+persist interaction_completed Event
+mark complete_interaction Command completed
+COMMIT
+```
+
+The second transaction must never run before the exact Evidence Response for the current ERQ/version is confirmed committed.
+
+Recovery rule:
+
+```text
+Interaction active/paused
++
+committed Evidence Response for exact current ERQ/version
+→ schedule/retry complete_interaction
+```
+
+This repairs the safe crash window where professional state committed before Interaction completion.
+
+The reverse state:
+
+```text
+Interaction completed
++
+no committed Evidence Response for current ERQ/version
+```
+
+is invalid and requires repair/manual review rather than pretending investigation succeeded.
 
 ---
 

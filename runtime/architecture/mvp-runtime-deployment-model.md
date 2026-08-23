@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.8 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, and FIX-022 applied
+Draft V0.9 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, and FIX-022 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -447,7 +447,19 @@ COMMIT
 
 A failed transaction leaves the human batch unprocessed so the continuation can retry safely.
 
-If the Interviewer returns a completed Evidence Response, the professional commit pipeline owns the artifact result and its downstream Interaction completion semantics.
+If the Interviewer returns a completed Evidence Response, the professional commit pipeline owns the artifact result.
+
+Only after the exact Evidence Response commit succeeds does the runtime schedule `complete_interaction`.
+
+```text
+Evidence Response commit
+→ artifact_committed
+→ complete_interaction
+→ Interaction completed
+→ interaction_completed
+```
+
+Interaction completion is therefore recoverable independently from the professional artifact commit.
 
 ## 26. Interaction Recovery
 
@@ -468,6 +480,16 @@ When Discord does not support exact boundary queries, fetch a bounded recent win
 Conversation continuity comes from SQLite plus provider reconciliation, not model/provider session memory or guaranteed gateway replay.
 
 A Discord outage therefore pauses reconciliation-dependent investigation but does not destroy persisted Interaction state.
+
+Recovery also checks for:
+
+```text
+active/paused Interaction
++
+already committed Evidence Response for exact current ERQ/version
+```
+
+and schedules `complete_interaction` rather than re-running the Interviewer.
 
 ## 27. Shutdown Sequence
 
@@ -737,6 +759,8 @@ At any nonterminal point, restarting the container must not require manual recon
 - [ ] Intact staged output may resume validation after restart without unnecessary model re-invocation.
 - [ ] Active Discord investigation resumes after restart.
 - [ ] Interviewer continuation atomically consumes its exact human-message batch and persists the next conversational turn.
+- [ ] Evidence Response commit and Interaction completion remain separate recoverable steps.
+- [ ] An Interaction cannot complete before the exact Evidence Response for its current ERQ/version is committed.
 - [ ] Discord delivery occurs only after the next Interviewer message is durable.
 - [ ] Discord startup/reconnect fetches unseen messages for active/paused Interactions using the persisted provider boundary.
 - [ ] Messages sent during daemon downtime do not depend on live gateway replay for recovery.
