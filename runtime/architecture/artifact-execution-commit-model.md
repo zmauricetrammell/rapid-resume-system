@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.4 — FIX-005, FIX-006, and FIX-010 applied
+Draft V0.5 — FIX-005, FIX-006, FIX-010, and FIX-011 applied
 
 ## Purpose
 
@@ -54,6 +54,7 @@ Handlers own execution, validation, persistence, and commit.
 17. After immutable output files are finalized, artifact metadata, commit-group state, Runtime Job pointer mutations, Runtime Job revision, and Execution finalization commit atomically in one SQLite transaction.
 18. The `artifact_committed` Event announcing a successful professional commit is persisted in that same SQLite transaction.
 19. Every professional operation explicitly declares identity dependencies and freshness dependencies; retrieval fingerprints and materially relevant resources participate when they can change professional output.
+20. At most one nonterminal active Execution may exist for a given `operation_key` at any time.
 
 ---
 
@@ -399,6 +400,75 @@ same operation_key
    ▼
 one logical professional operation
 ```
+
+
+## 6.1 Active Execution Uniqueness
+
+One logical professional operation may have multiple historical attempts, but only one nonterminal active attempt may exist at a time.
+
+Canonical rule:
+
+```text
+one operation_key
+→ zero or one nonterminal active Execution
+```
+
+Nonterminal active statuses include the statuses in which an attempt may still produce or commit output, such as:
+
+```text
+queued
+running
+validating
+committing
+```
+
+Terminal statuses include:
+
+```text
+committed
+failed
+stale
+cancelled
+```
+
+or the exact equivalent vocabulary defined by the Execution model.
+
+When scheduling professional work:
+
+```text
+same operation_key + committed Execution
+→ reuse existing committed result
+
+same operation_key + active nonterminal Execution
+→ do not create another Execution
+→ return/reference the existing active logical operation
+
+same operation_key + terminal failed/stale attempt
+→ retry policy may create a new Execution attempt
+```
+
+Retries therefore occur sequentially:
+
+```text
+OPKEY-A
+├── EXEC-001 attempt 1 → failed
+├── EXEC-002 attempt 2 → failed
+└── EXEC-003 attempt 3 → committed
+```
+
+not concurrently:
+
+```text
+OPKEY-A
+├── EXEC-001 running
+└── EXEC-002 running
+```
+
+The runtime must enforce active-attempt uniqueness transactionally when creating an Execution.
+
+Application logic may enforce this rule, and SQLite may additionally use an index/constraint strategy where practical.
+
+A duplicate scheduling request for an already-active `operation_key` is idempotent and must not create duplicate professional provider calls.
 
 ---
 
@@ -1372,6 +1442,10 @@ unknown_failure
 ---
 
 # 35. Retry Threshold
+
+A retry may create a new Execution only after the prior attempt for the same `operation_key` is terminal.
+
+The new `attempt_number` is allocated transactionally from the existing attempts for that `operation_key` so concurrent retry requests cannot create duplicate attempt numbers or simultaneous active attempts.
 
 Retry limits should be configuration, not professional logic.
 
