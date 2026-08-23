@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.2 — FIX-005 applied
+Draft V0.3 — FIX-005 and FIX-006 applied
 
 ## Purpose
 
@@ -52,6 +52,7 @@ Handlers own execution, validation, persistence, and commit.
 15. Routing occurs only after successful commit.
 16. External integration failures after commit do not roll back professional state.
 17. After immutable output files are finalized, artifact metadata, commit-group state, Runtime Job pointer mutations, Runtime Job revision, and Execution finalization commit atomically in one SQLite transaction.
+18. The `artifact_committed` Event announcing a successful professional commit is persisted in that same SQLite transaction.
 
 ---
 
@@ -857,6 +858,8 @@ Runtime Job revision increment
 Execution committed_outputs
 +
 Execution terminal status = committed
++
+artifact_committed Event
 ```
 
 These SQLite changes must not be split across independent successful transactions.
@@ -890,9 +893,19 @@ wcm → v3
 
 for a coupled product commit.
 
-If the SQLite transaction fails, the previous Runtime Job pointers and Execution committed state remain unchanged.
+If the SQLite transaction fails, the previous Runtime Job pointers and Execution committed state remain unchanged, and no `artifact_committed` Event exists.
 
 Successfully finalized immutable files may remain noncurrent and are reconciled according to orphan/stale output rules.
+
+This prevents the failure mode:
+
+```text
+professional state commits
+→ process crashes
+→ routing-trigger Event is never persisted
+```
+
+A successful professional commit and the Event announcing that commit are therefore durably inseparable in SQLite.
 
 
 ---
@@ -945,6 +958,8 @@ commit_group:
 ```
 
 For single-output operations, the commit group contains one artifact.
+
+Exactly one `artifact_committed` Event is persisted per successful commit group, whether the group contains one artifact or multiple coupled outputs.
 
 The commit-group record is part of the same SQLite transaction that makes its outputs current and marks the Execution committed.
 
@@ -1035,6 +1050,7 @@ BEGIN PROFESSIONAL COMMIT
    d. Increment Runtime Job revision.
    e. Record Execution committed_outputs.
    f. Mark Execution status = committed.
+   g. Persist one `artifact_committed` Event for the successful commit group.
 7. COMMIT SQLITE TRANSACTION
 
 END PROFESSIONAL COMMIT
@@ -1056,6 +1072,8 @@ Routing occurs only after the successful SQLite professional commit.
 ---
 
 # 28. Routing After Commit
+
+A successful professional commit persists its `artifact_committed` Event before the SQLite transaction completes. Downstream routing may therefore consume that durable Event after commit without risking a lost transition trigger.
 
 Routing predicates must only evaluate successfully committed current professional state.
 
@@ -1822,7 +1840,8 @@ The Artifact and Execution Commit Model is acceptable when:
 - [ ] Freshness is checked after validation and before commit.
 - [ ] Stale outputs cannot become current.
 - [ ] Professional artifacts persist immutably.
-- [ ] Finalized artifact metadata, commit-group state, Runtime Job mutations, Runtime Job revision, and Execution finalization commit in one SQLite transaction.
+- [ ] Finalized artifact metadata, commit-group state, Runtime Job mutations, Runtime Job revision, Execution finalization, and the `artifact_committed` Event commit in one SQLite transaction.
+- [ ] Exactly one `artifact_committed` Event is persisted per successful professional commit group.
 - [ ] Current Runtime Job pointers update atomically.
 - [ ] Resume + WCM commit together.
 - [ ] Failed attempts preserve last valid pointers.
