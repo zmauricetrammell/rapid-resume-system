@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.4 — FIX-001, FIX-002, and FIX-013 applied
+Draft V0.5 — FIX-001, FIX-002, FIX-013, and FIX-027 applied
 
 ## Purpose
 
@@ -42,6 +42,7 @@ The Runtime Job is intentionally small. Historical professional artifacts, execu
 16. Collection-valued professional state is mutated semantically with `ADD`, `REMOVE`, `REPLACE`, or `UPSERT_VERSION`; handlers do not overwrite collections from stale snapshots.
 17. Collection mutations are applied atomically with the Runtime Job revision check.
 18. Each Runtime Job pins exact JER versions; newer reusable JER versions do not silently propagate into existing in-flight Jobs.
+19. Runtime Job interaction state is a coarse projection of the authoritative Interaction record and does not mirror every provider/runtime Interaction status.
 
 ---
 
@@ -301,7 +302,9 @@ An operation must not execute in an incompatible lifecycle phase.
 
 # 5. Human Interaction
 
-Interaction answers: **Is the Runtime Job waiting for or actively conducting human participation?**
+Interaction answers: **Is the Runtime Job currently associated with human participation?**
+
+The Runtime Job stores only a coarse projection of Interaction state. Provider-specific and full lifecycle state belongs in the separate authoritative Interaction record.
 
 ```yaml
 interaction:
@@ -341,7 +344,55 @@ interaction.status in [pending, active, paused]
 → interaction_id must exist
 ```
 
-Provider-specific values such as Discord thread IDs belong in a separate Interaction record.
+The authoritative Interaction record may use a richer status vocabulary, including:
+
+```text
+pending
+active
+paused
+completed
+cancelled
+```
+
+The Runtime Job does not need to mirror `cancelled`.
+
+When an authoritative Interaction is cancelled:
+
+```text
+Interaction.status = cancelled
+
+Runtime Job interaction projection:
+  status = none
+  interaction_type = null
+  interaction_id = null
+  started_at = null
+  last_activity_at = null
+```
+
+Lifecycle independently reflects the runtime consequence of cancellation, such as:
+
+```text
+manual_review
+```
+
+or:
+
+```text
+cancelled
+```
+
+according to the applicable runtime policy.
+
+A completed Interaction may remain projected as:
+
+```text
+interaction.status = completed
+```
+
+until the next deterministic runtime transition clears or replaces the projection.
+
+Discord thread IDs and all other provider-specific values belong only in the authoritative Interaction record.
+
 
 ---
 
@@ -858,6 +909,10 @@ Router
 
 Runtime Job
 → current control-plane state
+→ coarse current Interaction projection
+
+Interaction Store
+→ authoritative Interaction lifecycle and provider metadata
 
 Trello / Discord
 → external projections and interaction surfaces
@@ -923,6 +978,8 @@ It should not answer:
 # 26. V0.1 Acceptance Criteria
 
 - [ ] Lifecycle, operation, interaction, and health are orthogonal.
+- [ ] Runtime Job interaction state is a coarse projection of the authoritative Interaction record.
+- [ ] Cancelled authoritative Interactions clear the Runtime Job interaction projection rather than requiring a duplicate `cancelled` projection state.
 - [ ] Professional artifacts are represented by exact versioned pointers.
 - [ ] Collection-valued professional state uses semantic `ADD`, `REMOVE`, `REPLACE`, or `UPSERT_VERSION` mutations.
 - [ ] Collection mutation commits are revision-checked and cannot silently overwrite concurrent valid members.
