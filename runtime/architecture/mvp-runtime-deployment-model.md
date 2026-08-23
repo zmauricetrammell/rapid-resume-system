@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.4 — FIX-008, FIX-009, and FIX-014 applied
+Draft V0.5 — FIX-008, FIX-009, FIX-014, and FIX-022 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -137,6 +137,8 @@ persist durable local intent
 
 Commands survive restart.
 
+Deterministic Commands produced from durable Events use a `command_dedupe_key`. Reprocessing the same causal Event therefore reuses the existing Command instead of creating duplicate requested runtime actions.
+
 A Command is never considered complete merely because a handler returned; its required durable local effects must be persisted.
 
 ## 6. Event Flow
@@ -146,7 +148,8 @@ SQLite Event Store
 → claim Event
 → process normalized fact
 → BEGIN SQLite transaction
-     persist resulting Command(s)
+     derive command_dedupe_key where applicable
+     persist or reuse resulting Command(s)
      mark Event processed
   COMMIT
 ```
@@ -649,6 +652,7 @@ At any nonterminal point, restarting the container must not require manual recon
 - [ ] Incomplete Executions/Events/Commands recover safely.
 - [ ] Active Discord investigation resumes after restart.
 - [ ] Command/Event processors use durable SQLite records.
+- [ ] Deterministic Event-produced Commands use dedupe keys so Event replay does not duplicate requested runtime actions.
 - [ ] Event-produced Commands and successful Event completion commit atomically in SQLite.
 - [ ] SQLite-local nonprofessional Command effects, required resulting Event(s), and Command completion are atomic.
 - [ ] External-side-effect Commands use durable local intent plus reconciliation instead of assuming cross-system atomicity.

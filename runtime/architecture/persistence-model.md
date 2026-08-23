@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.4 — FIX-007, FIX-008, and FIX-009 applied
+Draft V0.5 — FIX-007, FIX-008, FIX-009, and FIX-022 applied
 
 ## Purpose
 
@@ -923,7 +923,8 @@ When Event processing produces one or more Commands, Command creation and Event 
 ```text
 BEGIN
 
-insert resulting Command(s)
+derive deterministic command_dedupe_key where applicable
+insert or reuse resulting Command(s) by dedupe key
 mark Event processed
 
 COMMIT
@@ -1030,6 +1031,7 @@ Conceptual table:
 commands
 ------------------------------------------------
 command_id
+command_dedupe_key nullable
 job_id
 command_type
 status
@@ -1042,6 +1044,52 @@ attempt_count
 ```
 
 This avoids introducing Redis/RabbitMQ prematurely.
+
+## Command Dedupe Key
+
+Deterministic Commands produced from Events should carry:
+
+```text
+command_dedupe_key
+```
+
+Recommended derivation:
+
+```text
+hash(
+  causation_event_id
+  + command_type
+  + canonical relevant payload identity
+)
+```
+
+The persistence layer must prevent more than one durable Command from representing the same non-null dedupe key.
+
+Conceptually:
+
+```text
+UNIQUE(command_dedupe_key)
+WHERE command_dedupe_key IS NOT NULL
+```
+
+Exact SQLite index syntax belongs in implementation.
+
+When Event processing retries:
+
+```text
+same Event
+→ same intended Command
+→ same command_dedupe_key
+→ existing Command reused
+```
+
+This rule reduces queue noise and duplicate runtime actions.
+
+It does not replace:
+- provider Event deduplication,
+- Event-processing idempotency,
+- professional `operation_key`,
+- Runtime Job CAS protection.
 
 ---
 
@@ -1711,6 +1759,8 @@ The Persistence Model is acceptable when:
 - [ ] Execution history survives restart.
 - [ ] Event history and retry state survive restart.
 - [ ] Command/work state can survive restart.
+- [ ] Event-produced deterministic Commands support a unique non-null `command_dedupe_key`.
+- [ ] Reprocessing the same causal Event reuses the existing deduplicated Command rather than inserting another equivalent Command.
 - [ ] Event-produced Commands and Event successful completion commit atomically when both are SQLite-resident.
 - [ ] Nonprofessional SQLite-local Command mutation, required resulting Event(s), and Command completion commit atomically.
 - [ ] External provider effects use durable local intent and reconciliation rather than pretending cross-system atomicity.

@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.6 — FIX-007, FIX-008, FIX-009, FIX-014, and FIX-020 applied
+Draft V0.7 — FIX-007, FIX-008, FIX-009, FIX-014, FIX-020, and FIX-022 applied
 
 ## Purpose
 
@@ -45,6 +45,7 @@ These concepts remain separate.
 14. Duplicate-event protection is reinforced by operation-key idempotency and atomic commits.
 15. Event history is auditable.
 16. `artifact_committed` is the sole canonical professional-state routing trigger; `execution_committed` is audit/telemetry only.
+17. Commands produced from Events may carry a deterministic `command_dedupe_key` so duplicate Event processing cannot create duplicate requested runtime actions.
 
 ---
 
@@ -350,7 +351,8 @@ Canonical transaction:
 
 ```text
 BEGIN
-insert resulting Command(s)
+derive command_dedupe_key for each deterministic Event-produced Command
+insert Command(s) only when that dedupe key does not already exist
 mark Event processed
 COMMIT
 ```
@@ -1377,30 +1379,81 @@ Exact storage technology is not defined here.
 
 # 39. Command Handling
 
-Commands should have their own identity.
+Commands have their own identity and may also carry a deterministic deduplication key.
 
 Recommended conceptual shape:
 
 ```yaml
 command:
-
   command_id: CMD-00042
-
+  command_dedupe_key: sha256(...) | null
   command_type: schedule_operation
-
   job_id: JOB-0001
-
   created_at: ...
-
   causation_event_id: EVT-000123
 
   payload:
     operation_type: generate_analysis
 ```
 
-Commands may also require idempotency depending on type.
+`command_id` identifies one durable Command record.
 
-For professional operations, the Artifact and Execution Commit Model's `operation_key` remains the authoritative logical execution guard.
+`command_dedupe_key` identifies one intended runtime action when the same cause may be processed more than once.
+
+For Event-produced Commands, recommended conceptual identity is:
+
+```text
+command_dedupe_key =
+hash(
+    causation_event_id
+    +
+    command_type
+    +
+    canonical relevant payload identity
+)
+```
+
+Example:
+
+```text
+EVT-000123 artifact_committed
+→ evaluate_routing for JOB-0001
+```
+
+If `EVT-000123` is retried, the runtime derives the same `command_dedupe_key` and reuses the existing Command rather than inserting another equivalent Command.
+
+Command deduplication is a defense-in-depth layer:
+
+```text
+provider Event dedupe
+→ normalized Event idempotency
+→ Command dedupe
+→ professional operation_key idempotency
+→ atomic commit
+```
+
+It does not replace `operation_key`.
+
+For professional operations:
+
+```text
+command_dedupe_key
+= prevents duplicate scheduling requests from the same cause
+
+operation_key
+= prevents duplicate logical professional work across equivalent professional input state
+```
+
+Not every human-created or operator-created Command requires a dedupe key.
+
+Example:
+
+```text
+two separate CLI retry requests
+→ may intentionally be two distinct Commands
+```
+
+A `command_dedupe_key` is required when a Command is deterministically produced from a durable Event or another source where replay should mean the same intended action.
 
 ---
 
@@ -1744,6 +1797,8 @@ The Event Model is acceptable when:
 - [ ] At-least-once delivery is supported safely.
 - [ ] Provider event deduplication exists conceptually.
 - [ ] Event processing is idempotent.
+- [ ] Deterministic Event-produced Commands use `command_dedupe_key` to prevent duplicate requested actions.
+- [ ] Command deduplication supplements rather than replaces professional `operation_key` idempotency.
 - [ ] Event-produced Commands and successful Event completion persist atomically in one SQLite transaction.
 - [ ] Nonprofessional SQLite-local Commands commit authoritative mutation, required resulting Event(s), and Command completion atomically.
 - [ ] `create_job` is a durable nonprofessional Command with a stable intended `job_id` and idempotent retry semantics.
