@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.6 — FIX-008, FIX-009, FIX-014, FIX-015, and FIX-022 applied
+Draft V0.7 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, and FIX-022 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -197,7 +197,11 @@ Only one pointer-mutating professional operation may commit at a time per Runtim
 Model/API calls may be awaited while unrelated Discord/Event/Command work continues. Runtime Job revision, operation-key idempotency, and commit rules protect consistency.
 
 ## 10. Discord Lifecycle
-Discord connects only after persistence initialization and recovery. Temporary disconnects should reconnect automatically and should not require daemon restart.
+Discord connects only after persistence initialization and core runtime recovery.
+
+After initial connection or any reconnect, the Discord adapter reconciles every active/paused Interaction thread against persisted provider-message boundaries before assuming live gateway state is complete.
+
+Temporary disconnects should reconnect automatically and should not require daemon restart.
 
 ## 11. No Required HTTP Server
 MVP uses:
@@ -354,7 +358,8 @@ Executions should be traceable to this build identity.
 13. Repair stale runtime references/leases.
 14. Start worker loops.
 15. Connect Discord.
-16. Mark runtime ready.
+16. Reconcile active/paused Discord Interactions for unseen provider messages.
+17. Mark runtime ready.
 ```
 
 New work is not accepted before recovery completes.
@@ -424,16 +429,24 @@ Do not blindly re-invoke AI when the prior attempt may already have persisted va
 Expired processing ownership returns work to a claimable retry state. Idempotency protects duplicate processing.
 
 ## 26. Interaction Recovery
-After restart:
+
+After restart or Discord reconnect:
 
 ```text
 load active/paused Interactions
-→ reconcile Discord thread state
-→ find unprocessed human messages
+→ load persisted Discord thread + last known provider-message boundary
+→ fetch provider messages newer than/beyond that boundary
+→ deduplicate against persisted provider_message_id values
+→ atomically persist each unseen human message + human_input_received Event
+→ identify all unprocessed local human messages
 → resume Interviewer continuation
 ```
 
-No provider-side chat memory is required.
+When Discord does not support exact boundary queries, fetch a bounded recent window and deduplicate locally.
+
+Conversation continuity comes from SQLite plus provider reconciliation, not model/provider session memory or guaranteed gateway replay.
+
+A Discord outage therefore pauses reconciliation-dependent investigation but does not destroy persisted Interaction state.
 
 ## 27. Shutdown Sequence
 
@@ -702,6 +715,8 @@ At any nonterminal point, restarting the container must not require manual recon
 - [ ] Runtime interruption retries professional work through a new Execution attempt under the same logical `operation_key`.
 - [ ] Intact staged output may resume validation after restart without unnecessary model re-invocation.
 - [ ] Active Discord investigation resumes after restart.
+- [ ] Discord startup/reconnect fetches unseen messages for active/paused Interactions using the persisted provider boundary.
+- [ ] Messages sent during daemon downtime do not depend on live gateway replay for recovery.
 - [ ] Command/Event processors use durable SQLite records.
 - [ ] Deterministic Event-produced Commands use dedupe keys so Event replay does not duplicate requested runtime actions.
 - [ ] Event-produced Commands and successful Event completion commit atomically in SQLite.

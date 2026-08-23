@@ -1,7 +1,7 @@
 # RRS V3 Discord Interaction Model
 
 ## Status
-Draft V0.2 — FIX-016 applied
+Draft V0.3 — FIX-016 and FIX-017 applied
 
 ## Purpose
 The Discord Interaction Model defines how V3 uses Discord as the human conversation surface for Evidence Request investigation.
@@ -36,6 +36,7 @@ one active Evidence Request investigation per Runtime Job at a time
 14. Provider failures must not corrupt professional state.
 15. Interaction history must survive container restart.
 16. An inbound authorized human message and its `human_input_received` Event persist atomically in one SQLite transaction.
+17. On reconnect/startup, every active or paused Discord Interaction reconciles provider thread history after the last known provider message so messages received during runtime downtime are not lost.
 
 ## 1. Discord Topology
 
@@ -277,6 +278,8 @@ so restart cannot leave a stored human answer with no continuation trigger.
 
 Duplicate provider delivery is safe because the Interaction Message store deduplicates by provider message identity before inserting another message/Event pair.
 
+The same transaction and deduplication path is used for both live gateway messages and messages discovered during restart/reconnect reconciliation.
+
 The runtime must not use:
 
 ```text
@@ -437,38 +440,87 @@ Interaction may become `paused` while delivery/input retry occurs.
 
 Runtime health may become `degraded`. Repeated inability to conduct required human interaction may escalate according to retry/recovery policy.
 
-## 16. Restart Recovery
+## 16. Restart and Reconnect Recovery
 
-All continuation state must be recoverable from SQLite + artifact storage.
+Discord gateway delivery is not the sole durability mechanism for human input.
 
-On restart:
+On daemon restart or Discord reconnect, the runtime reconciles every active or paused Discord Interaction against its provider thread.
 
-```text
-load active/paused Interactions
-↓
-reconcile Discord thread state
-↓
-find unprocessed human messages
-↓
-resume continuation
-```
-
-Example:
+Required flow:
 
 ```text
-Interviewer asked Q4
-human answered Q4
-answer persisted
-container crashes
+load active/paused Interaction
 ↓
-restart
+load last known persisted provider message boundary
 ↓
-Q4 answer is still unprocessed
+fetch Discord thread messages newer than that boundary
 ↓
-Interviewer continuation resumes
+filter to authorized human messages
+↓
+deduplicate by provider_message_id
+↓
+for each unseen message:
+  BEGIN SQLite transaction
+    persist Interaction Message
+    persist human_input_received Event
+  COMMIT
+↓
+resume normal Interaction processing
 ```
 
-No human repetition is required.
+The runtime must not assume that all messages sent while it was offline will later arrive through live gateway events.
+
+### Reconciliation Boundary
+
+Each Interaction must retain enough provider metadata to identify the recovery boundary.
+
+Recommended fields include:
+
+```text
+thread_id
+last_seen_provider_message_id
+last_seen_provider_created_at
+```
+
+The exact Discord pagination/cursor mechanism belongs in the adapter.
+
+If Discord cannot query strictly after a message ID, the adapter may fetch a bounded recent window and rely on provider-message deduplication.
+
+### Deterministic Ordering
+
+Recovered messages are persisted in stable provider chronology.
+
+Recommended ordering:
+
+```text
+provider_created_at
+then provider_message_id as a stable tie-breaker
+```
+
+This allows live and recovered messages to reconstruct the same conversation order.
+
+### Failure Behavior
+
+If provider reconciliation temporarily fails:
+
+```text
+Interaction remains active/paused
+→ no persisted human input is discarded
+→ reconciliation retries
+```
+
+The runtime must not mark the Interaction complete or infer that no human response exists merely because Discord is temporarily unavailable.
+
+If the provider thread no longer exists or cannot be deterministically reconciled after retry policy is exhausted:
+
+```text
+runtime health / Interaction
+→ recoverable failure or manual review
+```
+
+according to the applicable recovery policy.
+
+Discord remains an interaction surface; the Interaction Store remains authoritative for what the runtime has durably observed and processed.
 
 ## 17. Interaction Timeout
 

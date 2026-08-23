@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.7 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, and FIX-022 applied
+Draft V0.8 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, FIX-017, and FIX-022 applied
 
 ## Purpose
 
@@ -629,6 +629,8 @@ interaction:
     guild_id: ...
     channel_id: ...
     thread_id: ...
+    last_seen_provider_message_id: ...
+    last_seen_provider_created_at: ...
 
   professional_context:
     erq:
@@ -1290,18 +1292,43 @@ Idempotency guarantees safe reprocessing.
 
 # 39. Interaction Recovery
 
-Active/paused Interactions must survive container restart.
+Active/paused Interactions must survive container restart and Discord reconnect.
 
-The runtime should be able to reconstruct:
+Persistence must be sufficient to reconstruct:
 
 - Which Job is involved.
 - Which ERQ is active.
-- Which provider thread/channel corresponds to it.
-- Last known interaction state.
-- Last processed provider message.
-- Whether the Interviewer interaction can resume.
+- Which Discord thread/channel corresponds to it.
+- Current Interaction status.
+- Last known provider message boundary.
+- Last processed local Interaction message.
+- Whether Interviewer continuation can resume.
 
-Discord itself must not be the only place this state exists.
+For Discord-backed Interactions, startup/reconnect recovery performs provider reconciliation:
+
+```text
+load active/paused Interaction
+→ identify thread_id
+→ load last_seen_provider_message_id / provider timestamp boundary
+→ fetch provider messages after/beyond the known boundary
+→ deduplicate by provider_message_id
+→ persist unseen authorized human messages
+→ persist corresponding human_input_received Events
+→ resume Interaction Processor
+```
+
+If strict provider "after" semantics are unavailable, the adapter may fetch a recent bounded window and use persisted provider-message uniqueness to determine what is unseen.
+
+The Interaction Store must retain provider chronology fields needed for deterministic ordering:
+
+```text
+provider_created_at
+provider_message_id
+```
+
+Recovered messages use the same atomic message + Event persistence rule as live gateway messages.
+
+Discord itself must not be the only place the runtime knows which messages have already been observed.
 
 ---
 
