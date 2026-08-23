@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.7 — FIX-005, FIX-006, FIX-010, FIX-011, FIX-012, and FIX-023 applied
+Draft V0.8 — FIX-005, FIX-006, FIX-010, FIX-011, FIX-012, FIX-023, and FIX-024 applied
 
 ## Purpose
 
@@ -57,6 +57,7 @@ Handlers own execution, validation, persistence, and commit.
 20. At most one nonterminal active Execution may exist for a given `operation_key` at any time.
 21. A Runtime Job compare-and-swap conflict never permits blind pointer overwrite; the runtime reloads current state and retries the same commit only when the Execution's declared freshness dependencies remain current.
 22. Evidence integration may produce multiple JER versions in one logical operation; all required JER outputs and consumed Evidence Response mutations commit as one atomic commit group.
+23. All temporary professional outputs for one Execution stage under `/data/staging/<execution_id>/` before validation and commit.
 
 ---
 
@@ -645,51 +646,67 @@ Recommended V0.1 rule:
 
 # 11. Output Staging
 
-Professional outputs do not immediately enter the immutable artifact store as current artifacts.
+Professional output must be written to Execution-scoped staging before it can become current.
 
-They first enter an execution staging state.
+Canonical staging root:
 
-Example:
-
-```yaml
-staged_outputs:
-
-  - staged_output_id: STAGE-0081
-
-    artifact_type: job_experience_analysis
-
-    proposed_artifact_id: JEA-0004
-
-    proposed_artifact_version: 4
-
-    temporary_uri: staging/EXEC-0042/JEA.yaml
-
-    received_at: ...
-
-    validation_status: pending
+```text
+/data/staging/<execution_id>/
 ```
 
-Staging may be implemented through:
+Examples:
 
-- Temporary filesystem.
-- Temporary database record.
-- Object-store staging path.
-- Another transactional storage mechanism.
+```text
+/data/staging/EXEC-0042/jea.yaml
+/data/staging/EXEC-0043/resume.docx
+/data/staging/EXEC-0043/wcm.yaml
+/data/staging/EXEC-0044/jer-0004.yaml
+/data/staging/EXEC-0044/jer-0007.yaml
+```
 
-Implementation choice is separate from logical semantics.
+Rules:
+- One Execution owns one staging directory.
+- All outputs produced by that attempt stage beneath the same Execution directory.
+- Staging paths are runtime-only and are not professional artifact URIs.
+- Staged files are not current professional state.
+- Validation and commit operate against the exact staged bytes produced by that Execution.
+- Restart recovery can identify staged output ownership from the directory name alone.
+
+For multi-output operations, all required outputs stage together before coupled validation begins.
+
+Committed artifact bodies are finalized into immutable artifact storage before the SQLite professional commit makes them current.
+
+If the Execution fails before commit, its staging directory may be retained temporarily for recovery or diagnostics according to retention policy.
 
 ---
 
 # 12. Staged Output Rules
 
-Staged outputs:
+Staging is attempt-scoped and non-authoritative.
 
-- Are not current professional state.
-- Must not update Runtime Job professional pointers.
-- May be inspected for diagnostics.
-- May be discarded after failed validation.
-- May be retained temporarily for debugging according to retention policy.
-- Must not be exposed as authoritative artifacts to downstream handlers.
+Example:
+
+```text
+EXEC-0043
+└── /data/staging/EXEC-0043/
+    ├── resume.docx
+    └── wcm.yaml
+```
+
+A staged output may be:
+
+```text
+validated
+rejected
+abandoned
+promoted/finalized into immutable artifact storage
+```
+
+but it is never referenced by Runtime Job current professional pointers.
+
+A multi-output operation cannot begin coupled commit until every required output is present in the same Execution staging directory and has passed the applicable validation checks.
+
+Staged output filenames are implementation details. Artifact identity is established through the professional artifact/commit process, not by treating the staging filename as authoritative.
 
 ---
 
@@ -847,6 +864,8 @@ stale
 ```
 
 Validated outputs may be persisted as noncurrent historical artifacts only if policy finds that useful.
+
+Staged output ownership is determined by `/data/staging/<execution_id>/`, allowing recovery to resume validation or classify abandoned output without guessing provenance.
 
 They must not advance current pointers.
 
@@ -1329,9 +1348,9 @@ BEGIN PROFESSIONAL COMMIT
 
 1. Recheck declared professional freshness dependencies.
 2. Load the expected Runtime Job revision.
-3. Reserve/finalize required artifact versions.
-4. Persist all immutable output files.
-5. Verify persisted output integrity.
+3. Validate outputs from `/data/staging/<execution_id>/`.
+4. Reserve/finalize required artifact versions and persist immutable output files.
+5. Verify persisted output integrity against the staged output bytes.
 
 6. BEGIN SQLITE TRANSACTION
    a. Insert/finalize artifact runtime metadata.
@@ -2173,6 +2192,9 @@ The Artifact and Execution Commit Model is acceptable when:
 - [ ] Duplicate events collapse onto existing logical operations.
 - [ ] Retries create new execution IDs but preserve operation keys.
 - [ ] Agent output is staged before commit.
+- [ ] Every Execution stages temporary outputs under `/data/staging/<execution_id>/`.
+- [ ] Staging paths never become current professional artifact URIs.
+- [ ] Multi-output operations stage all required outputs together before coupled validation.
 - [ ] Structured outputs validate before commit.
 - [ ] Coupled outputs validate together.
 - [ ] Multi-JER evidence integration commits all changed JER versions and consumed Evidence Response mutations atomically.
