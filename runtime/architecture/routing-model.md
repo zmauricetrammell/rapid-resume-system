@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.5 — FIX-003, FIX-004, FIX-007, and FIX-020 applied
+Draft V0.6 — FIX-003, FIX-004, FIX-007, FIX-020, and FIX-021 applied
 
 ## Purpose
 
@@ -34,6 +34,7 @@ Professional agents remain unaware of routing, Trello, Discord, other agents, do
 12. Terminal lifecycle states do not route automatically.
 13. A routing-history append and lifecycle transition are one authoritative Runtime Job mutation and commit atomically with the resulting `lifecycle_changed` Event.
 14. `artifact_committed` is the sole canonical professional-state routing trigger; Execution completion alone never triggers routing.
+15. Routine no-change routing evaluations do not append routing history; self-transitions are recorded only when they represent a discrete meaningful work milestone.
 
 ---
 
@@ -1013,9 +1014,9 @@ This preserves the V2 definition:
 
 ---
 
-# 30. Self-Transitions
+# 30. Self-Transitions and No-Change Evaluations
 
-Self-transitions are valid when current lifecycle work remains incomplete.
+Routing predicates may determine that the Runtime Job should remain in its current lifecycle phase.
 
 Examples:
 
@@ -1031,7 +1032,7 @@ investigation
 → investigation
 ```
 
-because human investigation is still active.
+because one or more active ERQs still await Evidence Responses.
 
 ```text
 evidence_integration
@@ -1040,13 +1041,38 @@ evidence_integration
 
 because unintegrated Evidence Responses remain.
 
-Self-transition routing decisions should be recorded only when operationally useful.
+A routine no-change evaluation is not itself a routing decision worth preserving in history.
 
-Avoid excessive routing-history noise for every poll or no-op check.
+Canonical rule:
 
-Recommended rule:
+```text
+predicate evaluation produces no lifecycle phase change
+AND
+no discrete meaningful work milestone occurred
+→ do not append routing_history
+```
 
-> Append a routing decision when a meaningful state decision occurs, not on every periodic predicate evaluation.
+A self-transition may be recorded only when it represents a discrete completed runtime milestone that is useful for audit.
+
+Example:
+
+```text
+ERQ-0011 committed
+Job remains evidence_request because EN-002 still lacks an ERQ
+```
+
+If runtime policy considers that milestone worth recording, one deliberate self-transition may be appended.
+
+Do not append repeated self-transitions for polling, retries, wake-ups, or identical unchanged state.
+
+The default V0.1 behavior is:
+
+```text
+no lifecycle phase change
+→ no routing_history entry
+```
+
+unless the caller explicitly identifies a meaningful milestone.
 
 ---
 
@@ -1412,16 +1438,23 @@ Handlers should minimize externally visible transient inconsistencies.
 
 # 44. Routing History Noise Control
 
-Do not append routing history for every unchanged predicate evaluation.
+Routing history records meaningful lifecycle decisions, not predicate polling.
 
-Append when:
+Append routing history when:
 
 - Lifecycle phase changes.
-- A deliberate self-transition corresponds to meaningful work completion/state decision.
-- Manual review is entered.
+- Manual Review is entered.
 - A human recovery decision changes lifecycle.
+- An explicitly identified meaningful runtime milestone justifies a deliberate self-transition.
 
-Example not worth logging repeatedly:
+Do not append routing history when:
+
+- A periodic check finds the same state.
+- Duplicate routing Commands evaluate the same current phase and basis.
+- A self-transition reflects only incomplete work still remaining.
+- No authoritative lifecycle decision changed.
+
+Example not worth logging:
 
 ```text
 investigation still waiting
@@ -1434,6 +1467,13 @@ Example worth logging:
 ```text
 All ERQs now have Evidence Responses.
 Investigation → Evidence Integration.
+```
+
+Default rule:
+
+```text
+same phase + no explicit meaningful milestone
+→ no routing_history append
 ```
 
 ---
@@ -1683,7 +1723,9 @@ The Routing Model is acceptable when:
 - [ ] Router never changes professional artifact pointers.
 - [ ] Manual Review exists for unsafe deterministic state.
 - [ ] Complete and cancelled states do not automatically reopen.
-- [ ] Self-transitions do not create unnecessary routing-history noise.
+- [ ] Routine no-change evaluations do not append routing history.
+- [ ] Self-transitions are recorded only for explicit meaningful milestones.
+- [ ] Duplicate or periodic routing checks over unchanged state remain no-ops.
 
 ---
 
