@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.1
+Draft V0.2 — FIX-003 applied
 
 ## Purpose
 
@@ -141,7 +141,9 @@ has_unresolved_material_evidence_needs
 
 has_missing_active_erqs
 
-has_unresolved_erqs
+has_active_erqs
+
+has_erqs_awaiting_evidence_response
 
 has_unintegrated_evidence_responses
 
@@ -244,20 +246,29 @@ until required ERQs exist.
 
 ---
 
-# 7. Predicate: has_unresolved_erqs
+# 7. ERQ State Predicates
 
-## Purpose
+## Predicate: has_active_erqs
+
+### Purpose
 
 Determine whether current Evidence Requests remain part of the active evidence-resolution loop.
 
-## Inputs
+### Input
 
-- Runtime Job `active_erqs`.
-- Current JEA when needed to determine whether the originating Material Evidence Need remains unresolved.
+Runtime Job:
 
-## Important Rule
+```text
+professional_state.active_erqs
+```
 
-Receipt of an Evidence Response does not automatically resolve an ERQ.
+### Evaluation
+
+Return `true` when one or more current ERQ references remain in `active_erqs`.
+
+Return `false` when `active_erqs` is empty.
+
+Receipt of an Evidence Response does not automatically remove an ERQ from the active evidence-resolution loop.
 
 An ERQ remains active until Researcher re-analysis determines that its underlying Material Evidence Need is:
 
@@ -272,6 +283,37 @@ no_longer_material
 ```
 
 If re-analysis determines the need remains material, the ERQ remains active or may be superseded by a newer ERQ version according to professional artifact semantics.
+
+## Predicate: has_erqs_awaiting_evidence_response
+
+### Purpose
+
+Determine whether any current active Evidence Request lacks a corresponding committed current Evidence Response.
+
+### Inputs
+
+- Runtime Job `active_erqs`.
+- Current committed Evidence Responses associated with those ERQs.
+
+### Evaluation
+
+Return `true` when at least one current active ERQ lacks a committed current Evidence Response for that exact ERQ version.
+
+Return `false` when every current active ERQ has a corresponding committed current Evidence Response.
+
+The association must use schema-defined ERQ/Evidence Response identity or provenance fields rather than free-text similarity.
+
+### Distinction
+
+```text
+has_active_erqs
+= ERQs still participating in the evidence-resolution loop
+
+has_erqs_awaiting_evidence_response
+= active ERQs still requiring committed investigation output
+```
+
+These predicates are not interchangeable.
 
 ---
 
@@ -433,7 +475,7 @@ ready_to_submit
 | `analysis` | `has_unresolved_material_evidence_needs == false` | `resume_production` |
 | `evidence_request` | `has_missing_active_erqs == true` | `evidence_request` |
 | `evidence_request` | `has_missing_active_erqs == false` and active ERQs exist | `investigation` |
-| `investigation` | investigation still active or Evidence Responses not yet complete | `investigation` |
+| `investigation` | `has_erqs_awaiting_evidence_response == true` | `investigation` |
 | `investigation` | all required investigation outputs committed and `has_unintegrated_evidence_responses == true` | `evidence_integration` |
 | `evidence_integration` | `has_unintegrated_evidence_responses == true` | `evidence_integration` |
 | `evidence_integration` | `has_unintegrated_evidence_responses == false` | `analysis` |
@@ -571,7 +613,7 @@ The Job remains in:
 investigation
 ```
 
-while required Evidence Response output remains incomplete.
+while `has_erqs_awaiting_evidence_response == true`.
 
 When required Evidence Responses are committed:
 
@@ -1579,6 +1621,7 @@ The Routing Model is acceptable when:
 - [ ] Schema fields are preferred over narrative interpretation.
 - [ ] Analysis routes based on Material Evidence Need state.
 - [ ] Evidence Request phase remains until current unresolved needs have ERQs.
+- [ ] `has_active_erqs` and `has_erqs_awaiting_evidence_response` have distinct deterministic meanings.
 - [ ] ERQ receipt of Evidence Response does not automatically equal resolution.
 - [ ] Evidence integration always returns through analysis.
 - [ ] Blocking Evidence Uncertainty outranks blocking Product Defect.
