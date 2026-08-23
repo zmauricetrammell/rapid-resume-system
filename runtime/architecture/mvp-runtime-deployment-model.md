@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.5 — FIX-008, FIX-009, FIX-014, and FIX-022 applied
+Draft V0.6 — FIX-008, FIX-009, FIX-014, FIX-015, and FIX-022 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -347,7 +347,7 @@ Executions should be traceable to this build identity.
 6. Apply DB migrations.
 7. Validate artifact/staging paths.
 8. Run lightweight persistence checks.
-9. Recover incomplete Executions.
+9. Recover incomplete Executions, terminating `running` attempts owned by dead runtime instances as interrupted.
 10. Recover Events.
 11. Recover Commands.
 12. Recover Interactions.
@@ -370,7 +370,55 @@ Reconcile:
 - Runtime Job operation references
 
 ## 24. Execution Recovery
-Inspect persisted artifacts, metadata, Runtime Job pointers, and input freshness. Recover by finishing commit, repairing Execution state, marking stale, retrying safely, or entering Manual Review. Do not blindly re-invoke AI.
+
+Recovery behavior depends on Execution state.
+
+### `running`
+
+A `running` Execution cannot resume a provider call after the owning daemon instance dies.
+
+On startup:
+
+```text
+running Execution
++ owner runtime_instance_id is not current/alive
+→ prior attempt failed(runtime_interrupted)
+```
+
+If retry policy permits:
+
+```text
+same operation_key
+→ new execution_id
+→ next attempt_number
+```
+
+Do not leave orphaned attempts marked `running`.
+
+### `validating`
+
+If staged output remains intact under:
+
+```text
+/data/staging/<execution_id>/
+```
+
+recovery may resume validation without another provider invocation.
+
+Missing/corrupt staging causes the attempt to fail and normal retry policy to apply.
+
+### `committing`
+
+Inspect persisted artifact files, metadata, commit-group state, current Runtime Job pointers, and professional freshness dependencies.
+
+Recover by:
+- finishing/retrying the commit when still valid,
+- repairing an already-completed commit,
+- marking the attempt stale when professional dependencies changed,
+- or entering Manual Review if deterministic recovery is unsafe.
+
+Do not blindly re-invoke AI when the prior attempt may already have persisted valid output.
+
 
 ## 25. Event / Command Recovery
 Expired processing ownership returns work to a claimable retry state. Idempotency protects duplicate processing.
@@ -650,6 +698,9 @@ At any nonterminal point, restarting the container must not require manual recon
 - [ ] Secrets remain outside image/repo/artifacts.
 - [ ] Migrations and recovery finish before normal work starts.
 - [ ] Incomplete Executions/Events/Commands recover safely.
+- [ ] A provider invocation cannot remain `running` after its owning runtime instance dies.
+- [ ] Runtime interruption retries professional work through a new Execution attempt under the same logical `operation_key`.
+- [ ] Intact staged output may resume validation after restart without unnecessary model re-invocation.
 - [ ] Active Discord investigation resumes after restart.
 - [ ] Command/Event processors use durable SQLite records.
 - [ ] Deterministic Event-produced Commands use dedupe keys so Event replay does not duplicate requested runtime actions.

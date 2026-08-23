@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.5 — FIX-007, FIX-008, FIX-009, and FIX-022 applied
+Draft V0.6 — FIX-007, FIX-008, FIX-009, FIX-015, and FIX-022 applied
 
 ## Purpose
 
@@ -1151,37 +1151,95 @@ Recommended startup procedure:
 
 # 37. Execution Recovery
 
-For Execution status:
+Startup recovery evaluates incomplete Executions by status and owning runtime instance.
+
+## `running`
+
+A `running` Execution represents an active provider invocation owned by a specific runtime instance.
+
+If that runtime instance is no longer alive:
 
 ```text
-committing
+running
+→ failed
 ```
 
-the runtime should inspect:
+with failure detail equivalent to:
+
+```text
+failure_class = invocation_failure
+reason = runtime_interrupted
+```
+
+The original physical attempt cannot resume its lost network/provider call.
+
+If retry policy permits:
+
+```text
+same operation_key
+→ new execution_id
+→ next attempt_number
+```
+
+The old attempt remains immutable history.
+
+## `validating`
+
+If:
+
+```text
+status == validating
+AND
+/data/staging/<execution_id>/ contains complete verifiable output
+```
+
+recovery may resume validation from staged bytes.
+
+If staging is missing or corrupt:
+
+```text
+attempt → failed
+```
+
+and normal retry policy applies.
+
+## `committing`
+
+For:
+
+```text
+status == committing
+```
+
+inspect:
 
 ```text
 artifact files
 artifact metadata
+commit-group state
 Runtime Job pointers
+declared freshness dependencies
 ```
 
 Possible outcomes:
 
 ```text
 nothing committed
-→ retry safely
+→ retry commit or fail safely
 
-artifacts exist, pointers unchanged, inputs still fresh
-→ finish pointer commit
+files exist, SQLite commit absent, inputs still fresh
+→ finish/retry atomic professional commit
 
-pointers already advanced
+Runtime Job pointers and commit state already advanced
 → repair Execution state to committed
 
-newer conflicting state exists
-→ mark old output stale/orphaned
+newer conflicting professional state exists
+→ mark old output stale/noncurrent
 ```
 
 Do not blindly re-invoke the professional operation.
+
+No Execution may remain indefinitely `running`, `validating`, or `committing` merely because its prior runtime process disappeared.
 
 ---
 

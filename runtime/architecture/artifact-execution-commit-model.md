@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.10 — FIX-005, FIX-006, FIX-010, FIX-011, FIX-012, FIX-020, FIX-023, FIX-024, and FIX-025 applied
+Draft V0.11 — FIX-005, FIX-006, FIX-010, FIX-011, FIX-012, FIX-015, FIX-020, FIX-023, FIX-024, and FIX-025 applied
 
 ## Purpose
 
@@ -60,6 +60,7 @@ Handlers own execution, validation, persistence, and commit.
 23. All temporary professional outputs for one Execution stage under `/data/staging/<execution_id>/` before validation and commit.
 24. Older valid professional artifact versions remain `committed`; whether an artifact is current is derived from Runtime Job pointers, not a mutable artifact status.
 25. `artifact_committed` is the only professional-state commit Event used to trigger routing; any `execution_committed` record/Event is audit/telemetry only.
+26. An Execution left `running` when its owning runtime instance disappears cannot resume the lost provider call; recovery terminates that physical attempt as interrupted and may create a retry attempt under the same `operation_key`.
 
 ---
 
@@ -1918,6 +1919,84 @@ conflicting newer state exists
 
 This is required for crash-safe operation.
 
+
+## Recovery of `running` Executions
+
+A professional Execution in:
+
+```text
+running
+```
+
+is owned by the runtime instance that initiated its provider invocation.
+
+If startup recovery determines that the owning runtime instance no longer exists:
+
+```text
+prior provider call cannot be resumed
+```
+
+The physical attempt becomes terminal:
+
+```text
+status = failed
+failure_class = invocation_failure
+failure_reason = runtime_interrupted
+```
+
+or equivalent structured failure detail.
+
+The runtime must not leave the attempt permanently `running`.
+
+If retry policy permits:
+
+```text
+same operation_key
+→ new execution_id
+→ attempt_number + 1
+```
+
+The retry is a new physical attempt for the same logical professional operation.
+
+Example:
+
+```text
+OPKEY-A
+├── EXEC-0042 attempt 1
+│   running
+│   container crashes
+│   → failed(runtime_interrupted)
+│
+└── EXEC-0043 attempt 2
+    → retry under OPKEY-A
+```
+
+A local timeout, process crash, or lost provider connection does not prove that the provider performed no work. Because no validated local output committed, recovery treats the attempt as interrupted rather than trying to reconstruct provider-side execution state.
+
+Professional exactly-once behavior remains enforced at the authoritative commit boundary, not at model-inference execution.
+
+## Recovery of `validating`
+
+If an Execution is found in:
+
+```text
+validating
+```
+
+and its Execution-scoped staging directory still contains complete output whose integrity can be verified, recovery may resume validation without re-invoking the professional provider.
+
+If staged output is missing or corrupt:
+
+```text
+attempt → failed
+→ retry policy may create a new attempt
+```
+
+## Recovery of `committing`
+
+`committing` recovery continues to use persisted files, artifact metadata, Runtime Job pointers, freshness dependencies, and commit-group state to determine whether to finish, repair, stale, or retry the commit.
+
+
 ---
 
 # 48. Artifact Runtime Status
@@ -2279,6 +2358,9 @@ The Artifact and Execution Commit Model is acceptable when:
 - [ ] Execution history is append-only.
 - [ ] Committed artifacts are traceable to their committing Execution.
 - [ ] Crash recovery can reconcile partially completed commits.
+- [ ] A `running` Execution owned by a dead runtime instance is terminated as interrupted rather than left active.
+- [ ] Retry after runtime interruption creates a new Execution attempt with the same `operation_key`.
+- [ ] Recoverable `validating` output may resume from Execution-scoped staging without unnecessary provider re-invocation.
 - [ ] Routing occurs only after successful current-state commit.
 - [ ] `artifact_committed` is the sole professional-state Event that triggers routing.
 - [ ] `execution_committed` is audit/telemetry only and cannot independently schedule routing.
