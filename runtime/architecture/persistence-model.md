@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.6 — FIX-007, FIX-008, FIX-009, FIX-015, and FIX-022 applied
+Draft V0.7 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, and FIX-022 applied
 
 ## Purpose
 
@@ -647,7 +647,7 @@ Provider-specific metadata remains outside Runtime Job.
 
 # 22. Interaction Messages
 
-Human messages may be stored separately from the Interaction record.
+Human messages are stored separately from the Interaction record.
 
 Conceptually:
 
@@ -658,19 +658,44 @@ message_id
 interaction_id
 provider_message_id
 direction
+provider_created_at
 timestamp
 content/reference
+processed_at
 ```
 
-Exact representation will depend on privacy and implementation choices.
+Provider message identity should be unique within provider scope so duplicate gateway/reconciliation delivery cannot create duplicate stored messages.
 
-The Event Store should reference:
+For inbound authorized human input, message persistence and Event persistence are one SQLite transaction:
+
+```text
+BEGIN
+
+insert Interaction Message
+insert human_input_received Event referencing message_id
+
+COMMIT
+```
+
+If the transaction fails:
+
+```text
+neither durable message receipt
+nor human_input_received Event
+is considered committed
+```
+
+The Event Store references:
 
 ```text
 message_id
 ```
 
-rather than duplicate full message content.
+rather than duplicating full message content.
+
+This guarantees that restart cannot observe a durable human answer without a durable Event capable of waking the Interaction Processor.
+
+Exact message-content representation depends on privacy and implementation choices.
 
 ---
 

@@ -1,7 +1,7 @@
 # RRS V3 Discord Interaction Model
 
 ## Status
-Draft V0.1
+Draft V0.2 — FIX-016 applied
 
 ## Purpose
 The Discord Interaction Model defines how V3 uses Discord as the human conversation surface for Evidence Request investigation.
@@ -25,7 +25,7 @@ one active Evidence Request investigation per Runtime Job at a time
 3. ERQs are investigated serially per Runtime Job in V0.1.
 4. Interaction state persists independently from Discord.
 5. Discord provider IDs remain outside professional artifacts.
-6. Human messages persist before Interviewer continuation.
+6. Human messages and their `human_input_received` Events persist atomically before Interviewer continuation.
 7. Duplicate Discord events/messages are safe.
 8. Interviewer continuation is restart-safe and does not depend on in-memory model state.
 9. Every continuation reloads the current ERQ, persisted conversation, and Interviewer resources.
@@ -35,6 +35,7 @@ one active Evidence Request investigation per Runtime Job at a time
 13. Evidence Responses enter the normal evidence-integration path after commit.
 14. Provider failures must not corrupt professional state.
 15. Interaction history must survive container restart.
+16. An inbound authorized human message and its `human_input_received` Event persist atomically in one SQLite transaction.
 
 ## 1. Discord Topology
 
@@ -225,7 +226,67 @@ evidence integration
 authoritative JER state
 ```
 
-## 8. Human Message Ingress
+## 7.1 Inbound Human Message Transaction
+
+Discord message ingestion is durable before Interviewer continuation.
+
+For each authorized, unseen human message:
+
+```text
+BEGIN SQLITE TRANSACTION
+
+insert Interaction Message
+persist human_input_received Event
+
+COMMIT
+```
+
+The Event references the persisted message:
+
+```yaml
+event_type: human_input_received
+
+payload:
+  interaction_id: INT-0004
+  message_ref: MSG-0091
+```
+
+The full message content remains in the Interaction Store.
+
+The Event body does not duplicate the human message.
+
+If the transaction fails:
+
+```text
+message is not treated as durably received
+AND
+human_input_received is not emitted
+```
+
+The provider event may be retried/reconciled.
+
+If the transaction succeeds:
+
+```text
+message exists durably
+AND
+human_input_received exists durably
+```
+
+so restart cannot leave a stored human answer with no continuation trigger.
+
+Duplicate provider delivery is safe because the Interaction Message store deduplicates by provider message identity before inserting another message/Event pair.
+
+The runtime must not use:
+
+```text
+persist message
+→ later emit human_input_received in a separate transaction
+```
+
+because a crash between those steps could permanently strand human input.
+
+# 8. Human Message Ingress
 
 ```text
 human posts message

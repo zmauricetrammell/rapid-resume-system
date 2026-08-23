@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.7 — FIX-007, FIX-008, FIX-009, FIX-014, FIX-020, and FIX-022 applied
+Draft V0.8 — FIX-007, FIX-008, FIX-009, FIX-014, FIX-016, FIX-020, and FIX-022 applied
 
 ## Purpose
 
@@ -46,6 +46,7 @@ These concepts remain separate.
 15. Event history is auditable.
 16. `artifact_committed` is the sole canonical professional-state routing trigger; `execution_committed` is audit/telemetry only.
 17. Commands produced from Events may carry a deterministic `command_dedupe_key` so duplicate Event processing cannot create duplicate requested runtime actions.
+18. An inbound authorized Discord human message and its `human_input_received` Event are persisted atomically.
 
 ---
 
@@ -1156,28 +1157,38 @@ The Interviewer professional operation eventually produces a schema-conformant E
 
 # 30. Discord Message Handling
 
-Recommended flow:
+Recommended inbound flow:
 
 ```text
 Discord provider message
         ↓
-normalize/persist message in Interaction store
+validate provider/source + active Interaction
         ↓
-emit human_input_received
+BEGIN SQLite transaction
+  deduplicate provider_message_id
+  persist Interaction Message
+  persist human_input_received Event referencing message_id
+COMMIT
         ↓
 interaction processor
         ↓
 continue professional Interviewer interaction
 ```
 
-Events should reference:
+Events reference:
 
 ```text
 interaction_id
 message_ref
 ```
 
-rather than embed full human messages.
+rather than embedding full human messages.
+
+The message and Event must not be committed independently.
+
+Failure before transaction commit leaves the provider input eligible for retry/reconciliation.
+
+Successful transaction commit guarantees that both the durable human message and its continuation trigger survive restart.
 
 ---
 
