@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.6 — FIX-001, FIX-002, FIX-013, FIX-027, and FIX-028 applied
+Draft V0.7 — FIX-001, FIX-002, FIX-013, FIX-014, FIX-027, and FIX-028 applied
 
 ## Purpose
 
@@ -44,6 +44,7 @@ The Runtime Job is intentionally small. Historical professional artifacts, execu
 18. Each Runtime Job pins exact JER versions; newer reusable JER versions do not silently propagate into existing in-flight Jobs.
 19. Runtime Job interaction state is a coarse projection of the authoritative Interaction record and does not mirror every provider/runtime Interaction status.
 20. Process Feedback is governance/Kaizen evidence and never appears in `RuntimeJob.professional_state`.
+21. Runtime Job creation is owned by the deterministic `create_job` runtime Command; a new Job begins at revision 1 with an exact Target Job pointer and pinned initial JER snapshot.
 
 ---
 
@@ -633,9 +634,21 @@ Freshness is evaluated against that Job's exact pinned professional dependencies
 
 ## 9.2 New Job Initialization
 
-When a new Runtime Job is created, its initial `jer_set` should resolve the latest eligible committed version of each reusable JER included in the professional evidence baseline.
+When the `create_job` Command creates a new Runtime Job, its initial `jer_set` resolves the latest eligible committed version of each reusable JER included in the professional evidence baseline.
 
-The resulting exact artifact references are persisted in the Runtime Job and become that Job's initial evidence snapshot.
+The same successful Job-creation transaction establishes:
+
+```text
+Runtime Job revision = 1
+Target Job current pointer
+initial exact jer_set snapshot
+job_created Event
+create_job Command completion
+```
+
+The resulting exact artifact references become that Job's initial evidence snapshot.
+
+The intended `job_id` is allocated before Command execution and remains stable across retries. Retrying the same `create_job` Command must reconcile the same Job rather than creating another Runtime Job.
 
 
 ---
@@ -914,8 +927,14 @@ Professional Agent
 → professional reasoning
 → professional artifact contents
 
+Job Creation Service
+→ deterministic create_job Command
+→ Target Job persistence
+→ Runtime Job creation
+→ initial JER snapshot
+
 Handler
-→ execution
+→ professional execution
 → validation
 → persistence
 → pointer commits
@@ -1017,6 +1036,9 @@ It should not answer:
 - [ ] Routing history is append-only.
 - [ ] Routing decisions identify exact professional-artifact basis.
 - [ ] Trello may mirror routing history without becoming authoritative.
+- [ ] `create_job` is the sole normal runtime path for initial Runtime Job creation.
+- [ ] New Runtime Jobs begin at revision 1 with an exact Target Job pointer and pinned initial JER snapshot.
+- [ ] Retrying the same `create_job` Command cannot create a duplicate Runtime Job.
 - [ ] Terminal lifecycle states cannot automatically reopen.
 - [ ] Runtime Job contains no professional reasoning or agent-routing instructions.
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.4 — FIX-007, FIX-008, and FIX-009 applied
+Draft V0.5 — FIX-007, FIX-008, FIX-009, and FIX-014 applied
 
 ## Purpose
 
@@ -77,6 +77,7 @@ A Command records:
 Examples:
 
 ```text
+create_job
 schedule_operation
 evaluate_routing
 sync_trello
@@ -656,6 +657,7 @@ Commands should also remain generic.
 Recommended V0.1 commands:
 
 ```text
+create_job
 schedule_operation
 evaluate_routing
 sync_trello
@@ -688,6 +690,39 @@ schedule_evaluate_resume
 unless implementation evidence shows separate command types are useful.
 
 ---
+
+## `create_job` Command
+
+`create_job` is a deterministic nonprofessional runtime Command.
+
+Recommended payload:
+
+```yaml
+command:
+  command_type: create_job
+  job_id: JOB-0001
+
+  payload:
+    target_job_source: /imports/brooks.pdf
+    label: "Brooks IT Service Desk Manager" | null
+```
+
+`job_id` is allocated when the Command is created and remains stable across retries.
+
+Successful execution:
+1. Finalizes the immutable Target Job artifact.
+2. Resolves the latest eligible reusable JER versions for the new Job.
+3. Creates Runtime Job `JOB-0001` at revision 1.
+4. Sets the exact Target Job pointer.
+5. Sets the exact initial pinned JER set.
+6. Persists `job_created`.
+7. Marks the `create_job` Command completed.
+
+After Target Job file persistence succeeds, steps 3–7 commit atomically in SQLite.
+
+If the same Command is retried, the handler reconciles the intended `job_id` and existing Target Job artifact state rather than allocating a second Job.
+
+Separate `create_job` Commands may intentionally target the same source material and create separate Runtime Jobs.
 
 # 18.1 Nonprofessional Command Completion
 
@@ -774,6 +809,11 @@ Projection-only failures may degrade runtime health without rolling back already
 # 19. Event-to-Command Example
 
 ```text
+CMD-001
+create_job(JOB-0001)
+    ↓
+Target Job + Runtime Job committed
+    ↓
 EVT-001
 job_created
     ↓
@@ -1681,6 +1721,7 @@ The Event Model is acceptable when:
 - [ ] Event processing is idempotent.
 - [ ] Event-produced Commands and successful Event completion persist atomically in one SQLite transaction.
 - [ ] Nonprofessional SQLite-local Commands commit authoritative mutation, required resulting Event(s), and Command completion atomically.
+- [ ] `create_job` is a durable nonprofessional Command with a stable intended `job_id` and idempotent retry semantics.
 - [ ] External-side-effect Commands persist durable local intent before unsafe-to-repeat provider actions where practical.
 - [ ] Ambiguous external outcomes are reconciled rather than blindly repeated.
 - [ ] An Event cannot be marked processed before all required resulting Commands are durable.

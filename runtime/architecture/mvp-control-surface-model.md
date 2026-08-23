@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.1
+Draft V0.2 — FIX-014 applied
 
 ## Purpose
 
@@ -172,29 +172,73 @@ The operator-facing label is optional runtime metadata and must not replace the 
 
 # 6. Job Creation Semantics
 
-Conceptual flow:
+`rrs job create` persists a deterministic runtime Command:
 
 ```text
-accept Target Job source
+create_job
+```
+
+Job creation is a control-plane operation, not a professional AI operation.
+
+The CLI does not persist the Runtime Job directly.
+
+Canonical flow:
+
+```text
+CLI validates Target Job source
 ↓
-persist Target Job artifact
+allocate command_id
 ↓
-resolve current reusable evidence baseline
+allocate intended job_id
 ↓
-create Runtime Job
+persist create_job Command
 ↓
-Runtime Job lifecycle = new
+CLI may exit
 ↓
-emit job_created Event
+daemon claims create_job
 ↓
-schedule/evaluate initial routing
+persist/finalize Target Job artifact
+↓
+resolve latest eligible reusable JER snapshot
+↓
+atomically create Runtime Job at revision 1
++ set Target Job pointer
++ set initial pinned JER set
++ persist job_created Event
++ mark create_job Command completed
+↓
+Event processing schedules/evaluates initial routing
 ↓
 analysis begins
 ```
 
-The CLI should not directly call `generate_analysis`.
+The `create_job` Command owns creation of:
+- the Target Job artifact,
+- the Runtime Job,
+- the initial exact JER snapshot,
+- the `job_created` Event.
 
-Job creation should enter the same runtime path future integrations use.
+It does not invoke `generate_analysis` directly.
+
+## Job-Creation Idempotency
+
+The intended `job_id` is allocated before Command execution and is stable for that Command.
+
+Retrying the same persisted `create_job` Command must not create another Runtime Job.
+
+Conceptually:
+
+```text
+CMD-001 create_job → JOB-0001
+
+CMD-001 retry
+→ reconcile/complete JOB-0001
+→ never create JOB-0002
+```
+
+A separate human invocation of `rrs job create` creates a new Command and may intentionally create another Job, even for the same Target Job source.
+
+Target content similarity is not used for automatic cross-command deduplication.
 
 ---
 
@@ -796,6 +840,7 @@ A thin application service may expose:
 class RuntimeControlService(Protocol):
 
     async def create_job(...):
+        # validates request, allocates IDs, persists create_job Command
         ...
 
     async def get_job(job_id):

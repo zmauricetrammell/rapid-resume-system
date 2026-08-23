@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.3 — FIX-008 and FIX-009 applied
+Draft V0.4 — FIX-008, FIX-009, and FIX-014 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -217,13 +217,30 @@ They do not start a second daemon.
 
 ## 13. CLI Write Path
 
+All mutating CLI actions use durable Commands.
+
+Job creation:
+
 ```text
 CLI
 → RuntimeControlService
-→ durable Command / defined Job-creation transaction
+→ allocate command_id + intended job_id
+→ persist create_job Command
 → CLI exits
-→ daemon processes pending work
+→ daemon claims create_job
+→ finalize Target Job artifact
+→ resolve latest eligible JER snapshot
+→ SQLite transaction:
+     create Runtime Job revision 1
+     set Target Job pointer
+     set initial JER snapshot
+     persist job_created Event
+     mark create_job Command completed
 ```
+
+Other mutations follow the same Command-driven control boundary.
+
+The CLI does not directly create or mutate Runtime Job rows.
 
 ## 14. CLI Read Path
 
@@ -234,6 +251,28 @@ CLI
 → SQLite/artifact metadata
 → output
 ```
+
+## 14.1 `create_job` Runtime Operation
+
+`create_job` is executed by the daemon as a nonprofessional control-plane Command.
+
+It is short-lived and does not create a professional Execution.
+
+The intended Job ID is stable from Command creation through retries.
+
+The Target Job body is finalized before the Runtime Job becomes authoritative.
+
+After file finalization, the Runtime Job creation transaction includes:
+
+```text
+Runtime Job row at revision 1
+Target Job artifact metadata/pointer
+initial pinned JER set
+job_created Event
+create_job Command completion
+```
+
+If recovery finds the intended Job already created for the same Command, it reconciles and completes the Command rather than creating another Job.
 
 ## 15. SQLite Role
 SQLite stores:
@@ -559,8 +598,9 @@ distributed tracing
 ## 61. Straight-Through MVP Path
 
 ```text
-CLI create Job
-→ durable command/state
+CLI persists create_job
+→ daemon creates Target Job + Runtime Job
+→ job_created
 → analysis
 → JEA commit
 → routing
@@ -597,6 +637,8 @@ At any nonterminal point, restarting the container must not require manual recon
 - [ ] Internal workers are async components inside the daemon.
 - [ ] No inbound HTTP server is required.
 - [ ] Short-lived CLI processes safely use the same SQLite persistence.
+- [ ] Job creation occurs through a durable `create_job` Command with a stable intended `job_id`.
+- [ ] Retrying one `create_job` Command cannot create duplicate Runtime Jobs.
 - [ ] CLI does not start a second daemon.
 - [ ] SQLite persists Jobs, Commands, Events, Executions, Interactions, and metadata.
 - [ ] Professional artifacts persist under `/data/artifacts`.
