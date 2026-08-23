@@ -1,0 +1,892 @@
+# RRS V3 Professional Invocation Model
+
+## Status
+Draft V0.1
+
+## Purpose
+The Professional Invocation Model defines how the V3 runtime programmatically invokes professional AI operations while preserving authority boundaries, reproducibility, portability, and provider independence.
+
+The runtime decides which operation must occur, which exact inputs/resources are authorized, which retrieval source may be used, which schemas apply, and how the invocation is recorded. The professional AI decides the professional answer.
+
+Raw model output does not become authoritative professional state until it passes extraction, validation, freshness, persistence, and commit.
+
+## Core Invariants
+
+1. Professional invocation is operation-centric, not chat-session-centric.
+2. Each invocation uses an immutable Invocation Bundle.
+3. Contracts, tasks, schemas, templates, and other resources are explicitly resolved.
+4. Professional artifacts and static resources are distinct input categories.
+5. Input resolution enforces professional authority boundaries.
+6. Professional reasoning invocations are closed-context.
+7. Evidence retrieval may occur before invocation through an authorized runtime-managed `EvidenceSource`.
+8. Models do not receive unrestricted storage access in MVP.
+9. Retrieval results are normalized and fingerprinted before professional reasoning.
+10. Google Drive is the preferred V0.1 external evidence source where applicable.
+11. `EvidenceSource` is abstract so Drive can later be replaced by local filesystem, local RAG, vector search, or another provider.
+12. Provider details are hidden behind a Professional Invoker abstraction.
+13. Raw provider responses are never professional state.
+14. Operation-specific Output Extractors identify required artifacts.
+15. Schema validation is performed by V3 even when provider structured-output features are used.
+16. Missing required artifacts make an invocation incomplete even if accompanying prose is useful.
+17. Interviewer continuation reconstructs context from persisted conversation rather than provider session memory.
+18. Logical retry behavior remains visible in Execution history.
+19. Invocation provenance records exact model, resources, inputs, retrieval results, and runtime version.
+20. Large-context retrieval complexity is handled by the evidence-retrieval layer rather than blindly uploading the whole corpus.
+21. Tool/provider access may be introduced only through explicit runtime authorization.
+
+## 1. Invocation Position in the Runtime
+
+```text
+Runtime Command
+      ↓
+Operation Handler
+      ↓
+Input Resolver
+      ↓
+optional EvidenceSource retrieval
+      ↓
+Invocation Bundle
+      ↓
+Professional Invoker
+      ↓
+AI Professional Operation
+      ↓
+RawProfessionalResponse
+      ↓
+Output Extractor
+      ↓
+Staged Artifacts
+      ↓
+Validation
+      ↓
+Freshness Check
+      ↓
+Commit
+```
+
+The Professional Invoker does not own routing, persistence, Runtime Job pointer mutation, schema authority, evidence custody, Trello, or Discord provider mechanics.
+
+## 2. Operation-Centric Invocation
+
+Current operations may include:
+
+```text
+generate_analysis
+request_evidence
+investigate_evidence_request
+integrate_evidence
+generate_resume
+evaluate_resume
+```
+
+Future Analyst/Custodian operations may include:
+
+```text
+analyze_target
+request_information
+retrieve_evidence
+integrate_evidence
+generate_analysis
+```
+
+Dispatch remains based on `operation_type`.
+
+## 3. Invocation Bundle
+
+```yaml
+invocation_bundle:
+  invocation_id: INV-0042
+  job_id: JOB-0001
+  execution_id: EXEC-0042
+  operation_type: generate_resume
+  professional_role: writer
+
+  instructions:
+    contract_ref:
+      path: agents/writer/contract.md
+      git_commit: abc123
+      content_hash: sha256:...
+    task_ref:
+      path: agents/writer/tasks/generate-resume.md
+      git_commit: abc123
+      content_hash: sha256:...
+
+  professional_inputs:
+    - artifact_ref
+
+  retrieval_results: []
+
+  resources:
+    - resource_ref
+
+  output_contract:
+    expected_artifact_types:
+      - targeted_resume
+      - writer_content_manifest
+    schema_refs:
+      - path: schemas/writer-content-manifest.yaml
+        git_commit: abc123
+        content_hash: sha256:...
+
+  invocation_metadata:
+    created_at: ...
+```
+
+The bundle is immutable once execution begins.
+
+## 4. Professional Artifacts vs Resources
+
+Professional artifacts include:
+
+```text
+Target Job
+JER
+JEA
+Information Request
+Information Response
+ERQ
+Evidence Response
+Resume
+WCM
+Resume Evaluation
+Process Feedback
+```
+
+Resources include:
+
+```text
+agent contract
+task instruction
+schema
+Resume Skeleton
+Prompt Bank
+shared architecture resources when explicitly required
+```
+
+These categories are versioned/fingerprinted separately.
+
+## 5. Operation Specification
+
+Each operation has an explicit runtime specification.
+
+```yaml
+generate_resume:
+  professional_role: writer
+
+  required_resources:
+    contract: agents/writer/contract.md
+    task: agents/writer/tasks/generate-resume.md
+
+  required_inputs:
+    - target_job
+    - job_experience_analysis
+    - resume_skeleton
+    - prompt_bank
+
+  optional_inputs:
+    - resume_evaluation
+
+  expected_outputs:
+    - targeted_resume
+    - writer_content_manifest
+
+  schemas:
+    - schemas/writer-content-manifest.yaml
+```
+
+The runtime does not discover dependencies opportunistically by scanning folders.
+
+## 6. Resource Identity
+
+```yaml
+resource_ref:
+  path: agents/writer/contract.md
+  git_commit: abc123...
+  content_hash: sha256:...
+```
+
+Use the same pattern for contracts, tasks, schemas, skeletons, prompt banks, and shared resources.
+
+## 7. Docker / Repository Provenance
+
+The running container should be built from a known repository state.
+
+Record:
+
+```text
+RRS version
+Git commit SHA
+Docker image version/tag
+```
+
+per runtime build or startup record.
+
+## 8. Input Resolver Authority
+
+The Input Resolver may load only inputs authorized for the operation.
+
+Example Writer inputs:
+
+```text
+Target Job
+JEA
+Resume Skeleton
+Prompt Bank
+applicable Resume Evaluation
+Writer contract/task/schema
+```
+
+Writer should not automatically receive all JERs, all Evidence Responses, Discord transcripts, or Custodian internals.
+
+The model cannot request arbitrary runtime storage access in MVP.
+
+## 9. Closed-Context Professional Reasoning
+
+V0.1 uses closed, explicitly authorized context for reasoning operations.
+
+Examples:
+
+```text
+Writer
+Evaluator
+Analyst
+Interviewer
+```
+
+They do not autonomously query Drive, runtime DB, Trello, Discord, GitHub, or the web unless a future operation explicitly grants access.
+
+## 10. Evidence Retrieval Exception
+
+Evidence retrieval is a distinct runtime capability performed through an authorized source abstraction.
+
+```python
+class EvidenceSource(Protocol):
+    async def search(
+        self,
+        query: EvidenceQuery,
+    ) -> EvidenceSearchResult:
+        ...
+```
+
+The reasoning model receives normalized retrieval results, not unrestricted direct storage access.
+
+## 11. V0.1 Evidence Source
+
+Preferred V0.1 source:
+
+```text
+Google Drive
+```
+
+The reusable professional-source corpus may remain in Drive rather than being uploaded in full on every invocation.
+
+This reduces transfer volume, context use, token use, latency, and duplicated storage.
+
+## 12. EvidenceSource Implementations
+
+Potential implementations:
+
+```text
+GoogleDriveEvidenceSource
+LocalFilesystemEvidenceSource
+LocalIndexedEvidenceSource
+VectorEvidenceSource
+TestEvidenceSource
+```
+
+Higher-level operations depend on the normalized interface, not provider-specific connectors.
+
+## 13. Google Drive Access Boundary
+
+Preferred:
+
+```text
+Researcher/Custodian retrieval operation
+      ↓
+GoogleDriveEvidenceSource
+      ↓
+normalized retrieval result
+      ↓
+professional reasoning invocation
+```
+
+Avoid long-term architecture where the model has unrestricted Drive access.
+
+## 14. Transitional Researcher Support
+
+Before the Analyst/Custodian split:
+
+```text
+GenerateAnalysisHandler
+      ↓
+Researcher Input Resolver
+      ↓
+EvidenceSource.search(...)
+      ↓
+selected evidence
+      ↓
+Invocation Bundle
+      ↓
+Researcher
+```
+
+After the split:
+
+```text
+RetrieveEvidenceHandler
+      ↓
+Custodian
+      ↓
+EvidenceSource
+      ↓
+Information Response
+      ↓
+Analyst
+```
+
+The source abstraction survives the refactor.
+
+## 15. Evidence Query
+
+Conceptual structure:
+
+```yaml
+evidence_query:
+  query_id: QUERY-0042
+  job_id: JOB-0001
+
+  information_need:
+    capability: direct service desk people management
+    dimensions:
+      - direct-report relationship
+      - team size
+      - duration
+      - performance management
+
+  scope:
+    source_collection: professional_corpus
+
+  constraints:
+    - preserve provenance
+    - do not infer direct reporting
+```
+
+The exact schema may evolve with Analyst/Custodian design.
+
+## 16. Evidence Search Result
+
+```yaml
+evidence_search_result:
+  retrieval_id: RET-0042
+  source_type: google_drive
+  query_id: QUERY-0042
+
+  returned_items:
+    - source_id: DRIVE-FILE-001
+      source_version: "modified-time-or-provider-version"
+      title: "..."
+      content_hash: sha256:...
+      excerpt_ref: ...
+      relevance_metadata: ...
+
+  completed_at: ...
+```
+
+## 17. Retrieval Provenance
+
+Persist enough information to answer:
+
+```text
+What source was searched?
+What query was used?
+Which files/items were returned?
+What versions were returned?
+What exact content was supplied to the model?
+```
+
+## 18. Retrieval Fingerprint
+
+The logical professional operation identity should include the retrieval result used for reasoning.
+
+Conceptually:
+
+```text
+Information Request
++
+retrieval result fingerprint
++
+task/resource identity
+=
+logical professional operation identity
+```
+
+Do not rely only on the search query.
+
+## 19. Retrieval Result Fingerprinting
+
+Recommended fingerprint inputs:
+
+```text
+source type
+source item ID
+source item version / modified identity
+content hash of supplied excerpt/content
+```
+
+Canonicalize and hash deterministically.
+
+## 20. Retrieval Result Storage
+
+Persist retrieval metadata such as:
+
+```text
+retrieval ID
+query
+provider/source
+returned source refs
+versions
+content hashes
+selected excerpts/content refs
+timestamps
+```
+
+Large source bodies need not be duplicated unnecessarily if exact source/excerpt identity is preserved.
+
+## 21. External Source Change
+
+If Drive content changes for the same source ID, indicated by a new version/modified identity or content hash, the retrieval result changes and a new logical invocation may be required.
+
+Committed professional artifacts remain immutable.
+
+## 22. Provider Portability
+
+If Drive becomes unavailable or the runtime moves to an internal model, replace:
+
+```text
+GoogleDriveEvidenceSource
+```
+
+with:
+
+```text
+LocalFilesystemEvidenceSource
+```
+
+or:
+
+```text
+LocalIndexedEvidenceSource
+```
+
+without changing the higher-level professional interface.
+
+## 23. Input Assembly
+
+Logical assembly order:
+
+```text
+PROFESSIONAL ROLE / CONTRACT
+TASK
+AUTHORIZED PROFESSIONAL INPUTS
+AUTHORIZED RETRIEVAL RESULTS
+PRESENTATION / SHARED RESOURCES
+OUTPUT CONTRACT
+```
+
+Provider APIs may represent these differently, but logical content remains stable.
+
+## 24. Professional Role Mapping
+
+Current conceptual mapping:
+
+```text
+generate_analysis → researcher
+request_evidence → researcher
+investigate_evidence_request → interviewer
+integrate_evidence → future custodian
+generate_resume → writer
+evaluate_resume → evaluator
+```
+
+Future:
+
+```text
+analyze_target → analyst
+retrieve_evidence → custodian
+integrate_evidence → custodian
+generate_analysis → analyst
+```
+
+## 25. Professional Invoker Interface
+
+```python
+class ProfessionalInvoker(Protocol):
+    async def invoke(
+        self,
+        bundle: InvocationBundle,
+    ) -> RawProfessionalResponse:
+        ...
+```
+
+Possible implementations:
+
+```text
+OpenAIProfessionalInvoker
+LocalModelProfessionalInvoker
+TestProfessionalInvoker
+```
+
+## 26. Runtime Model Configuration
+
+Provider/model selection belongs in runtime configuration.
+
+```yaml
+professional_roles:
+  writer:
+    provider: openai
+    model: configured-model
+  evaluator:
+    provider: openai
+    model: configured-model
+```
+
+Professional contracts do not hard-code model identity.
+
+## 27. Invocation Provenance
+
+Each Execution should record:
+
+```yaml
+model_invocation:
+  provider: openai
+  model: configured-model
+  provider_request_id: "..."
+  invocation_id: INV-0042
+  started_at: ...
+  completed_at: ...
+
+  usage:
+    input_tokens: ...
+    output_tokens: ...
+
+  latency_ms: ...
+```
+
+Usage may be null when unavailable.
+
+## 28. Raw Professional Response
+
+Provider output enters as:
+
+```text
+RawProfessionalResponse
+```
+
+It may contain text, structured data, attachments/files, provider metadata, or continuation output.
+
+It is not authoritative professional state.
+
+## 29. Output Extractor
+
+```python
+class OutputExtractor(Protocol):
+    def extract(
+        self,
+        response: RawProfessionalResponse,
+    ) -> tuple[StagedArtifact, ...]:
+        ...
+```
+
+Examples:
+
+```text
+GenerateAnalysisOutputExtractor
+RequestEvidenceOutputExtractor
+EvidenceResponseOutputExtractor
+GenerateResumeOutputExtractor
+EvaluationOutputExtractor
+```
+
+Extractors parse outputs; they do not judge professional correctness.
+
+## 30. Required Output Enforcement
+
+Examples:
+
+```text
+generate_analysis → JEA required
+request_evidence → ERQ required
+generate_resume → Resume + WCM required
+evaluate_resume → Resume Evaluation required
+```
+
+If required output is missing, the invocation is incomplete and execution fails.
+
+Useful prose does not substitute for required artifacts.
+
+## 31. Human-Readable Commentary
+
+Optional commentary may accompany authoritative artifacts. The runtime may retain it as Execution metadata/logging, but it does not become a professional artifact unless explicitly defined as one.
+
+## 32. Schema Delivery
+
+If conformance requires a schema, the exact schema supplied to the model must be the same schema used for runtime validation.
+
+Invocation provenance records path, Git SHA, and content hash.
+
+## 33. Provider Structured Output
+
+Provider structured-output constraints may be used, but runtime schema validation still runs.
+
+```text
+provider validation
+≠
+authoritative runtime validation
+```
+
+## 34. Interviewer Continuation
+
+Each continuation receives:
+
+```text
+exact ERQ
+persisted ordered conversation
+latest unprocessed human input
+Interviewer contract/task
+Evidence Response schema
+```
+
+It may return a next conversational turn or an Evidence Response.
+
+No provider conversation/session memory is required for correctness.
+
+## 35. Resume Generation
+
+Current Writer may produce a Resume file + WCM.
+
+Potential future improvement:
+
+```text
+AI-generated structured resume content
++
+deterministic Python DOCX renderer
+```
+
+This would separate professional content reasoning from document mechanics, but does not block MVP.
+
+## 36. Large Context Policy
+
+V0.1 should not solve large corpora by sending every source file to every invocation.
+
+Preferred:
+
+```text
+targeted EvidenceSource retrieval
+→ normalized selected evidence
+→ closed-context reasoning
+```
+
+If an invocation still exceeds context limits, fail safely rather than silently truncating authoritative input.
+
+## 37. Retrieval and Analyst/Custodian
+
+Future flow:
+
+```text
+Analyst
+→ Information Request
+
+Custodian
+→ EvidenceSource retrieval
+→ Information Response
+
+Analyst
+→ JEA
+```
+
+This naturally reduces context size.
+
+## 38. Provider Timeouts
+
+Professional invocations use configured runtime timeouts.
+
+Timeout maps to:
+
+```text
+INVOCATION_FAILURE
+```
+
+and normal Execution retry behavior applies.
+
+## 39. Retry Boundary
+
+Transport-level retries inside a provider adapter should remain limited.
+
+Logical professional retries belong to V3 and remain visible as Execution attempts.
+
+## 40. Provider-Specific Settings
+
+Settings such as temperature, reasoning effort, max output size, and tool configuration belong in provider/runtime configuration behind the adapter.
+
+## 41. Invocation Security
+
+The model cannot expand its own authority.
+
+Examples:
+
+```text
+Writer asks for all JERs
+→ runtime does not automatically provide them
+
+Evaluator asks to search Drive
+→ runtime does not grant access unless operation spec authorizes retrieval
+```
+
+## 42. Tool Access Policy
+
+V0.1 default:
+
+```text
+no autonomous runtime/tool access inside professional reasoning invocations
+```
+
+Exception: explicit evidence-retrieval operations using runtime-managed `EvidenceSource` adapters.
+
+Future tool access must be scoped by operation.
+
+## 43. Google Drive Provider Caveat
+
+Drive is a V0.1 evidence-source implementation choice, not a professional-agent architectural dependency.
+
+If the OpenAI runtime exposes a suitable programmable Drive connector, the adapter may use it. Otherwise, the adapter may use the Google Drive API or another supported mechanism.
+
+The professional operation interface remains unchanged.
+
+## 44. Test Professional Invoker
+
+Tests should use deterministic fake invokers.
+
+```python
+fake_invoker = TestProfessionalInvoker(
+    response=known_valid_evaluation
+)
+```
+
+This avoids live model dependencies when testing handler lifecycle, idempotency, commit logic, routing, stale detection, schema failure, or Discord state.
+
+## 45. Test Evidence Source
+
+```python
+fake_source = TestEvidenceSource(
+    results=known_evidence_result
+)
+```
+
+This supports deterministic tests for retrieval fingerprints, provider portability, invocation construction, and future Analyst/Custodian behavior.
+
+## 46. Invocation Audit Requirements
+
+The runtime should be able to answer:
+
+```text
+Which operation produced this artifact?
+Which professional role was invoked?
+Which provider/model was used?
+Which contract/task/schema versions were used?
+Which professional artifacts were inputs?
+Which retrieval result was used?
+Which source files contributed evidence?
+Which execution attempt committed the output?
+```
+
+## 47. Invocation Persistence
+
+Invocation metadata may live inside Execution records or a dedicated Invocation table if later complexity justifies it.
+
+V0.1 does not require a separate store if Execution records can capture the complete bundle/provenance.
+
+## 48. Evidence Retrieval Persistence
+
+Retrieval state may live in Execution metadata or a dedicated retrieval table.
+
+It must preserve exact retrieval identity and fingerprints needed for reproducibility and stale/idempotency checks.
+
+## 49. Operation-Key Integration
+
+The logical operation key should incorporate:
+
+```text
+job ID
+operation type
+professional input snapshot
+retrieval-result fingerprint where applicable
+task identity
+contract identity
+semantically material schema/resource identity
+```
+
+Changed Drive evidence therefore changes logical invocation identity.
+
+## 50. No Blind Corpus Upload
+
+V0.1 explicitly avoids:
+
+```text
+load all professional files
+→ send entire corpus on every invocation
+```
+
+unless a specific operation intentionally requires that behavior and context budget safely permits it.
+
+## 51. Failure Classes
+
+Invocation failures map to the existing runtime vocabulary:
+
+```text
+INVOCATION_FAILURE
+OUTPUT_PARSE_FAILURE
+SCHEMA_VALIDATION_FAILURE
+CROSS_OUTPUT_VALIDATION_FAILURE
+STALE_INPUT
+```
+
+A dedicated retrieval-failure class may be added later only if implementation evidence justifies it.
+
+## 52. V0.1 Acceptance Criteria
+
+- [ ] Professional invocations are operation-centric.
+- [ ] Every invocation uses an immutable Invocation Bundle.
+- [ ] Contracts/tasks/schemas/resources are explicitly resolved.
+- [ ] Resource identity includes reproducible version/hash metadata.
+- [ ] Professional artifacts and static resources are distinguished.
+- [ ] Input Resolver enforces professional authority boundaries.
+- [ ] Professional reasoning invocations are closed-context.
+- [ ] Evidence retrieval is supported through an authorized `EvidenceSource`.
+- [ ] Google Drive can serve as the V0.1 source.
+- [ ] Google Drive is not a permanent provider dependency.
+- [ ] Local/filesystem/RAG source replacements remain possible.
+- [ ] Retrieval results are normalized.
+- [ ] Retrieval provenance and fingerprints are persisted.
+- [ ] Changed source evidence changes logical invocation identity.
+- [ ] Professional Invoker hides provider implementation.
+- [ ] Model/provider configuration is runtime configuration.
+- [ ] Raw provider output never directly becomes professional state.
+- [ ] Operation-specific Output Extractors exist conceptually.
+- [ ] Missing required artifacts cause invocation failure.
+- [ ] Runtime independently validates authoritative schemas.
+- [ ] Optional prose does not substitute for required artifacts.
+- [ ] Interviewer continuation reconstructs from persisted interaction state.
+- [ ] Logical retries remain visible in Execution history.
+- [ ] Models cannot autonomously expand storage/tool authority.
+- [ ] Large corpus transfer is minimized through retrieval.
+- [ ] Invocation provenance supports end-to-end audit.
+- [ ] Test invoker and test evidence source can replace live external dependencies.
+- [ ] Planned Analyst/Custodian split can use the same invocation framework.
+
+## Next Design Step
+
+After this model is accepted, the final planned MVP architecture artifact should be the:
+
+> **V3 MVP Runtime and Deployment Model**
+
+It should define container process layout, worker/task loops, startup/shutdown, SQLite initialization, Discord adapter lifecycle, command/event processing, professional invocation workers, configuration, Docker volumes, health checks, restart recovery, and MVP deployment boundaries.
