@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.3 — FIX-001 and FIX-002 applied
+Draft V0.4 — FIX-001, FIX-002, and FIX-013 applied
 
 ## Purpose
 
@@ -41,6 +41,7 @@ The Runtime Job is intentionally small. Historical professional artifacts, execu
 15. Runtime Job revision protects mutation concurrency; professional freshness is determined from exact operation dependencies, not revision alone.
 16. Collection-valued professional state is mutated semantically with `ADD`, `REMOVE`, `REPLACE`, or `UPSERT_VERSION`; handlers do not overwrite collections from stale snapshots.
 17. Collection mutations are applied atomically with the Runtime Job revision check.
+18. Each Runtime Job pins exact JER versions; newer reusable JER versions do not silently propagate into existing in-flight Jobs.
 
 ---
 
@@ -507,7 +508,7 @@ Rules:
 
 # 9. Current JER Set
 
-Professional evidence state contains multiple current JER versions.
+Professional evidence state contains multiple exact JER versions.
 
 ```yaml
 jer_set:
@@ -523,6 +524,52 @@ jer_set:
 ```
 
 Historical JER versions remain immutable outside the Job.
+
+## 9.1 JER Snapshot Semantics
+
+A Runtime Job's `jer_set` is a versioned snapshot of the reusable professional evidence state available to that Job.
+
+Canonical rule:
+
+```text
+Reusable JER repository
+→ may contain newer versions over time
+
+New Runtime Job
+→ resolves and pins the latest eligible JER versions at creation
+
+Existing Runtime Job
+→ keeps its exact pinned JER versions
+→ does not silently advance when a reusable JER receives a newer version
+```
+
+This prevents evidence updates produced by one Job from unexpectedly changing the professional input state of another in-flight Job.
+
+Example:
+
+```text
+JOB-0001 pins JER-0007 v3
+JOB-0002 pins JER-0007 v3
+
+JOB-0001 integrates new evidence
+→ JER-0007 v4 is committed
+→ JOB-0001 jer_set UPSERT_VERSION v3 → v4
+
+JOB-0002 remains pinned to JER-0007 v3
+```
+
+`JOB-0002` may move to `JER-0007 v4` only through an explicit evidence-state refresh or evidence-integration operation that is valid for that Job.
+
+A newer reusable JER version does not itself make another Job's existing Execution stale.
+
+Freshness is evaluated against that Job's exact pinned professional dependencies.
+
+## 9.2 New Job Initialization
+
+When a new Runtime Job is created, its initial `jer_set` should resolve the latest eligible committed version of each reusable JER included in the professional evidence baseline.
+
+The resulting exact artifact references are persisted in the Runtime Job and become that Job's initial evidence snapshot.
+
 
 ---
 
@@ -597,6 +644,8 @@ Current Runtime Job now references JEA-0004 v4
 ```
 
 The returned resume is stale.
+
+The same principle applies to JER dependencies: an Execution becomes stale when the Runtime Job's own pinned JER reference changes, not merely because a newer reusable JER version exists elsewhere.
 
 It may be persisted historically for diagnostics but must not become current state.
 
@@ -883,6 +932,8 @@ It should not answer:
 - [ ] Failed operations preserve the last valid professional state.
 - [ ] Stale outputs cannot silently become current.
 - [ ] JER current state can contain multiple versioned records.
+- [ ] Each Runtime Job pins exact JER versions as a reproducible evidence snapshot.
+- [ ] New reusable JER versions do not silently propagate into existing in-flight Jobs.
 - [ ] Active ERQs are distinguishable from historical ERQs.
 - [ ] Unintegrated Evidence Responses are distinguishable from historical responses.
 - [ ] Resume and WCM current pointers remain coupled.
