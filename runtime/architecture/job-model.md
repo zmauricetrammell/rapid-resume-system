@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.5 — FIX-001, FIX-002, FIX-013, and FIX-027 applied
+Draft V0.6 — FIX-001, FIX-002, FIX-013, FIX-027, and FIX-028 applied
 
 ## Purpose
 
@@ -43,6 +43,7 @@ The Runtime Job is intentionally small. Historical professional artifacts, execu
 17. Collection mutations are applied atomically with the Runtime Job revision check.
 18. Each Runtime Job pins exact JER versions; newer reusable JER versions do not silently propagate into existing in-flight Jobs.
 19. Runtime Job interaction state is a coarse projection of the authoritative Interaction record and does not mirror every provider/runtime Interaction status.
+20. Process Feedback is governance/Kaizen evidence and never appears in `RuntimeJob.professional_state`.
 
 ---
 
@@ -539,7 +540,6 @@ artifact_ref:
       - targeted_resume
       - writer_content_manifest
       - resume_evaluation
-      - process_feedback
 
   artifact_id: string
   artifact_version:
@@ -554,6 +554,22 @@ Rules:
 - `uri` locates persisted content.
 - Artifact contents are not duplicated in the Runtime Job.
 - Handlers resolve artifact contents when building professional invocation bundles.
+
+## 8.1 Process Feedback Boundary
+
+Process Feedback is not current candidate professional state.
+
+It may be stored in the common Artifact Store for governance, supervision, Kaizen, or process-improvement purposes, but it must not appear under:
+
+```text
+RuntimeJob.professional_state
+```
+
+and it must not participate in professional routing predicates.
+
+Process Feedback therefore does not use a Runtime Job current pointer.
+
+If Process Feedback needs Job provenance, that relationship belongs in artifact metadata or a governance/supervisory record rather than the Runtime Job professional-state aggregate.
 
 ---
 
@@ -952,6 +968,9 @@ Contains provider-specific Discord or other human-interaction metadata.
 ## Event Store / Runtime Log
 Contains webhook events, retries, integration events, and other runtime history.
 
+## Governance / Process Feedback
+Process Feedback may be retained in the common Artifact Store or a future supervisory/governance index, but it is not a current Runtime Job professional-state pointer.
+
 ---
 
 # 25. Runtime Job Design Boundary
@@ -984,6 +1003,7 @@ It should not answer:
 - [ ] Collection-valued professional state uses semantic `ADD`, `REMOVE`, `REPLACE`, or `UPSERT_VERSION` mutations.
 - [ ] Collection mutation commits are revision-checked and cannot silently overwrite concurrent valid members.
 - [ ] Historical artifact contents are not duplicated in Runtime Job.
+- [ ] Process Feedback remains outside `RuntimeJob.professional_state` and does not participate in routing.
 - [ ] Handlers can resolve complete invocation bundles from current pointers.
 - [ ] Current pointers are never cleared before replacement artifacts commit.
 - [ ] Failed operations preserve the last valid professional state.
