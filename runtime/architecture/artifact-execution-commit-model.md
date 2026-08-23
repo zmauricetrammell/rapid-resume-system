@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.5 — FIX-005, FIX-006, FIX-010, and FIX-011 applied
+Draft V0.6 — FIX-005, FIX-006, FIX-010, FIX-011, and FIX-012 applied
 
 ## Purpose
 
@@ -55,6 +55,7 @@ Handlers own execution, validation, persistence, and commit.
 18. The `artifact_committed` Event announcing a successful professional commit is persisted in that same SQLite transaction.
 19. Every professional operation explicitly declares identity dependencies and freshness dependencies; retrieval fingerprints and materially relevant resources participate when they can change professional output.
 20. At most one nonterminal active Execution may exist for a given `operation_key` at any time.
+21. A Runtime Job compare-and-swap conflict never permits blind pointer overwrite; the runtime reloads current state and retries the same commit only when the Execution's declared freshness dependencies remain current.
 
 ---
 
@@ -876,19 +877,27 @@ Each handler therefore uses the operation specification's `freshness_dependencie
 
 # 18. Pre-Commit Check
 
-Immediately before commit:
+Before commit:
 
 ```text
-1. Outputs structurally valid?
-2. Required coupled outputs present?
+1. Required outputs exist?
+2. Outputs validate?
 3. Declared freshness dependencies still equal current authoritative state?
-4. Proposed artifact IDs/versions valid?
-5. No conflicting committed operation already exists?
-6. Runtime Job not terminal/cancelled?
-7. Handler still owns permitted pointer mutations?
+4. Runtime Job revision available for compare-and-swap?
 ```
 
-Only then may commit begin.
+If professional freshness fails:
+
+```text
+Execution
+→ stale
+```
+
+If professional freshness passes, the commit attempts its authorized Runtime Job mutation using the expected Runtime Job revision.
+
+A Runtime Job revision mismatch is a concurrency conflict, not automatically a stale professional result.
+
+The conflict is resolved according to the pointer-commit conflict procedure below.
 
 ---
 
@@ -989,6 +998,78 @@ Architecture must define whether resumes use:
 - new Resume ID per materially different product lineage.
 
 V3 handlers must follow V2 artifact semantics rather than inventing them dynamically.
+
+---
+
+# 21.1 Pointer-Commit Conflict Resolution
+
+Runtime Job pointer and collection mutations use optimistic compare-and-swap semantics.
+
+If the professional commit loses the Runtime Job revision race:
+
+```text
+CAS conflict
+→ do not overwrite
+→ reload current Runtime Job
+→ re-resolve declared freshness dependencies
+```
+
+Then:
+
+```text
+freshness dependencies unchanged
+→ Execution remains professionally valid
+→ recompute authorized mutation against current Runtime Job state
+→ retry the same commit with the new expected revision
+```
+
+or:
+
+```text
+freshness dependencies changed
+→ Execution is stale
+→ do not advance current professional pointers
+```
+
+Example of a retryable conflict:
+
+```text
+Writer Execution consumes JEA v4.
+
+While Writer runs:
+Runtime Job interaction.last_activity_at changes.
+Runtime Job revision increments.
+
+Writer commit sees revision conflict.
+
+Current JEA is still v4.
+All Writer freshness dependencies still match.
+
+→ retry same professional commit against current revision
+```
+
+Example of a stale conflict:
+
+```text
+Writer Execution consumes JEA v4.
+
+While Writer runs:
+Researcher commits JEA v5.
+Runtime Job revision increments.
+
+Writer commit sees revision conflict.
+
+Current JEA is now v5.
+
+→ mark Writer Execution stale
+→ do not commit its Resume/WCM as current
+```
+
+A retry must preserve the original professional output and Execution identity. It is a retry of the commit transaction, not a new professional invocation.
+
+For semantic collection mutations, the runtime reapplies the authorized `ADD`, `REMOVE`, `UPSERT_VERSION`, or `REPLACE` operation against the reloaded current collection rather than replaying a stale full-collection snapshot.
+
+The implementation may impose a bounded number of commit retries. Exhaustion becomes a recoverable runtime failure; it must never fall back to blind overwrite.
 
 ---
 
@@ -1197,8 +1278,8 @@ Recommended logical commit sequence:
 ```text
 BEGIN PROFESSIONAL COMMIT
 
-1. Recheck professional input freshness.
-2. Verify Runtime Job concurrency condition.
+1. Recheck declared professional freshness dependencies.
+2. Load the expected Runtime Job revision.
 3. Reserve/finalize required artifact versions.
 4. Persist all immutable output files.
 5. Verify persisted output integrity.
@@ -1206,7 +1287,7 @@ BEGIN PROFESSIONAL COMMIT
 6. BEGIN SQLITE TRANSACTION
    a. Insert/finalize artifact runtime metadata.
    b. Record the commit group.
-   c. Apply all authorized Runtime Job pointer/collection mutations.
+   c. Apply all authorized Runtime Job pointer/collection mutations using expected revision CAS.
    d. Increment Runtime Job revision.
    e. Record Execution committed_outputs.
    f. Mark Execution status = committed.
@@ -1216,7 +1297,16 @@ BEGIN PROFESSIONAL COMMIT
 END PROFESSIONAL COMMIT
 ```
 
-If the SQLite transaction fails:
+If the SQLite transaction fails because the Runtime Job compare-and-swap condition did not match:
+
+```text
+reload Runtime Job
+→ reevaluate declared freshness dependencies
+→ retry commit only if still fresh
+→ otherwise mark Execution stale
+```
+
+For any other SQLite transaction failure:
 
 ```text
 Runtime Job current state remains unchanged
@@ -1999,6 +2089,9 @@ The Artifact and Execution Commit Model is acceptable when:
 - [ ] Retrieval-result fingerprints participate in operation identity when retrieval is used.
 - [ ] Material contract/task/schema/template identity participates when it can change professional output.
 - [ ] Runtime Job revision alone is never used as the professional freshness test.
+- [ ] Runtime Job CAS conflicts never cause blind pointer overwrite.
+- [ ] A CAS-conflicted commit retries only when the Execution's declared freshness dependencies still match current authoritative state.
+- [ ] Changed freshness dependencies mark the Execution stale instead of retrying the professional commit.
 - [ ] Input snapshots are immutable.
 - [ ] Duplicate events collapse onto existing logical operations.
 - [ ] Retries create new execution IDs but preserve operation keys.
