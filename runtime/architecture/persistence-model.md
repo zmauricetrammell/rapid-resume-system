@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.10 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, FIX-017, FIX-018, FIX-019, and FIX-022 applied
+Draft V0.11 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, FIX-017, FIX-018, FIX-019, FIX-022, and FIX-026 applied
 
 ## Purpose
 
@@ -481,6 +481,7 @@ Execution records should preserve:
 ```text
 execution_id
 job_id
+owner_runtime_instance_id
 operation_key
 operation_type
 attempt_number
@@ -1151,32 +1152,88 @@ It does not replace:
 
 ---
 
+# 34.1 Runtime Instance Identity
+
+Every daemon process start creates a new:
+
+```text
+runtime_instance_id
+```
+
+Example:
+
+```text
+RUN-20260823-ABC123
+```
+
+The identifier is stable only for that daemon process lifetime.
+
+It is used to record ownership/provenance for:
+
+```text
+Execution ownership
+Event processing leases
+Command processing leases
+runtime logs
+restart reconciliation
+```
+
+Recommended runtime-instance record:
+
+```yaml
+runtime_instance:
+  runtime_instance_id: RUN-20260823-ABC123
+  started_at: ...
+  build_identity: ...
+  process_metadata: ...
+  stopped_at: null
+```
+
+A clean shutdown may set `stopped_at`, but recovery must not depend on clean shutdown occurring.
+
+A new process must never reuse the prior process's `runtime_instance_id`.
+
+Runtime instance identity is operational metadata, not professional state.
+
+---
+
 # 35. Worker Claiming
 
-A worker should atomically claim:
+A worker atomically claims:
 
 - Event processing work.
 - Command execution work.
 
-Possible pattern:
+Claim metadata should include:
 
 ```text
-pending
-→ processing
-```
-
-with:
-
-```text
+runtime_instance_id
 worker_id
-lease expiration
+lease_expires_at
 ```
 
-Exact implementation belongs in runtime code.
+Conceptually:
+
+```text
+pending / retry_pending
+→ processing
+
+owner_runtime_instance_id = current runtime instance
+worker_id = local async worker identity
+lease_expires_at = ...
+```
+
+`runtime_instance_id` identifies the owning daemon process.
+
+`worker_id` identifies the cooperative worker/task inside that process.
+
+If the lease expires or the owning runtime instance is no longer alive, the work may be reclaimed according to recovery rules.
 
 Architectural requirement:
 
-> Abandoned work must be recoverable after worker/container failure.
+> Abandoned work must be recoverable after worker/container failure without confusing a new daemon instance with the dead owner.
+
+Long-running professional provider work is represented by the Execution record; Command leases should not be held merely to represent the entire duration of model inference.
 
 ---
 
@@ -1189,21 +1246,22 @@ Recommended startup procedure:
 1. Open SQLite.
 2. Enable required pragmas.
 3. Verify/migrate schema.
-4. Find Events in:
+4. Create a new `runtime_instance_id` for this daemon start.
+5. Find Events in:
    - `processing`
    - `retry_pending`
-5. Find Commands in:
+6. Find Commands in:
    - `processing`
    - `retry_pending`
-6. Find Executions in:
+7. Find Executions in:
    - `running`
    - `validating`
    - `committing`
-7. Reconcile incomplete commits.
-8. Repair expired worker leases.
-9. Validate active Runtime Job execution references.
-10. Re-synchronize projections where necessary.
-11. Enter Manual Review when deterministic recovery is unsafe.
+8. Reconcile incomplete commits.
+9. Repair expired worker leases and ownership from prior runtime instances.
+10. Validate active Runtime Job execution references.
+11. Re-synchronize projections where necessary.
+12. Enter Manual Review when deterministic recovery is unsafe.
 
 ---
 

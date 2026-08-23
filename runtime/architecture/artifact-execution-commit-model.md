@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.11 — FIX-005, FIX-006, FIX-010, FIX-011, FIX-012, FIX-015, FIX-020, FIX-023, FIX-024, and FIX-025 applied
+Draft V0.12 — FIX-005, FIX-006, FIX-010, FIX-011, FIX-012, FIX-015, FIX-020, FIX-023, FIX-024, FIX-025, and FIX-026 applied
 
 ## Purpose
 
@@ -61,6 +61,7 @@ Handlers own execution, validation, persistence, and commit.
 24. Older valid professional artifact versions remain `committed`; whether an artifact is current is derived from Runtime Job pointers, not a mutable artifact status.
 25. `artifact_committed` is the only professional-state commit Event used to trigger routing; any `execution_committed` record/Event is audit/telemetry only.
 26. An Execution left `running` when its owning runtime instance disappears cannot resume the lost provider call; recovery terminates that physical attempt as interrupted and may create a retry attempt under the same `operation_key`.
+27. Every nonterminal Execution records the `runtime_instance_id` that owns its active processing attempt.
 
 ---
 
@@ -177,6 +178,42 @@ The Runtime Job references only the currently active execution:
 operation:
   execution_id: EXEC-0042
 ```
+
+---
+
+# 2.1 Execution Runtime Ownership
+
+Every active physical Execution is owned by the daemon instance that created or currently resumed it.
+
+Example:
+
+```yaml
+owner_runtime_instance_id: RUN-20260823-ABC123
+```
+
+`runtime_instance_id` identifies one daemon process lifetime, not a Job, worker task, or Docker image.
+
+Rules:
+
+```text
+new daemon start
+→ new runtime_instance_id
+```
+
+```text
+Execution queued/running/validating/committing
+→ owner_runtime_instance_id identifies current owning daemon instance
+```
+
+```text
+daemon disappears
++ Execution still nonterminal
+→ recovery can deterministically identify abandoned ownership
+```
+
+A retry creates a new Execution and records the current runtime instance as its owner.
+
+Ownership metadata is runtime provenance only. It does not participate in professional `operation_key` identity.
 
 ---
 
@@ -2359,6 +2396,8 @@ The Artifact and Execution Commit Model is acceptable when:
 - [ ] Committed artifacts are traceable to their committing Execution.
 - [ ] Crash recovery can reconcile partially completed commits.
 - [ ] A `running` Execution owned by a dead runtime instance is terminated as interrupted rather than left active.
+- [ ] Every active Execution records its owning `runtime_instance_id`.
+- [ ] `runtime_instance_id` is runtime provenance and does not participate in professional operation identity.
 - [ ] Retry after runtime interruption creates a new Execution attempt with the same `operation_key`.
 - [ ] Recoverable `validating` output may resume from Execution-scoped staging without unnecessary provider re-invocation.
 - [ ] Routing occurs only after successful current-state commit.

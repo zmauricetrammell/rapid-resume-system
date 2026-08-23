@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.8 — FIX-007, FIX-008, FIX-009, FIX-014, FIX-019, FIX-020, and FIX-022 applied
+Draft V0.9 — FIX-007, FIX-008, FIX-009, FIX-014, FIX-016, FIX-019, FIX-020, FIX-022, and FIX-026 applied
 
 ## Purpose
 
@@ -47,6 +47,8 @@ These concepts remain separate.
 16. `artifact_committed` is the sole canonical professional-state routing trigger; `execution_committed` is audit/telemetry only.
 17. Commands produced from Events may carry a deterministic `command_dedupe_key` so duplicate Event processing cannot create duplicate requested runtime actions.
 18. A committed Evidence Response precedes `interaction_completed`; professional commit and Interaction completion are distinct causal events.
+19. An inbound authorized Discord human message and its `human_input_received` Event are persisted atomically.
+20. Event/Command processing ownership may include `runtime_instance_id` so restart recovery can distinguish prior daemon ownership from current work.
 
 ---
 
@@ -1157,28 +1159,38 @@ The Interviewer professional operation eventually produces a schema-conformant E
 
 # 30. Discord Message Handling
 
-Recommended flow:
+Recommended inbound flow:
 
 ```text
 Discord provider message
         ↓
-normalize/persist message in Interaction store
+validate provider/source + active Interaction
         ↓
-emit human_input_received
+BEGIN SQLite transaction
+  deduplicate provider_message_id
+  persist Interaction Message
+  persist human_input_received Event referencing message_id
+COMMIT
         ↓
 interaction processor
         ↓
 continue professional Interviewer interaction
 ```
 
-Events should reference:
+Events reference:
 
 ```text
 interaction_id
 message_ref
 ```
 
-rather than embed full human messages.
+rather than embedding full human messages.
+
+The message and Event must not be committed independently.
+
+Failure before transaction commit leaves the provider input eligible for retry/reconciliation.
+
+Successful transaction commit guarantees that both the durable human message and its continuation trigger survive restart.
 
 ---
 
@@ -1704,19 +1716,33 @@ An Event left in `processing` by a crashed worker must not remain permanently st
 
 # 50. Event Processing Lease
 
-A future implementation may use a processing lease:
+Event processing ownership should record:
 
 ```yaml
 processing:
+  runtime_instance_id: RUN-20260823-ABC123
   worker_id: WORKER-02
   lease_expires_at: ...
 ```
 
-This is an implementation detail, not required for V0.1 architecture.
+`runtime_instance_id` identifies the daemon process lifetime.
+
+`worker_id` identifies the cooperative worker inside that daemon.
+
+On restart:
+
+```text
+processing Event
++ owner runtime_instance_id belongs to prior daemon
+→ treat ownership as abandoned
+→ return to recoverable/claimable processing state
+```
+
+Lease expiry remains useful for detecting stuck work inside a still-running daemon.
 
 The architectural requirement is:
 
-> Abandoned Event processing must be recoverable.
+> Abandoned Event processing must be recoverable without confusing a new daemon process with the dead owner.
 
 ---
 

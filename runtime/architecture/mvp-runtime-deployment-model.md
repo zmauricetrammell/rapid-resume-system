@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.9 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, and FIX-022 applied
+Draft V0.10 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, FIX-022, and FIX-026 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -19,6 +19,7 @@ Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-
 10. Discord and Google Drive failures degrade affected capabilities without corrupting professional state.
 11. No inbound HTTP server is required for MVP.
 12. Trello, Redis, Celery, RabbitMQ, PostgreSQL, Kubernetes, and a web UI are post-MVP.
+13. Every daemon process start receives a unique `runtime_instance_id` used for work ownership, leases, logs, and restart reconciliation.
 
 ## 1. Deployment Shape
 
@@ -333,6 +334,39 @@ It should not contain user corpus, generated artifacts, production DB, or secret
 ## 20. Professional Resources Baked into Image
 Production contracts/tasks/schemas/templates should come from the image's known Git revision, not a live-mounted repo.
 
+## 20.1 Runtime Instance Identity
+
+Each Python daemon process start generates a unique:
+
+```text
+runtime_instance_id
+```
+
+Example:
+
+```text
+RUN-20260823-ABC123
+```
+
+This is distinct from:
+- Docker image/build identity,
+- Job IDs,
+- Execution IDs,
+- worker IDs.
+
+Use it for:
+
+```text
+Execution owner
+Command/Event lease owner
+logs
+startup recovery
+```
+
+A restarted container or daemon receives a new runtime instance ID even when it mounts the same `/data`.
+
+The runtime persists enough instance metadata to identify records owned by prior process lifetimes.
+
 ## 21. Runtime Build Identity
 Track:
 - RRS version
@@ -348,20 +382,21 @@ Executions should be traceable to this build identity.
 1. Load config.
 2. Validate secrets/config.
 3. Verify /data exists and is writable.
-4. Open SQLite.
-5. Apply pragmas.
-6. Apply DB migrations.
+4. Generate current `runtime_instance_id`.
+5. Open SQLite.
+6. Apply pragmas.
+7. Apply DB migrations.
 7. Validate artifact/staging paths.
 8. Run lightweight persistence checks.
-9. Recover incomplete Executions, terminating `running` attempts owned by dead runtime instances as interrupted.
+10. Recover incomplete Executions, terminating `running` attempts owned by prior runtime instances as interrupted.
 10. Recover Events.
 11. Recover Commands.
 12. Recover Interactions.
 13. Repair stale runtime references/leases.
-14. Start worker loops.
-15. Connect Discord.
-16. Reconcile active/paused Discord Interactions for unseen provider messages.
-17. Mark runtime ready.
+15. Start worker loops.
+16. Connect Discord.
+17. Reconcile active/paused Discord Interactions for unseen provider messages.
+18. Mark runtime ready.
 ```
 
 New work is not accepted before recovery completes.
@@ -428,7 +463,11 @@ Do not blindly re-invoke AI when the prior attempt may already have persisted va
 
 
 ## 25. Event / Command Recovery
-Expired processing ownership returns work to a claimable retry state. Idempotency protects duplicate processing.
+Event and Command claims record both local `worker_id` and owning `runtime_instance_id`.
+
+Expired leases or claims owned by a prior runtime instance return work to a claimable retry state.
+
+Idempotency protects duplicate processing.
 
 ## 25.1 Interviewer Continuation Persistence
 
@@ -754,6 +793,9 @@ At any nonterminal point, restarting the container must not require manual recon
 - [ ] Secrets remain outside image/repo/artifacts.
 - [ ] Migrations and recovery finish before normal work starts.
 - [ ] Incomplete Executions/Events/Commands recover safely.
+- [ ] Every daemon start generates a unique `runtime_instance_id`.
+- [ ] Execution and lease ownership records the daemon instance that owns the work.
+- [ ] Startup recovery can reclaim work owned by prior runtime instances.
 - [ ] A provider invocation cannot remain `running` after its owning runtime instance dies.
 - [ ] Runtime interruption retries professional work through a new Execution attempt under the same logical `operation_key`.
 - [ ] Intact staged output may resume validation after restart without unnecessary model re-invocation.
