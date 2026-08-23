@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.3 — FIX-003 and FIX-004 applied
+Draft V0.4 — FIX-003, FIX-004, and FIX-007 applied
 
 ## Purpose
 
@@ -32,6 +32,7 @@ Professional agents remain unaware of routing, Trello, Discord, other agents, do
 10. Routing decisions describe state transitions, not agent assignments.
 11. Self-transitions are allowed when a phase still contains incomplete runtime work.
 12. Terminal lifecycle states do not route automatically.
+13. A routing-history append and lifecycle transition are one authoritative Runtime Job mutation and commit atomically with the resulting `lifecycle_changed` Event.
 
 ---
 
@@ -87,19 +88,23 @@ reason: "Two unresolved Material Evidence Needs remain."
 execution_id: EXEC-0042
 ```
 
-The decision is appended to:
+When the transition is valid, the routing decision is applied as one atomic Runtime Job mutation:
 
 ```text
-Runtime Job.routing_history
+append Runtime Job.routing_history
++
+update Runtime Job.lifecycle.phase
++
+update Runtime Job.lifecycle.entered_at
++
+increment Runtime Job revision
++
+persist lifecycle_changed Event
 ```
 
-The router then updates:
+These changes must commit together in one SQLite transaction.
 
-```text
-Runtime Job.lifecycle.phase
-```
-
-when the transition is valid.
+The router must not append routing history separately from the lifecycle transition.
 
 ---
 
@@ -1085,12 +1090,18 @@ Router loads current professional state
         ↓
 Predicates evaluate
         ↓
-Routing decision appended
-        ↓
-Lifecycle transition commits
+BEGIN ROUTING TRANSACTION
+  append routing decision
+  update lifecycle.phase
+  update lifecycle.entered_at
+  increment Runtime Job revision
+  persist lifecycle_changed Event
+COMMIT
         ↓
 Trello projection updates
 ```
+
+If the routing transaction fails, none of the routing-history, lifecycle, revision, or `lifecycle_changed` changes become authoritative.
 
 Routing failure after professional commit must not roll back professional state.
 
@@ -1643,6 +1654,7 @@ The Routing Model is acceptable when:
 - [ ] Ready-to-submit state terminates the Job when no blocking findings remain.
 - [ ] Invalid professional/runtime combinations fail safely.
 - [ ] Routing decisions are append-only and artifact-grounded.
+- [ ] Routing-history append, lifecycle transition, entered-at update, Runtime Job revision increment, and `lifecycle_changed` Event persist atomically.
 - [ ] Trello may mirror routing but is not authoritative.
 - [ ] Router never changes professional artifact pointers.
 - [ ] Manual Review exists for unsafe deterministic state.

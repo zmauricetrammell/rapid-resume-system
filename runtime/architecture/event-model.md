@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.1
+Draft V0.2 — FIX-007 applied
 
 ## Purpose
 
@@ -586,6 +586,22 @@ routing_decided
 lifecycle_changed
 ```
 
+`lifecycle_changed` means the Runtime Job lifecycle transition has already committed successfully.
+
+It must be persisted transactionally with:
+
+```text
+routing_history append
++
+lifecycle.phase update
++
+lifecycle.entered_at update
++
+Runtime Job revision increment
+```
+
+so downstream consumers cannot observe a lifecycle transition without its durable Event.
+
 ## Interaction Events
 
 ```text
@@ -702,12 +718,21 @@ execution_committed
 
 ## Router
 
-After deriving a transition:
+After deriving a valid transition, the authoritative routing mutation persists:
 
 ```text
 routing_decided
+```
+
+as routing history and persists:
+
+```text
 lifecycle_changed
 ```
+
+as the durable Event announcing the committed lifecycle transition.
+
+The lifecycle mutation and `lifecycle_changed` Event are committed in the same SQLite transaction. `routing_decided` is not a substitute for the lifecycle mutation itself.
 
 ## Interaction Manager
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.1
+Draft V0.2 — FIX-007 applied
 
 ## Purpose
 
@@ -888,7 +888,7 @@ Where multiple records form one logical runtime state change, update them within
 
 # 32. Routing Persistence
 
-A routing transition should commit:
+A routing transition commits one authoritative Runtime Job mutation:
 
 ```text
 routing_history entry
@@ -898,11 +898,17 @@ lifecycle.phase
 lifecycle.entered_at
 +
 Runtime Job revision increment
++
+lifecycle_changed Event
 ```
 
 inside one SQLite transaction.
 
-Trello synchronization happens afterward.
+If that transaction fails, none of those changes become authoritative.
+
+The routing-history append must not succeed independently from the lifecycle transition, and the lifecycle transition must not become durable without its corresponding `lifecycle_changed` Event.
+
+Trello synchronization happens afterward and is not part of the routing transaction.
 
 ---
 
@@ -1610,6 +1616,7 @@ The Persistence Model is acceptable when:
 
 - [ ] Runtime Job current state persists durably.
 - [ ] Runtime Job revision supports optimistic concurrency.
+- [ ] Routing-history append, lifecycle mutation, revision increment, and `lifecycle_changed` Event commit atomically.
 - [ ] Professional artifacts persist immutably by ID/version.
 - [ ] Professional artifact contents remain separate from runtime metadata.
 - [ ] Artifact content hashes support integrity verification.
