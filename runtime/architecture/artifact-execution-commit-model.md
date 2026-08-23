@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.8 — FIX-005, FIX-006, FIX-010, FIX-011, FIX-012, FIX-023, and FIX-024 applied
+Draft V0.9 — FIX-005, FIX-006, FIX-010, FIX-011, FIX-012, FIX-023, FIX-024, and FIX-025 applied
 
 ## Purpose
 
@@ -58,6 +58,7 @@ Handlers own execution, validation, persistence, and commit.
 21. A Runtime Job compare-and-swap conflict never permits blind pointer overwrite; the runtime reloads current state and retries the same commit only when the Execution's declared freshness dependencies remain current.
 22. Evidence integration may produce multiple JER versions in one logical operation; all required JER outputs and consumed Evidence Response mutations commit as one atomic commit group.
 23. All temporary professional outputs for one Execution stage under `/data/staging/<execution_id>/` before validation and commit.
+24. Older valid professional artifact versions remain `committed`; whether an artifact is current is derived from Runtime Job pointers, not a mutable artifact status.
 
 ---
 
@@ -1156,7 +1157,7 @@ for a coupled product commit.
 
 If the SQLite transaction fails, the previous Runtime Job pointers and Execution committed state remain unchanged, and no `artifact_committed` Event exists.
 
-Successfully finalized immutable files may remain noncurrent and are reconciled according to orphan/stale output rules.
+Successfully finalized immutable files may remain noncurrent and are reconciled according to noncurrent-output classification rules.
 
 This prevents the failure mode:
 
@@ -1911,23 +1912,77 @@ This is required for crash-safe operation.
 
 ---
 
-# 48. Orphaned Artifacts
+# 48. Artifact Runtime Status
 
-An artifact may exist in storage but not be current because:
+Professional artifact history is immutable.
 
-- Commit failed.
-- Output became stale.
-- Coupled commit only partially persisted.
-- Recovery preserved diagnostic output.
-
-Such artifacts should have runtime metadata marking:
+A valid artifact version that successfully completed the professional commit process remains:
 
 ```text
-current: false
-commit_status: orphaned | stale | superseded | diagnostic
+committed
 ```
 
-This metadata belongs to artifact storage/runtime indexing, not the professional artifact body.
+even after a newer version becomes current.
+
+Currentness is derived from Runtime Job pointers.
+
+Example:
+
+```text
+JER-0007 v3
+→ committed
+→ historically valid
+→ no longer current
+
+JER-0007 v4
+→ committed
+→ current because RuntimeJob.jer_set points to v4
+```
+
+Do not relabel older valid committed versions as `superseded`, `stale`, or `orphaned` merely because a newer version exists.
+
+Recommended runtime classifications for noncurrent attempt output:
+
+```text
+committed
+stale_output
+orphaned_output
+diagnostic
+```
+
+Meanings:
+
+- `committed` — artifact successfully completed a professional commit. It may be current or historical.
+- `stale_output` — validated/persisted output from an Execution whose freshness dependencies changed before it could become current.
+- `orphaned_output` — persisted output exists but no successful professional commit references it because commit/persistence was interrupted or failed.
+- `diagnostic` — output intentionally retained for troubleshooting and never represented as current professional state.
+
+Examples:
+
+```text
+Writer output validates
+→ JEA changes before commit
+→ persisted only for audit
+→ stale_output
+```
+
+```text
+artifact file finalized
+→ SQLite professional commit fails
+→ artifact is not referenced by a committed commit group
+→ orphaned_output
+```
+
+```text
+Resume v4 commits
+Resume v5 later commits
+→ both remain committed
+→ Runtime Job pointer determines which one is current
+```
+
+Artifact cleanup policies may remove eligible `stale_output`, `orphaned_output`, or `diagnostic` material after configured retention periods.
+
+Committed professional artifact history must not be reclassified or deleted merely because it is no longer current.
 
 ---
 
@@ -2202,6 +2257,9 @@ The Artifact and Execution Commit Model is acceptable when:
 - [ ] Freshness is checked after validation and before commit.
 - [ ] Stale outputs cannot become current.
 - [ ] Professional artifacts persist immutably.
+- [ ] Older valid artifact versions remain `committed` even after newer versions become current.
+- [ ] Artifact currentness is derived from Runtime Job pointers rather than mutable artifact status.
+- [ ] Failed/noncurrent attempt outputs use `stale_output`, `orphaned_output`, or `diagnostic` classifications as appropriate.
 - [ ] Finalized artifact metadata, commit-group state, Runtime Job mutations, Runtime Job revision, Execution finalization, and the `artifact_committed` Event commit in one SQLite transaction.
 - [ ] Exactly one `artifact_committed` Event is persisted per successful professional commit group.
 - [ ] Current Runtime Job pointers update atomically.
