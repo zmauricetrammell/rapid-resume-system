@@ -222,7 +222,7 @@ $defs:
     - visibility
     - validity
     - screening_interpretation
-    - deficiency_ids
+    - finding_ids
     properties:
       requirement_id:
         type: string
@@ -543,7 +543,7 @@ $defs:
     - terminology_state
     - evidence_refs
     - finding
-    - deficiency_ids
+    - finding_ids
     properties:
       claim_audit_id:
         type: string
@@ -779,9 +779,9 @@ $defs:
     - performed
     - improvements
     - regressions
-    - resolved_deficiency_ids
-    - persistent_deficiency_ids
-    - new_deficiency_ids
+    - resolved_finding_ids
+    - persistent_finding_ids
+    - new_finding_ids
     properties:
       performed:
         type: boolean
