@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.6 — FIX-005, FIX-006, FIX-010, FIX-011, and FIX-012 applied
+Draft V0.7 — FIX-005, FIX-006, FIX-010, FIX-011, FIX-012, and FIX-023 applied
 
 ## Purpose
 
@@ -56,6 +56,7 @@ Handlers own execution, validation, persistence, and commit.
 19. Every professional operation explicitly declares identity dependencies and freshness dependencies; retrieval fingerprints and materially relevant resources participate when they can change professional output.
 20. At most one nonterminal active Execution may exist for a given `operation_key` at any time.
 21. A Runtime Job compare-and-swap conflict never permits blind pointer overwrite; the runtime reloads current state and retries the same commit only when the Execution's declared freshness dependencies remain current.
+22. Evidence integration may produce multiple JER versions in one logical operation; all required JER outputs and consumed Evidence Response mutations commit as one atomic commit group.
 
 ---
 
@@ -1206,6 +1207,54 @@ The commit-group record is part of the same SQLite transaction that makes its ou
 
 A commit group must never be recorded as `committed` while only part of its Runtime Job mutations or Execution finalization succeeded.
 
+## Multi-JER Evidence Integration
+
+One evidence-integration Execution may update multiple reusable Job Experience Records.
+
+Example:
+
+```text
+Inputs:
+  ERESP-0011 v1
+  ERESP-0012 v1
+
+Outputs:
+  JER-0004 v6
+  JER-0007 v4
+  JER-0012 v2
+```
+
+All changed JERs belong to one logical commit group. The group atomically performs:
+
+```text
+finalize all changed JER versions
++
+UPSERT_VERSION each affected JER in RuntimeJob.jer_set
++
+REMOVE each Evidence Response successfully consumed by the integration
+from RuntimeJob.unintegrated_evidence_responses
++
+increment Runtime Job revision once
++
+finalize the Execution
++
+persist one artifact_committed Event
+```
+
+The Runtime Job must never expose a partial integration result.
+
+If any required JER output fails validation, persistence, or transactional commit:
+
+```text
+no new JER version becomes current
+AND
+no corresponding Evidence Response is removed
+```
+
+An Evidence Response may be removed only when every professional output required to integrate that response commits successfully.
+
+Unchanged JERs are not rewritten merely to participate in the commit group.
+
 ---
 
 # 25. Runtime Job Concurrency Control
@@ -2079,6 +2128,34 @@ Trello sync retries independently.
 
 ---
 
+# 55.1 Commit Model Example — Multi-JER Evidence Integration
+
+```text
+Evidence Responses committed
+      │
+      ▼
+Integrate evidence
+      │
+      ├── JER-0004 v6
+      ├── JER-0007 v4
+      └── JER-0012 v2
+      │
+      ▼
+validate all required JER outputs
+      │
+      ▼
+atomic commit group:
+  UPSERT all three JER pointers
+  REMOVE consumed Evidence Responses
+  revision +1
+  Execution → committed
+  artifact_committed Event
+```
+
+Failure of any required output leaves the prior JER snapshot and unintegrated Evidence Response collection unchanged.
+
+---
+
 # 56. V0.1 Acceptance Criteria
 
 The Artifact and Execution Commit Model is acceptable when:
@@ -2098,6 +2175,8 @@ The Artifact and Execution Commit Model is acceptable when:
 - [ ] Agent output is staged before commit.
 - [ ] Structured outputs validate before commit.
 - [ ] Coupled outputs validate together.
+- [ ] Multi-JER evidence integration commits all changed JER versions and consumed Evidence Response mutations atomically.
+- [ ] Failed multi-JER integration cannot advance only a subset of affected JER pointers or consume Evidence Responses prematurely.
 - [ ] Freshness is checked after validation and before commit.
 - [ ] Stale outputs cannot become current.
 - [ ] Professional artifacts persist immutably.
