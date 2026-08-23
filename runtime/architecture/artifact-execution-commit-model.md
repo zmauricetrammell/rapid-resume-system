@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.9 — FIX-005, FIX-006, FIX-010, FIX-011, FIX-012, FIX-023, FIX-024, and FIX-025 applied
+Draft V0.10 — FIX-005, FIX-006, FIX-010, FIX-011, FIX-012, FIX-020, FIX-023, FIX-024, and FIX-025 applied
 
 ## Purpose
 
@@ -59,6 +59,7 @@ Handlers own execution, validation, persistence, and commit.
 22. Evidence integration may produce multiple JER versions in one logical operation; all required JER outputs and consumed Evidence Response mutations commit as one atomic commit group.
 23. All temporary professional outputs for one Execution stage under `/data/staging/<execution_id>/` before validation and commit.
 24. Older valid professional artifact versions remain `committed`; whether an artifact is current is derived from Runtime Job pointers, not a mutable artifact status.
+25. `artifact_committed` is the only professional-state commit Event used to trigger routing; any `execution_committed` record/Event is audit/telemetry only.
 
 ---
 
@@ -1392,35 +1393,42 @@ Routing occurs only after the successful SQLite professional commit.
 
 # 28. Routing After Commit
 
-A successful professional commit persists its `artifact_committed` Event before the SQLite transaction completes. Downstream routing may therefore consume that durable Event after commit without risking a lost transition trigger.
+A successful professional commit persists exactly one `artifact_committed` Event for its commit group before the SQLite transaction completes.
+
+That Event is the sole canonical professional-state routing trigger.
+
+Canonical downstream flow:
+
+```text
+professional commit transaction succeeds
+        ↓
+artifact_committed Event is durable
+        ↓
+Event Processor creates evaluate_routing Command
+        ↓
+Router evaluates current committed professional state
+```
+
+If an `execution_committed` Event/record is also emitted for audit or telemetry:
+
+```text
+execution_committed
+→ no routing Command
+```
+
+This prevents duplicate routing work for the same professional commit.
 
 Routing predicates must only evaluate successfully committed current professional state.
 
 Never route based on:
+- raw agent output,
+- staged output,
+- schema-invalid output,
+- stale output,
+- partially committed coupled product,
+- Execution completion without a corresponding committed professional-state Event.
 
-- Raw agent output.
-- Staged artifact.
-- Schema-invalid artifact.
-- Stale artifact.
-- Partially committed coupled product.
-
-Sequence:
-
-```text
-commit
- ↓
-Runtime Job now references new professional state
- ↓
-router reads current state
- ↓
-routing decision
- ↓
-append routing_history
- ↓
-lifecycle transition
- ↓
-project to Trello
-```
+Routing failure after commit does not roll back professional state.
 
 ---
 
@@ -2272,6 +2280,8 @@ The Artifact and Execution Commit Model is acceptable when:
 - [ ] Committed artifacts are traceable to their committing Execution.
 - [ ] Crash recovery can reconcile partially completed commits.
 - [ ] Routing occurs only after successful current-state commit.
+- [ ] `artifact_committed` is the sole professional-state Event that triggers routing.
+- [ ] `execution_committed` is audit/telemetry only and cannot independently schedule routing.
 
 ---
 

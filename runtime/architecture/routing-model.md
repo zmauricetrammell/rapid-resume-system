@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.4 — FIX-003, FIX-004, and FIX-007 applied
+Draft V0.5 — FIX-003, FIX-004, FIX-007, and FIX-020 applied
 
 ## Purpose
 
@@ -33,6 +33,7 @@ Professional agents remain unaware of routing, Trello, Discord, other agents, do
 11. Self-transitions are allowed when a phase still contains incomplete runtime work.
 12. Terminal lifecycle states do not route automatically.
 13. A routing-history append and lifecycle transition are one authoritative Runtime Job mutation and commit atomically with the resulting `lifecycle_changed` Event.
+14. `artifact_committed` is the sole canonical professional-state routing trigger; Execution completion alone never triggers routing.
 
 ---
 
@@ -1051,27 +1052,42 @@ Recommended rule:
 
 # 31. Routing Trigger Points
 
-Routing should run after meaningful Runtime Job events.
+Routing should run after meaningful committed Runtime Job state changes.
 
-Recommended triggers:
+## Professional-State Trigger
+
+For professional artifact changes, the sole canonical routing trigger is:
 
 ```text
-Runtime Job created
+artifact_committed
+```
 
-professional artifact commit
+This Event represents the successfully committed professional-state mutation and is persisted in the same SQLite transaction as the professional commit.
 
-Evidence Response commit
+Do not independently trigger routing from:
 
-evidence integration commit
+```text
+execution_committed
+```
 
-Resume + WCM coupled commit
+`execution_committed` is audit/telemetry only.
 
-Resume Evaluation commit
+This prevents one successful professional operation from creating duplicate `evaluate_routing` Commands.
 
+## Non-Artifact Runtime Triggers
+
+Lifecycle evaluation may also be requested after explicit non-artifact runtime events such as:
+
+```text
+job_created
+interaction_completed
 manual recovery action
 ```
 
+when those events can legitimately change the next lifecycle decision.
+
 Routing should not continuously poll professional state unless needed by implementation.
+
 
 ---
 
@@ -1083,8 +1099,14 @@ Canonical sequence:
 Professional operation commits
         ↓
 Runtime Job pointers advance
-        ↓
++
 Execution marked committed
++
+artifact_committed Event persisted
+        ↓
+artifact_committed
+        ↓
+Command: evaluate_routing
         ↓
 Router loads current professional state
         ↓
@@ -1654,6 +1676,8 @@ The Routing Model is acceptable when:
 - [ ] Ready-to-submit state terminates the Job when no blocking findings remain.
 - [ ] Invalid professional/runtime combinations fail safely.
 - [ ] Routing decisions are append-only and artifact-grounded.
+- [ ] `artifact_committed` is the sole canonical professional-state routing trigger.
+- [ ] `execution_committed` never independently causes professional routing.
 - [ ] Routing-history append, lifecycle transition, entered-at update, Runtime Job revision increment, and `lifecycle_changed` Event persist atomically.
 - [ ] Trello may mirror routing but is not authoritative.
 - [ ] Router never changes professional artifact pointers.

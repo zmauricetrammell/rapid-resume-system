@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.5 — FIX-007, FIX-008, FIX-009, and FIX-014 applied
+Draft V0.6 — FIX-007, FIX-008, FIX-009, FIX-014, and FIX-020 applied
 
 ## Purpose
 
@@ -44,6 +44,7 @@ These concepts remain separate.
 13. Integration-only failures do not roll back committed professional state.
 14. Duplicate-event protection is reinforced by operation-key idempotency and atomic commits.
 15. Event history is auditable.
+16. `artifact_committed` is the sole canonical professional-state routing trigger; `execution_committed` is audit/telemetry only.
 
 ---
 
@@ -96,6 +97,16 @@ artifact_committed
         ↓
 command: evaluate_routing
 ```
+
+Do not also derive `evaluate_routing` from:
+
+```text
+execution_committed
+```
+
+for the same professional commit.
+
+That would create duplicate routing Commands for one professional-state mutation.
 
 Do not use Events as disguised commands.
 
@@ -584,11 +595,25 @@ execution_committed
 execution_failed
 ```
 
+`execution_committed` records that a physical professional Execution reached its committed terminal state.
+
+It is audit/telemetry only and must not independently schedule routing.
+
 ## Artifact Events
 
 ```text
 artifact_committed
 ```
+
+`artifact_committed` is the canonical Event announcing that current professional state changed successfully.
+
+It is the sole professional-state Event that may produce:
+
+```text
+command: evaluate_routing
+```
+
+for a professional artifact commit.
 
 Use:
 
