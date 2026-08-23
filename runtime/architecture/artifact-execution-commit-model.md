@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.3 — FIX-005 and FIX-006 applied
+Draft V0.4 — FIX-005, FIX-006, and FIX-010 applied
 
 ## Purpose
 
@@ -53,6 +53,7 @@ Handlers own execution, validation, persistence, and commit.
 16. External integration failures after commit do not roll back professional state.
 17. After immutable output files are finalized, artifact metadata, commit-group state, Runtime Job pointer mutations, Runtime Job revision, and Execution finalization commit atomically in one SQLite transaction.
 18. The `artifact_committed` Event announcing a successful professional commit is persisted in that same SQLite transaction.
+19. Every professional operation explicitly declares identity dependencies and freshness dependencies; retrieval fingerprints and materially relevant resources participate when they can change professional output.
 
 ---
 
@@ -246,7 +247,7 @@ Attempt was explicitly cancelled before commit.
 
 The `operation_key` identifies one logical unit of professional work.
 
-It must be deterministic.
+It must be deterministic from the exact inputs and resources that can legitimately change the professional result.
 
 Conceptually:
 
@@ -257,31 +258,63 @@ hash(
     +
     operation_type
     +
-    canonical_input_snapshot
+    identity_dependencies
+    +
+    retrieval_result_fingerprint
     +
     task_identity
+    +
+    contract_identity
+    +
+    material_resource_identity
 )
 ```
 
-Recommended inputs:
+`retrieval_result_fingerprint` is included only when retrieval is used.
+
+Recommended identity fields:
 
 ```yaml
 operation_identity:
   job_id: JOB-0001
   operation_type: generate_analysis
-  task_name: generate_analysis
-  task_version: "3.0"
-  contract_version: "3.0"
-  input_fingerprint: sha256(...)
+  task_identity: sha256(...)
+  contract_identity: sha256(...)
+  professional_input_fingerprint: sha256(...)
+  retrieval_result_fingerprint: sha256(...) | null
+  material_resource_fingerprint: sha256(...)
 ```
 
 The exact serialized representation must be canonical so ordering differences do not produce different hashes.
+
+Any changed dependency that can legitimately change professional output must produce a different `operation_key`.
+
+Examples:
+
+```text
+same JEA + same Writer task + Evaluation v2
+≠
+same JEA + same Writer task + Evaluation v3
+```
+
+when Evaluation feedback is an authorized Writer input.
+
+Likewise:
+
+```text
+same evidence query
++ changed retrieved source content
+→ different retrieval_result_fingerprint
+→ different operation_key
+```
+
+Provider/model configuration is invocation provenance. It participates in logical operation identity only if runtime policy explicitly treats provider/model changes as materially distinct professional inputs.
 
 ---
 
 # 5. Input Fingerprint
 
-The input fingerprint represents the exact professional state consumed by the logical operation.
+The professional input fingerprint represents the exact professional state declared as an identity dependency for the logical operation.
 
 Example:
 
@@ -315,7 +348,11 @@ sha256(
 
 Artifact URI should generally not participate in professional input identity because URI may change without professional state changing.
 
-Artifact ID + version is authoritative.
+Artifact ID + version is authoritative for professional artifacts.
+
+When retrieval occurs, the normalized retrieval-result fingerprint is tracked separately and incorporated into the overall `operation_key`.
+
+When static resources can materially change output, their exact resource identities are also incorporated into the overall `operation_key`.
 
 ---
 
@@ -422,44 +459,89 @@ resolve_generate_resume_inputs(job)
 resolve_evaluate_resume_inputs(job)
 ```
 
+Each operation specification declares:
+
+```yaml
+required_inputs: [...]
+optional_inputs: [...]
+identity_dependencies: [...]
+freshness_dependencies: [...]
+required_resources: [...]
+expected_outputs: [...]
+```
+
+Definitions:
+- `identity_dependencies` — exact professional inputs/resources whose changed identity or content requires a new logical operation.
+- `freshness_dependencies` — exact current state that must still match before returned output may become current.
+- `required_inputs` — inputs that must exist to invoke the operation.
+- `optional_inputs` — authorized inputs included when present.
+- `required_resources` — contracts, tasks, schemas, templates, or other static resources required by the operation.
+- `expected_outputs` — professional artifacts required for successful completion.
+
+For most V0.1 professional operations:
+
+```text
+identity_dependencies == freshness_dependencies
+```
+
+unless a documented reason requires otherwise.
+
 A resolver:
 
 1. Reads current Runtime Job pointers.
 2. Loads exact professional artifact versions.
-3. Loads applicable contracts/tasks/schemas/resources.
-4. Produces the complete invocation bundle.
-5. Produces the canonical professional input snapshot used for idempotency and stale checks.
+3. Performs authorized retrieval when the operation permits it.
+4. Loads applicable contracts/tasks/schemas/resources.
+5. Resolves exact identity and freshness dependency sets.
+6. Produces the complete Invocation Bundle.
+7. Produces the canonical fingerprints used for idempotency and stale checks.
 
-This keeps the Runtime Job small while allowing complete professional context.
+This keeps the Runtime Job small while making professional operation identity explicit and reproducible.
 
 ---
 
 # 9. Input Snapshot
 
-Every Execution stores the exact professional artifact references actually supplied to the professional operation.
+Every Execution stores the exact dependency state actually supplied to the professional operation.
 
 Example:
 
 ```yaml
 input_snapshot:
-  target_job:
-    artifact_id: TARGET-0001
-    artifact_version: 1
+  professional_inputs:
+    target_job:
+      artifact_id: TARGET-0001
+      artifact_version: 1
 
-  jea:
-    artifact_id: JEA-0004
-    artifact_version: 3
+    jea:
+      artifact_id: JEA-0004
+      artifact_version: 3
 
-  product_feedback:
-    - artifact_id: EVAL-0003
-      artifact_version: 2
+    product_feedback:
+      - artifact_id: EVAL-0003
+        artifact_version: 2
+
+  identity_dependencies:
+    - TARGET-0001:v1
+    - JEA-0004:v3
+    - EVAL-0003:v2
+
+  freshness_dependencies:
+    - TARGET-0001:v1
+    - JEA-0004:v3
+    - EVAL-0003:v2
+
+  retrieval_result_fingerprint: null
+
+  resources:
+    contract_identity: sha256(...)
+    task_identity: sha256(...)
+    material_resource_fingerprint: sha256(...)
 ```
 
 The snapshot is immutable after execution starts.
 
-The handler must not silently substitute newer artifacts into an active execution.
-
-If professional state changes, that produces a new logical operation.
+The handler must not silently substitute newer artifacts, retrieval results, or resources into an active Execution.
 
 ---
 
@@ -658,7 +740,9 @@ Current Runtime Job pointers remain unchanged.
 
 # 16. Stale Input Detection
 
-After outputs validate but before commit, the handler compares the Execution input snapshot to current Runtime Job professional pointers.
+After outputs validate but before commit, the handler compares the Execution's declared `freshness_dependencies` against current authoritative state.
+
+Do not use Runtime Job revision alone as the professional freshness test.
 
 Example:
 
@@ -667,6 +751,8 @@ Execution consumed:
 ```text
 JEA-0004 v3
 ```
+
+and declared that JEA reference as a freshness dependency.
 
 Current Runtime Job now points to:
 
@@ -679,6 +765,8 @@ Result:
 ```text
 Execution is stale.
 ```
+
+By contrast, an unrelated Runtime Job mutation may increment `revision` without changing any declared professional freshness dependency. That alone does not make the Execution stale.
 
 The Execution becomes:
 
@@ -694,7 +782,7 @@ They must not advance current pointers.
 
 # 17. Freshness Scope
 
-Freshness validation must consider only professional inputs material to that operation.
+Freshness validation considers only the exact dependencies declared by that operation.
 
 Example:
 
@@ -708,9 +796,11 @@ Resume Skeleton version
 Prompt Bank version
 ```
 
-A new unrelated Process Feedback artifact should not make the Writer execution stale.
+A new unrelated Process Feedback artifact should not make the Writer Execution stale.
 
-Each handler therefore defines its freshness dependency set.
+When retrieval is a freshness dependency, the exact retrieval-result fingerprint must still represent the authorized professional input state expected by the operation.
+
+Each handler therefore uses the operation specification's `freshness_dependencies` rather than comparing every Runtime Job field.
 
 ---
 
@@ -721,7 +811,7 @@ Immediately before commit:
 ```text
 1. Outputs structurally valid?
 2. Required coupled outputs present?
-3. Current input pointers still equal Execution snapshot?
+3. Declared freshness dependencies still equal current authoritative state?
 4. Proposed artifact IDs/versions valid?
 5. No conflicting committed operation already exists?
 6. Runtime Job not terminal/cancelled?
@@ -1830,7 +1920,11 @@ Trello sync retries independently.
 The Artifact and Execution Commit Model is acceptable when:
 
 - [ ] Physical attempts and logical operations have separate identities.
-- [ ] Operation keys are deterministic from professional inputs and task identity.
+- [ ] Operation keys are deterministic from declared identity dependencies and materially relevant resource identity.
+- [ ] Every professional operation explicitly declares `identity_dependencies` and `freshness_dependencies`.
+- [ ] Retrieval-result fingerprints participate in operation identity when retrieval is used.
+- [ ] Material contract/task/schema/template identity participates when it can change professional output.
+- [ ] Runtime Job revision alone is never used as the professional freshness test.
 - [ ] Input snapshots are immutable.
 - [ ] Duplicate events collapse onto existing logical operations.
 - [ ] Retries create new execution IDs but preserve operation keys.
