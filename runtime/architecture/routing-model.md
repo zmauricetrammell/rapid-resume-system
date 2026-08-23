@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.2 — FIX-003 applied
+Draft V0.3 — FIX-003 and FIX-004 applied
 
 ## Purpose
 
@@ -476,7 +476,7 @@ ready_to_submit
 | `evidence_request` | `has_missing_active_erqs == true` | `evidence_request` |
 | `evidence_request` | `has_missing_active_erqs == false` and active ERQs exist | `investigation` |
 | `investigation` | `has_erqs_awaiting_evidence_response == true` | `investigation` |
-| `investigation` | all required investigation outputs committed and `has_unintegrated_evidence_responses == true` | `evidence_integration` |
+| `investigation` | `has_erqs_awaiting_evidence_response == false` and `has_unintegrated_evidence_responses == true` | `evidence_integration` |
 | `evidence_integration` | `has_unintegrated_evidence_responses == true` | `evidence_integration` |
 | `evidence_integration` | `has_unintegrated_evidence_responses == false` | `analysis` |
 | `resume_production` | current Resume + WCM pair committed | `evaluation` |
@@ -615,18 +615,24 @@ investigation
 
 while `has_erqs_awaiting_evidence_response == true`.
 
-When required Evidence Responses are committed:
+The Job may leave `investigation` only when every current active ERQ has a committed current Evidence Response.
+
+Required condition:
 
 ```text
+has_erqs_awaiting_evidence_response == false
+AND
 has_unintegrated_evidence_responses == true
 ```
 
-then:
+Then:
 
 ```text
 investigation
 → evidence_integration
 ```
+
+The existence of one or more unintegrated Evidence Responses is not sufficient while another active ERQ still awaits its Evidence Response.
 
 ---
 
@@ -1506,13 +1512,17 @@ interaction.status == completed
 
 Professional Evidence Response output must also commit successfully.
 
-Recommended condition:
+Required condition:
 
 ```text
-required current ERQs have corresponding committed Evidence Responses
+has_erqs_awaiting_evidence_response == false
 AND
 has_unintegrated_evidence_responses == true
 ```
+
+This means:
+- Every current active ERQ has a committed current Evidence Response for that exact ERQ version.
+- At least one committed Evidence Response remains to be integrated.
 
 Then:
 
@@ -1520,6 +1530,8 @@ Then:
 investigation
 → evidence_integration
 ```
+
+If `has_erqs_awaiting_evidence_response == true`, the Job remains in `investigation` even when one or more Evidence Responses have already committed.
 
 Discord interaction completion alone is insufficient.
 
@@ -1622,6 +1634,7 @@ The Routing Model is acceptable when:
 - [ ] Analysis routes based on Material Evidence Need state.
 - [ ] Evidence Request phase remains until current unresolved needs have ERQs.
 - [ ] `has_active_erqs` and `has_erqs_awaiting_evidence_response` have distinct deterministic meanings.
+- [ ] Investigation exits only when no current active ERQ awaits a committed Evidence Response and unintegrated Evidence Responses exist.
 - [ ] ERQ receipt of Evidence Response does not automatically equal resolution.
 - [ ] Evidence integration always returns through analysis.
 - [ ] Blocking Evidence Uncertainty outranks blocking Product Defect.
