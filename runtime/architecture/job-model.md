@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.2 — FIX-001 applied
+Draft V0.3 — FIX-001 and FIX-002 applied
 
 ## Purpose
 
@@ -39,6 +39,8 @@ The Runtime Job is intentionally small. Historical professional artifacts, execu
 13. Every successful authoritative Runtime Job mutation increments `identity.revision` exactly once.
 14. Runtime Job writes use optimistic compare-and-swap semantics against the expected revision.
 15. Runtime Job revision protects mutation concurrency; professional freshness is determined from exact operation dependencies, not revision alone.
+16. Collection-valued professional state is mutated semantically with `ADD`, `REMOVE`, `REPLACE`, or `UPSERT_VERSION`; handlers do not overwrite collections from stale snapshots.
+17. Collection mutations are applied atomically with the Runtime Job revision check.
 
 ---
 
@@ -390,6 +392,85 @@ professional_state:
 
 The Runtime Job stores only current pointers. Historical artifacts remain in the artifact store.
 
+
+# 7.1 Collection Mutation Semantics
+
+Collection-valued Runtime Job state must not be updated by reading the full collection, modifying it locally, and blindly replacing it.
+
+V0.1 defines four semantic mutation operations:
+
+```text
+ADD
+REMOVE
+REPLACE
+UPSERT_VERSION
+```
+
+Meanings:
+
+- `ADD` — add one exact artifact reference if it is not already present.
+- `REMOVE` — remove one exact/current artifact reference without deleting artifact history.
+- `REPLACE` — replace the complete collection only when the operation explicitly owns the entire collection state.
+- `UPSERT_VERSION` — for a logical artifact identity, replace the currently pinned version with a newly committed version; add it if no current version exists.
+
+Examples:
+
+```text
+active_erqs
+  request_evidence
+  → ADD ERQ-0011:v1
+
+active_erqs
+  post-analysis reconciliation
+  → REMOVE ERQ-0011:v1
+
+unintegrated_evidence_responses
+  completed investigation
+  → ADD ERESP-0008:v1
+
+unintegrated_evidence_responses
+  successful evidence integration
+  → REMOVE ERESP-0008:v1
+
+jer_set
+  evidence integration
+  → UPSERT_VERSION JER-0007:v3 → JER-0007:v4
+```
+
+Collection mutations are applied against the current persisted collection inside the Runtime Job compare-and-swap commit.
+
+If a Runtime Job revision conflict occurs:
+
+```text
+reload current collection
+→ reapply semantic mutation
+→ retry CAS if operation dependencies remain valid
+```
+
+This prevents lost updates such as:
+
+```text
+Handler A reads active_erqs = []
+Handler B reads active_erqs = []
+
+A adds ERQ-0011
+B adds ERQ-0012
+
+blind replacement would lose one ERQ
+```
+
+With semantic mutations:
+
+```text
+ADD ERQ-0011
+ADD ERQ-0012
+```
+
+both survive regardless of which valid commit occurs first.
+
+`REPLACE` should be used sparingly. It is valid only when a deterministic operation explicitly owns the complete resulting collection.
+
+
 ---
 
 # 8. Artifact Reference
@@ -523,31 +604,46 @@ It may be persisted historically for diagnostics but must not become current sta
 
 # 15. Handler Pointer Authority
 
-Conceptually:
+Pointer authority includes the permitted mutation operation, not only the pointer/collection name.
+
+Current V2-compatible conceptual mapping:
 
 ```text
 handle_generate_analysis
-→ jea
+→ SET jea
+→ REMOVE active_erqs only through deterministic post-analysis reconciliation
 
 handle_request_evidence
-→ active_erqs
+→ ADD active_erqs
 
 handle_investigation
-→ unintegrated_evidence_responses
+→ ADD unintegrated_evidence_responses
 
 handle_integrate_evidence
-→ jer_set
-→ unintegrated_evidence_responses
+→ UPSERT_VERSION jer_set
+→ REMOVE unintegrated_evidence_responses
 
 handle_generate_resume
-→ resume
-→ wcm
+→ SET resume
+→ SET wcm
 
 handle_evaluate_resume
-→ evaluation
+→ SET evaluation
 ```
 
-Exact mutation contracts belong in handler design.
+A handler may not substitute a broader mutation for its authorized semantic operation.
+
+Examples:
+
+```text
+request_evidence may ADD an ERQ
+request_evidence may not REPLACE active_erqs
+
+evidence integration may UPSERT_VERSION affected JERs
+evidence integration may not replace the entire jer_set from a stale snapshot
+```
+
+Exact executable mutation contracts belong in handler design and must be enforced by the commit layer.
 
 ---
 
@@ -779,6 +875,8 @@ It should not answer:
 
 - [ ] Lifecycle, operation, interaction, and health are orthogonal.
 - [ ] Professional artifacts are represented by exact versioned pointers.
+- [ ] Collection-valued professional state uses semantic `ADD`, `REMOVE`, `REPLACE`, or `UPSERT_VERSION` mutations.
+- [ ] Collection mutation commits are revision-checked and cannot silently overwrite concurrent valid members.
 - [ ] Historical artifact contents are not duplicated in Runtime Job.
 - [ ] Handlers can resolve complete invocation bundles from current pointers.
 - [ ] Current pointers are never cleared before replacement artifacts commit.
