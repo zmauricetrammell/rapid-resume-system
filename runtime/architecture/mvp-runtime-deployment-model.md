@@ -107,8 +107,6 @@ Owns long-lived Interviewer continuation using persisted ERQ and conversation st
 
 Before each continuation, it resolves all currently unprocessed authorized human messages into one immutable, deterministically ordered batch.
 
-For ordinary conversational continuation, it atomically marks that exact consumed batch processed and persists the next Interviewer message before Discord delivery.
-
 For ordinary conversational continuation, it atomically marks the exact consumed human-message batch processed and persists the next Interviewer message before Discord delivery.
 
 ### Discord Adapter
@@ -318,6 +316,7 @@ SQLite stores:
 - Commands
 - Executions
 - Interactions
+- Failures
 - artifact metadata
 
 Professional artifact bodies remain on filesystem.
@@ -423,32 +422,30 @@ A container may restart with the same build identity but always receives a new `
 ## 22. Startup Sequence
 
 ```text
-1. Load config.
-2. Validate secrets/config.
-3. Verify /data exists and is writable.
-4. Generate current `runtime_instance_id`.
-5. Open SQLite.
-6. Apply pragmas.
-7. Apply DB migrations.
-8. Load the Operation Specification Registry.
-9. Perform structural, reference, and semantic registry validation.
-10. Compute specification hashes and `operation_registry_hash`.
-11. Finalize/persist runtime build identity.
-7. Validate artifact/staging paths.
-8. Run lightweight persistence checks.
-10. Recover incomplete Executions, terminating `running` attempts owned by prior runtime instances as interrupted.
-10. Recover Events.
-11. Recover Commands.
-12. Recover Interactions.
-13. Repair stale runtime references/leases.
-15. Start worker loops.
-16. Connect Discord.
-17. Reconcile active/paused Discord Interactions for unseen provider messages.
-18. Verify registry/build identity is finalized.
-19. Mark runtime ready.
+1. Load configuration.
+2. Validate secrets and environment configuration.
+3. Verify `/data` and required persistence paths are writable.
+4. Generate the current `runtime_instance_id`.
+5. Open SQLite and apply required pragmas.
+6. Apply database migrations.
+7. Load the Operation Specification Registry.
+8. Perform structural, reference, and semantic registry validation.
+9. Compute operation specification hashes and `operation_registry_hash`.
+10. Finalize and persist runtime build identity.
+11. Validate artifact and staging paths.
+12. Run lightweight persistence/integrity checks.
+13. Recover incomplete Executions, including interrupted prior-runtime provider calls.
+14. Recover Events and Commands.
+15. Recover Interactions and repair stale runtime references/leases.
+16. Reconcile incomplete professional commits and staging state.
+17. Verify recovery is complete and registry/build identity remains finalized.
+18. Start worker loops.
+19. Connect Discord.
+20. Reconcile active/paused Discord Interactions for unseen provider messages.
+21. Mark runtime ready.
 ```
 
-New work is not accepted before recovery completes.
+New work is not accepted before registry validation, build-identity finalization, and deterministic recovery complete.
 
 ## 23. Recovery Before New Work
 Reconcile:
@@ -997,7 +994,8 @@ The planned V3 MVP runtime architecture now consists of:
 7. Discord Interaction Model
 8. MVP Control Surface Model
 9. Professional Invocation Model
-10. MVP Runtime and Deployment Model
+10. Operation Specification Registry Model
+11. MVP Runtime and Deployment Model
 ```
 
 ## Next Phase

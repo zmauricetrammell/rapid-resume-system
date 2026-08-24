@@ -422,16 +422,25 @@ validate exact ERQ ID/version
 ↓
 freshness check
 ↓
-persist immutable Evidence Response
+professional commit transaction:
+  persist immutable Evidence Response
+  append pointer to unintegrated_evidence_responses
+  finalize Execution
+  persist artifact_committed
 ↓
-append pointer to unintegrated_evidence_responses
+artifact_committed is durable
 ↓
-mark Interaction completed
+schedule/reuse complete_interaction Command
 ↓
-emit events
+Interaction completion transaction:
+  mark Interaction completed
+  persist interaction_completed
+  mark complete_interaction Command completed
 ```
 
-Only then is the investigation professionally complete.
+Professional Evidence Response commit and Interaction completion are separate authoritative mutations.
+
+Investigation is professionally complete only after the Evidence Response commit succeeds and the Interaction is then completed through the deterministic runtime completion path.
 
 ## 12. ERQ Resolution Boundary
 

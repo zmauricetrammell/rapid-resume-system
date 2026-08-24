@@ -1060,14 +1060,21 @@ Immutable files may exist without becoming current because:
 - Coupled commit partially persisted.
 - Recovery preserved diagnostics.
 
-Such artifacts should be represented in metadata as:
+Such noncurrent attempt outputs should use the canonical runtime classifications:
 
 ```text
-stale
-orphaned
+stale_output
+orphaned_output
 diagnostic
-superseded
 ```
+
+A valid artifact version that completed a professional commit remains:
+
+```text
+committed
+```
+
+even when a newer committed version becomes current. Currentness is derived from Runtime Job pointers, not from a mutable `superseded` status.
 
 They must not appear as current professional state.
 
@@ -1757,6 +1764,7 @@ Executions
 Events
 Commands
 Interactions
+Failures
 ```
 
 ## Derived / Rebuildable

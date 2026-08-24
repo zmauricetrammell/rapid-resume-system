@@ -693,7 +693,7 @@ schedule_operation
 evaluate_routing
 sync_trello
 open_interaction
-close_interaction
+complete_interaction
 retry_execution
 enter_manual_review
 cancel_job
@@ -766,7 +766,7 @@ evaluate_routing
 open_interaction
 complete_interaction
 cancel_job
-retry_operation
+retry_execution
 sync_projection
 ```
 
@@ -964,10 +964,11 @@ include:
 ```text
 job_created
 artifact_committed
-execution_committed
 interaction_completed
 manual recovery action
 ```
+
+`execution_committed` is audit/telemetry only and must not produce `evaluate_routing`.
 
 Not every Event requires routing evaluation.
 

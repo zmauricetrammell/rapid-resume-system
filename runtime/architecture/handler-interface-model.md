@@ -59,6 +59,7 @@ class OperationHandler(Protocol):
         self,
         job_id: JobId,
         command: Command,
+        specification: OperationSpecification,
     ) -> ExecutionResult:
         ...
 ```
@@ -129,7 +130,8 @@ class BaseOperationHandler:
         except Exception as exc:
             return await self.handle_failure(execution, exc)
 
-        await self.emit_commit_events(result)
+        # CommitCoordinator persists artifact_committed transactionally
+        # with the authoritative professional commit.
         return result
 ```
 
@@ -264,7 +266,7 @@ For optional retrieval, continuation without retrieval is permitted only when th
 
 # 7. Expected Output Declaration
 
-Every concrete handler declares required professional output types. The following is the current V2-compatible operation set:
+Every Operation Specification declares required professional output types. The following is the current V2-compatible operation set:
 
 ```text
 generate_analysis
@@ -293,7 +295,7 @@ Missing required output causes execution failure before commit.
 
 # 8. Coupled Outputs
 
-Handlers may declare output groups that must commit together.
+Operation Specifications may declare output groups that must commit together.
 
 Current known coupled product:
 
@@ -323,7 +325,7 @@ class PointerField(Enum):
     EVALUATION = "evaluation"
 ```
 
-Each concrete handler declares a fixed mutation set.
+Each Operation Specification declares a fixed pointer-mutation set.
 
 Current conceptual mapping:
 
@@ -347,7 +349,7 @@ Pointer authority belongs to operations, not professional role names. Rebinding 
 The shared Commit Coordinator must verify:
 
 ```text
-requested mutation ∈ handler.allowed_pointer_mutations
+requested mutation ∈ specification.pointer_authority
 ```
 
 If not, reject commit.
@@ -537,7 +539,7 @@ If the Analyst/Custodian redesign introduces genuinely new operations, those ope
 
 # 16. Lifecycle Compatibility
 
-Each handler declares allowed lifecycle phases.
+Each Operation Specification declares allowed lifecycle phases.
 
 Current conceptual mapping:
 
@@ -608,6 +610,7 @@ Handlers normalize execution failures to the Artifact/Execution Commit Model voc
 
 ```python
 class FailureClass(Enum):
+    EVIDENCE_SOURCE_UNAVAILABLE
     INVOCATION_FAILURE
     OUTPUT_PARSE_FAILURE
     SCHEMA_VALIDATION_FAILURE
@@ -625,24 +628,29 @@ Integration projection failures are not professional-handler failures.
 
 # 21. Event Emission
 
-Successful handler activity should emit generic runtime Events.
+Professional commit Events have explicit ownership.
 
-Recommended sequence:
+The Commit Coordinator persists:
 
 ```text
-execution_started
 artifact_committed
-execution_committed
 ```
 
-Failures emit:
+inside the same SQLite transaction that commits artifact metadata, Runtime Job pointer mutations, Runtime Job revision, commit-group state, and Execution finalization.
+
+Handlers must not emit `artifact_committed` after `commit()` returns.
+
+Execution lifecycle telemetry may separately record or emit:
 
 ```text
 execution_started
+execution_committed
 execution_failed
 ```
 
-For semantically coupled outputs, emit one `artifact_committed` event containing the commit group.
+but `execution_committed` is audit/telemetry only and never substitutes for `artifact_committed`.
+
+For semantically coupled outputs, the Commit Coordinator persists exactly one `artifact_committed` Event for the successful commit group.
 
 ---
 
