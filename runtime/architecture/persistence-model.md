@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.13 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, FIX-036, and FIX-037 applied
+Draft V0.14 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, FIX-036, FIX-037, and FIX-038 applied
 
 ## Purpose
 
@@ -650,27 +650,79 @@ Provider-specific metadata remains outside Runtime Job.
 
 # 22. Interaction Messages
 
-Human messages are stored separately from the Interaction record.
+Interaction messages are stored separately from the Interaction record.
 
-Conceptually:
+Conceptual table:
 
 ```text
 interaction_messages
 ------------------------------------------------
 message_id
 interaction_id
-provider_message_id
+provider
+provider_message_id nullable
+provider_created_at nullable
 direction
-provider_created_at
-timestamp
+message_type
 content/reference
-processed_at
+persisted_at
+processed_at nullable
 processed_by_continuation_id nullable
 ```
 
-Provider message identity should be unique within provider scope so duplicate gateway/reconciliation delivery cannot create duplicate stored messages.
+For inbound Discord human messages:
 
-For inbound authorized human input, message persistence and Event persistence are one SQLite transaction:
+```text
+provider = discord
+provider_message_id = required
+provider_created_at = required
+persisted_at = required
+```
+
+For locally persisted outbound Interviewer messages awaiting Discord delivery:
+
+```text
+provider_message_id = null
+provider_created_at = null
+persisted_at = required
+```
+
+Provider identity should be unique within provider scope so duplicate gateway/reconciliation delivery cannot create duplicate stored messages.
+
+Recommended uniqueness concept:
+
+```text
+UNIQUE(provider, provider_message_id)
+WHERE provider_message_id IS NOT NULL
+```
+
+Exact SQLite syntax belongs in implementation.
+
+Chronology semantics:
+
+```text
+provider_created_at
+= provider-side conversational chronology
+
+provider_message_id
+= stable tie-breaker + dedupe identity
+
+persisted_at
+= local durability/audit timestamp
+```
+
+Inbound Discord conversation ordering must use:
+
+```text
+provider_created_at ASC
+provider_message_id ASC
+```
+
+not local `persisted_at`.
+
+This is necessary because live gateway arrival, reconnect recovery, and local scheduling can persist messages in a different order from provider chronology.
+
+For inbound authorized human input, message persistence and Event persistence remain one SQLite transaction:
 
 ```text
 BEGIN
@@ -689,17 +741,7 @@ nor human_input_received Event
 is considered committed
 ```
 
-The Event Store references:
-
-```text
-message_id
-```
-
-rather than duplicating full message content.
-
-This guarantees that restart cannot observe a durable human answer without a durable Event capable of waking the Interaction Processor.
-
-Exact message-content representation depends on privacy and implementation choices.
+The Event Store references `message_id` rather than duplicating full message content.
 
 
 ## Interviewer Message Batch Resolution
@@ -716,6 +758,8 @@ Order the exact batch by:
 provider_created_at ASC
 provider_message_id ASC
 ```
+
+Both fields are required for inbound Discord messages before they are eligible for the batch.
 
 The resulting `message_id` list is immutable for that continuation attempt.
 
@@ -1531,12 +1575,14 @@ load active/paused Interaction
 
 If strict provider "after" semantics are unavailable, the adapter may fetch a recent bounded window and use persisted provider-message uniqueness to determine what is unseen.
 
-The Interaction Store must retain provider chronology fields needed for deterministic ordering:
+The Interaction Store must retain provider chronology fields needed for deterministic ordering and reconciliation:
 
 ```text
 provider_created_at
 provider_message_id
 ```
+
+Local `persisted_at` is retained separately for audit/recovery timing but is not a substitute for provider chronology.
 
 Recovered messages use the same atomic message + Event persistence rule as live gateway messages.
 

@@ -1,7 +1,7 @@
 # RRS V3 Discord Interaction Model
 
 ## Status
-Draft V0.6 — FIX-016, FIX-017, FIX-018, FIX-019, and FIX-037 applied
+Draft V0.7 — FIX-016, FIX-017, FIX-018, FIX-019, FIX-037, and FIX-038 applied
 
 ## Purpose
 The Discord Interaction Model defines how V3 uses Discord as the human conversation surface for Evidence Request investigation.
@@ -40,6 +40,7 @@ one active Evidence Request investigation per Runtime Job at a time
 18. When Interviewer continuation produces another conversational turn, consumed human-message state and the persisted next Interviewer message commit atomically.
 19. Evidence Response professional commit and Interaction completion are separate authoritative mutations; Interaction completion occurs only after the exact Evidence Response has committed successfully.
 20. Each Interviewer continuation consumes one stable ordered batch containing all currently unprocessed authorized human messages available at batch resolution time.
+21. Every persisted Discord Interaction Message records provider chronology fields sufficient for deterministic ordering and reconnect reconciliation.
 
 ## 1. Discord Topology
 
@@ -183,17 +184,37 @@ Professional continuity comes from persistence.
 message:
   message_id: MSG-0091
   interaction_id: INT-0004
-  provider: discord
-  provider_message_id: "..."
+
+  provider:
+    type: discord
+    provider_message_id: "..."
+    provider_created_at: 2026-08-23T16:40:12.345-07:00
+
   direction: human
   message_type: answer
   content: "..."
-  created_at: ...
+
+  persisted_at: 2026-08-23T16:40:13.002-07:00
   processed_at: null
+  processed_by_continuation_id: null
 
   delivery:
     status: delivered
 ```
+
+Required chronology fields for Discord-backed messages:
+
+```text
+provider_message_id
+provider_created_at
+persisted_at
+```
+
+Meanings:
+
+- `provider_message_id` — Discord's stable message identity. Used for deduplication and deterministic tie-breaking.
+- `provider_created_at` — provider-side message creation time. Primary conversational ordering field.
+- `persisted_at` — local runtime persistence time. Audit/recovery metadata only; it must not replace provider chronology for conversation ordering.
 
 Recommended directions:
 
@@ -202,17 +223,42 @@ human
 interviewer
 ```
 
-Recommended message types:
+For provider-backed outbound Interviewer messages, retain the Discord `provider_message_id` and `provider_created_at` after successful delivery/reconciliation.
+
+For locally persisted Interviewer messages awaiting Discord delivery:
 
 ```text
-question
-answer
-clarification
-confirmation
-system_notice
+provider_message_id = null
+provider_created_at = null
 ```
 
-For MVP, storing conversation text in SQLite is acceptable.
+until provider acknowledgement/reconciliation supplies them.
+
+Local `message_id` remains the authoritative runtime identity.
+
+## 6.1 Deterministic Conversation Ordering
+
+Discord-backed messages are ordered by:
+
+```text
+provider_created_at ASC
+provider_message_id ASC
+```
+
+when both provider chronology fields are known.
+
+For an outbound Interviewer message that has been persisted locally but not yet delivered to Discord, local conversation reconstruction may temporarily order it by its persisted continuation position. Once provider chronology is available, the provider fields are recorded without changing the logical continuation history.
+
+For inbound human messages, `provider_created_at` and `provider_message_id` are required before the message is accepted into an Interviewer continuation batch.
+
+Do not use:
+
+```text
+persisted_at
+```
+
+as the primary ordering field for inbound Discord conversation because gateway delay, reconnect recovery, or database scheduling can make local persistence order differ from provider order.
+
 
 ## 7. Message Authority Boundary
 
@@ -632,13 +678,15 @@ The runtime must not assume that all messages sent while it was offline will lat
 
 Each Interaction must retain enough provider metadata to identify the recovery boundary.
 
-Recommended fields include:
+Required Discord reconciliation fields include:
 
 ```text
 thread_id
 last_seen_provider_message_id
 last_seen_provider_created_at
 ```
+
+The boundary values are derived from persisted provider chronology, not local persistence timestamps.
 
 The exact Discord pagination/cursor mechanism belongs in the adapter.
 
