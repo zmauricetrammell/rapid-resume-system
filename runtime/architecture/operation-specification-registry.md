@@ -1,7 +1,7 @@
 # RRS V3 Operation Specification Registry Model
 
 ## Status
-Draft V0.1 — FIX-031
+Draft V0.2 — FIX-031 and FIX-032
 
 ## Purpose
 
@@ -35,6 +35,7 @@ Handlers implement execution mechanics. Operation Specifications declare runtime
 10. Professional-role bindings are replaceable without redesigning orchestration.
 11. Invalid or incomplete specifications fail startup/configuration validation.
 12. Runtime code must not infer missing operation semantics from folder layout or agent names.
+13. The registry has one deterministic build identity derived from the validated effective specification set and runtime build provenance.
 
 ---
 
@@ -331,53 +332,168 @@ These functions:
 
 ---
 
-# 12. Specification Identity
+# 12. Specification and Registry Identity
 
-Each effective specification receives immutable identity.
+Each effective Operation Specification receives immutable identity.
 
-Recommended inputs:
+Recommended specification identity inputs:
 
 ```text
 operation_type
 canonical specification content
-resolved resource references
-runtime Git/build identity
+resolved resource identities
+runtime build Git SHA
 ```
 
 Conceptually:
 
 ```text
-operation_specification_hash = sha256(canonical_specification)
+operation_specification_hash =
+sha256(canonical_effective_specification)
 ```
 
-Execution provenance records the hash and build identity.
+The full registry also receives one deterministic identity:
 
-Material specification changes participate in logical operation identity.
+```text
+operation_registry_hash =
+sha256(
+  canonical ordered list of:
+    operation_type
+    operation_specification_hash
+)
+```
+
+Canonical registry ordering:
+
+```text
+operation_type ASC
+```
+
+Runtime build identity should include:
+
+```text
+Git commit SHA
+container/image build identifier when available
+operation_registry_hash
+```
+
+Example:
+
+```yaml
+runtime_build:
+  git_sha: abc123...
+  image_digest: sha256:...
+  operation_registry_hash: sha256:...
+```
+
+Execution and Invocation provenance records:
+- exact operation specification hash,
+- registry hash,
+- runtime Git/build identity.
+
+If a material specification changes:
+
+```text
+operation_specification_hash changes
+→ operation_registry_hash changes
+→ runtime build provenance changes
+```
+
+This makes it possible to determine exactly which professional/runtime rules governed any artifact-producing Execution.
 
 ---
 
 # 13. Startup Validation
 
-Before runtime readiness, validate:
-- unique `operation_type`,
-- resolvable `handler_key`,
-- referenced resources exist,
-- schemas parse,
-- lifecycle values are valid,
-- pointer fields are valid,
-- output types are valid,
-- coupled groups reference declared outputs,
-- retrieval requirement is valid,
-- dependencies reference authorized inputs/resources,
-- professional binding resolves,
-- reconciliation names resolve.
+The daemon validates the entire effective Operation Specification Registry before accepting work.
 
-Failure means:
+Validation occurs after runtime resources are available but before:
 
 ```text
-runtime configuration invalid
-→ do not mark runtime ready
+runtime ready
+new Commands claimed
+new professional Executions scheduled
+Discord investigation resumed
 ```
+
+Validation classes:
+
+## Structural Validation
+
+For every operation:
+- `operation_type` is unique.
+- required fields exist.
+- enum values are valid.
+- dependency declarations are well-formed.
+- coupled groups reference declared outputs.
+- pointer-authority fields are known.
+
+## Reference Validation
+
+Resolve and verify:
+- `handler_key`,
+- contract path,
+- task path,
+- schema paths,
+- template/resource paths,
+- professional role binding,
+- deterministic reconciliation function names,
+- retry policy reference,
+- EvidenceSource requirement/provider configuration where applicable.
+
+## Semantic Validation
+
+Check cross-field rules such as:
+
+```text
+retrieval.requirement = required
+→ retrieval source/config must resolve
+
+coupled output references
+→ each output must be declared required/authorized
+
+pointer authority
+→ may only name valid Runtime Job professional-state fields
+
+identity/freshness dependencies
+→ may reference only authorized inputs/resources
+
+professional binding
+→ required contract/task resources exist
+```
+
+## Identity Finalization
+
+Only after validation succeeds:
+
+```text
+compute each operation_specification_hash
+compute operation_registry_hash
+persist/log runtime build identity
+```
+
+Then the runtime may become ready.
+
+Failure behavior:
+
+```text
+any registry validation failure
+→ runtime configuration invalid
+→ runtime does not accept new work
+→ no Job is allowed to discover the error mid-execution
+```
+
+The startup log should identify the failing operation and validation rule without dumping professional content.
+
+A development/test command may validate the registry without starting the daemon.
+
+Recommended future CLI:
+
+```bash
+rrs runtime validate
+```
+
+or equivalent.
 
 ---
 
@@ -505,5 +621,9 @@ generate_analysis rebound researcher → analyst
 - [ ] Handlers cannot expand specification authority.
 - [ ] Specification identity is recorded in Execution/Invocation provenance.
 - [ ] Invalid registry configuration prevents runtime readiness.
+- [ ] The validated registry has one deterministic `operation_registry_hash`.
+- [ ] Runtime build provenance records Git/build identity plus registry identity.
+- [ ] Structural, reference, and semantic validation complete before the runtime accepts work.
+- [ ] Material specification changes produce a different registry identity.
 - [ ] Current V2 professional bindings are explicitly provisional.
 - [ ] Analyst/Custodian migration can rebind or introduce operations without redesigning orchestration.

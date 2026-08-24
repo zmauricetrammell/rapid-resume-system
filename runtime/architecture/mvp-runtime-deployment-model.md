@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.14 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, FIX-029, FIX-030, FIX-031, and FIX-036 applied
+Draft V0.15 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, FIX-029, FIX-030, FIX-031, FIX-032, and FIX-036 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -22,6 +22,7 @@ Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-
 13. Every daemon process start receives a unique `runtime_instance_id` used for work ownership, leases, logs, and restart reconciliation.
 14. The orchestration runtime binds professional roles to operations through configuration/resources; V2 Researcher ownership is not a permanent runtime dependency.
 15. Professional operation semantics are loaded from a validated first-class Operation Specification Registry before runtime readiness.
+16. Runtime readiness requires a finalized build identity containing Git/build provenance and the deterministic Operation Specification Registry hash.
 
 ## 1. Deployment Shape
 
@@ -394,13 +395,30 @@ A restarted container or daemon receives a new runtime instance ID even when it 
 The runtime persists enough instance metadata to identify records owned by prior process lifetimes.
 
 ## 21. Runtime Build Identity
-Track:
-- RRS version
-- Git SHA
-- Docker image tag/version
-- build timestamp if useful
 
-Executions should be traceable to this build identity.
+Every daemon instance records the immutable runtime build it is executing.
+
+Recommended build identity:
+
+```yaml
+runtime_build:
+  git_sha: abc123...
+  image_digest: sha256:...
+  operation_registry_hash: sha256:...
+  built_at: ...
+```
+
+The registry hash is computed only after the effective Operation Specification Registry passes startup validation.
+
+This identity should be attached to:
+- runtime instance metadata,
+- Execution provenance,
+- Invocation provenance,
+- structured logs.
+
+A different material operation specification must produce a different `operation_registry_hash`.
+
+A container may restart with the same build identity but always receives a new `runtime_instance_id`.
 
 ## 22. Startup Sequence
 
@@ -412,7 +430,10 @@ Executions should be traceable to this build identity.
 5. Open SQLite.
 6. Apply pragmas.
 7. Apply DB migrations.
-8. Load and validate the Operation Specification Registry.
+8. Load the Operation Specification Registry.
+9. Perform structural, reference, and semantic registry validation.
+10. Compute specification hashes and `operation_registry_hash`.
+11. Finalize/persist runtime build identity.
 7. Validate artifact/staging paths.
 8. Run lightweight persistence checks.
 10. Recover incomplete Executions, terminating `running` attempts owned by prior runtime instances as interrupted.
@@ -423,7 +444,8 @@ Executions should be traceable to this build identity.
 15. Start worker loops.
 16. Connect Discord.
 17. Reconcile active/paused Discord Interactions for unseen provider messages.
-18. Mark runtime ready.
+18. Verify registry/build identity is finalized.
+19. Mark runtime ready.
 ```
 
 New work is not accepted before recovery completes.
@@ -723,6 +745,25 @@ Periodically inspect expired leases, retry deadlines, dead letters, paused Inter
 ## 39. Staging Cleanup
 Clean abandoned staging only after recovery determines it is no longer required. Never delete committed artifact history automatically.
 
+## 39.1 Registry Validation Failure
+
+If the Operation Specification Registry fails startup validation:
+
+```text
+daemon initializes enough infrastructure to report failure
+→ runtime does not become ready
+→ no new Commands are claimed
+→ no professional Executions begin
+```
+
+The error should identify:
+- operation type,
+- validation class,
+- missing/invalid reference or rule,
+- build Git SHA.
+
+Do not allow a live Job to discover deterministic configuration defects that could have been detected at startup.
+
 ## 40. Logging
 Emit structured logs to stdout/stderr with IDs such as job, execution, event, command, interaction, component. Avoid dumping professional artifact bodies, prompts, transcripts, or secrets.
 
@@ -886,6 +927,10 @@ CLI create Job
 At any nonterminal point, restarting the container must not require manual reconstruction of normal runtime state. Persisted human answers should not need to be repeated.
 
 ## V0.1 Acceptance Criteria
+
+- [ ] Runtime readiness requires successful registry validation and finalized registry/build identity.
+- [ ] Runtime build identity includes Git/build provenance and `operation_registry_hash`.
+- [ ] Invalid operation specifications prevent new work from being accepted.
 
 - [ ] Operation Specification Registry loads and validates before runtime readiness.
 - [ ] Handler Registry and Operation Specification Registry have separate responsibilities.
