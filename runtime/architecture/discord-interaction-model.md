@@ -1,7 +1,7 @@
 # RRS V3 Discord Interaction Model
 
 ## Status
-Draft V0.5 — FIX-016, FIX-017, FIX-018, and FIX-019 applied
+Draft V0.6 — FIX-016, FIX-017, FIX-018, FIX-019, and FIX-037 applied
 
 ## Purpose
 The Discord Interaction Model defines how V3 uses Discord as the human conversation surface for Evidence Request investigation.
@@ -39,6 +39,7 @@ one active Evidence Request investigation per Runtime Job at a time
 17. On reconnect/startup, every active or paused Discord Interaction reconciles provider thread history after the last known provider message so messages received during runtime downtime are not lost.
 18. When Interviewer continuation produces another conversational turn, consumed human-message state and the persisted next Interviewer message commit atomically.
 19. Evidence Response professional commit and Interaction completion are separate authoritative mutations; Interaction completion occurs only after the exact Evidence Response has committed successfully.
+20. Each Interviewer continuation consumes one stable ordered batch containing all currently unprocessed authorized human messages available at batch resolution time.
 
 ## 1. Discord Topology
 
@@ -389,9 +390,37 @@ or:
 no_longer_material
 ```
 
+## Human Message Batch Resolution
+
+Before each Interviewer continuation, the Interaction Processor resolves one immutable batch containing all currently unprocessed authorized human messages for the active Interaction.
+
+Example:
+
+```text
+MSG-101 arrives
+MSG-102 arrives before continuation starts
+
+batch:
+  MSG-101
+  MSG-102
+
+→ one Interviewer continuation
+```
+
+Order the batch deterministically:
+
+```text
+provider_created_at ASC
+provider_message_id ASC
+```
+
+Once continuation starts, the batch is immutable. Human messages arriving after batch resolution remain unprocessed and belong to the next continuation.
+
+The runtime records the exact consumed message IDs in continuation provenance so duplicate wake-up Events over the same boundary resolve to the same logical continuation input.
+
 ## Continuation Commit Boundary
 
-When the Interaction Processor invokes the Interviewer, it consumes a stable ordered batch of currently unprocessed human messages.
+When the Interaction Processor invokes the Interviewer, it consumes the exact immutable batch resolved by the Human Message Batch Resolution rule.
 
 If the Interviewer returns another conversational turn, the runtime commits:
 

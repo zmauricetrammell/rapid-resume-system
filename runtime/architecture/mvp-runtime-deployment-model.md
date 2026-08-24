@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.11 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, and FIX-036 applied
+Draft V0.12 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, FIX-036, and FIX-037 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -98,7 +98,9 @@ Owns staging, validation coordination, freshness checks, immutable artifact pers
 ### Interaction Processor
 Owns long-lived Interviewer continuation using persisted ERQ and conversation state.
 
-For ordinary conversational continuation, it atomically marks the exact consumed human-message batch processed and persists the next Interviewer message before Discord delivery.
+Before each continuation, it resolves all currently unprocessed authorized human messages into one immutable, deterministically ordered batch.
+
+For ordinary conversational continuation, it atomically marks that exact consumed batch processed and persists the next Interviewer message before Discord delivery.
 
 ### Discord Adapter
 Owns Discord provider ingress/egress only; no professional reasoning.
@@ -499,7 +501,16 @@ Idempotency protects duplicate processing.
 
 ## 25.1 Interviewer Continuation Persistence
 
-Before invoking the Interviewer, the Interaction Processor resolves the stable ordered batch of currently unprocessed human messages.
+Before invoking the Interviewer, the Interaction Processor resolves all currently unprocessed authorized human messages available at that moment into one stable ordered batch.
+
+Ordering is:
+
+```text
+provider_created_at ASC
+provider_message_id ASC
+```
+
+Messages arriving after this batch is resolved remain for the next continuation. The exact message IDs become part of continuation identity/provenance.
 
 When the Interviewer returns another conversational turn:
 
@@ -832,6 +843,8 @@ At any nonterminal point, restarting the container must not require manual recon
 - [ ] Intact staged output may resume validation after restart without unnecessary model re-invocation.
 - [ ] Active Discord investigation resumes after restart.
 - [ ] Interviewer continuation atomically consumes its exact human-message batch and persists the next conversational turn.
+- [ ] Each continuation batches all currently available unprocessed authorized human messages before invocation.
+- [ ] Messages arriving after batch resolution are deferred to the next continuation.
 - [ ] Evidence Response commit and Interaction completion remain separate recoverable steps.
 - [ ] An Interaction cannot complete before the exact Evidence Response for its current ERQ/version is committed.
 - [ ] Discord delivery occurs only after the next Interviewer message is durable.

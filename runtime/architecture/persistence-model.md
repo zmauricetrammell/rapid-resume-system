@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.12 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, and FIX-036 applied
+Draft V0.13 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, FIX-036, and FIX-037 applied
 
 ## Purpose
 
@@ -665,6 +665,7 @@ provider_created_at
 timestamp
 content/reference
 processed_at
+processed_by_continuation_id nullable
 ```
 
 Provider message identity should be unique within provider scope so duplicate gateway/reconciliation delivery cannot create duplicate stored messages.
@@ -701,6 +702,27 @@ This guarantees that restart cannot observe a durable human answer without a dur
 Exact message-content representation depends on privacy and implementation choices.
 
 
+## Interviewer Message Batch Resolution
+
+Before continuation invocation, resolve every currently committed authorized human message for the active Interaction where:
+
+```text
+processed_at IS NULL
+```
+
+Order the exact batch by:
+
+```text
+provider_created_at ASC
+provider_message_id ASC
+```
+
+The resulting `message_id` list is immutable for that continuation attempt.
+
+Messages committed after batch resolution remain unprocessed and belong to the next continuation.
+
+The exact batch boundary is included in continuation provenance/idempotency state.
+
 ## Interviewer Continuation Transaction
 
 When a continuation consumes one or more unprocessed human messages and produces a new conversational Interviewer message:
@@ -715,7 +737,7 @@ update Interaction continuation metadata as needed
 COMMIT
 ```
 
-The human-message IDs form the exact consumed batch.
+The human-message IDs are the immutable batch resolved before invocation. The transaction marks only those exact IDs processed.
 
 The next Interviewer message is persisted before external Discord delivery.
 

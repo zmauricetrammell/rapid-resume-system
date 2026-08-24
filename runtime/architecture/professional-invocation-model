@@ -1,7 +1,7 @@
 # RRS V3 Professional Invocation Model
 
 ## Status
-Draft V0.1
+Draft V0.2 — FIX-037 applied
 
 ## Purpose
 The Professional Invocation Model defines how the V3 runtime programmatically invokes professional AI operations while preserving authority boundaries, reproducibility, portability, and provider independence.
@@ -646,17 +646,48 @@ authoritative runtime validation
 
 ## 34. Interviewer Continuation
 
-Each continuation receives:
+Each continuation is reconstructed from persisted state and consumes one immutable ordered batch of human input.
+
+Required input includes:
 
 ```text
 exact ERQ
 persisted ordered conversation
-latest unprocessed human input
+all currently unprocessed authorized human messages at batch resolution
 Interviewer contract/task
 Evidence Response schema
 ```
 
-It may return a next conversational turn or an Evidence Response.
+Continuation identity includes:
+
+```text
+interaction_id
+current ERQ artifact ID + version
+last prior persisted Interviewer turn boundary
+ordered human message IDs in current batch
+Interviewer task/contract/resource identity
+```
+
+Order the human-message batch by:
+
+```text
+provider_created_at ASC
+provider_message_id ASC
+```
+
+Messages committed after batch resolution do not mutate the current Invocation Bundle and belong to the next continuation.
+
+This gives a stable logical boundary:
+
+```text
+same Interaction
++ same ERQ
++ same prior conversation boundary
++ same exact ordered human-message batch
+→ same continuation input
+```
+
+The Interviewer may return a next conversational turn or an Evidence Response.
 
 No provider conversation/session memory is required for correctness.
 
@@ -853,6 +884,9 @@ STALE_INPUT
 A dedicated retrieval-failure class may be added later only if implementation evidence justifies it.
 
 ## 52. V0.1 Acceptance Criteria
+
+- [ ] Interviewer continuation identity includes the exact ordered human-message batch.
+- [ ] Later-arriving messages cannot mutate an already-resolved Invocation Bundle.
 
 - [ ] Professional invocations are operation-centric.
 - [ ] Every invocation uses an immutable Invocation Bundle.
