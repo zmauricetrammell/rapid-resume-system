@@ -33,9 +33,9 @@ Handlers orchestrate professional operations. Professional agents reason.
 6. Concrete handlers define only operation-specific behavior.
 7. Input resolution is deterministic.
 8. Invocation Bundles are immutable once execution begins.
-9. Every handler declares expected outputs.
-10. Every handler declares allowed Runtime Job pointer mutations.
-11. Handlers may not mutate pointers outside their declared authority.
+9. Every Operation Specification declares expected outputs.
+10. Every Operation Specification declares allowed Runtime Job pointer mutations.
+11. Handlers may not mutate pointers outside the resolved Operation Specification authority.
 12. Professional invocation occurs behind a replaceable adapter.
 13. Handlers do not depend directly on Trello or Discord.
 14. Handlers do not route Runtime Jobs directly.
@@ -850,8 +850,8 @@ The Handler Interface and Responsibility Model is acceptable when:
 - [ ] Concrete handlers define only operation-specific behavior.
 - [ ] Invocation Bundles are deterministic and immutable.
 - [ ] Resolvers do not perform professional reasoning.
-- [ ] Every handler declares expected outputs.
-- [ ] Every handler declares allowed pointer mutations.
+- [ ] Every Operation Specification declares expected outputs.
+- [ ] Every Operation Specification declares allowed pointer mutations.
 - [ ] Unauthorized pointer mutation is rejected.
 - [ ] Deterministic reconciliation uses schema-defined state only.
 - [ ] Professional invocation is replaceable/testable.

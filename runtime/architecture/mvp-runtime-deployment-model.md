@@ -941,7 +941,7 @@ At any nonterminal point, restarting the container must not require manual recon
 - [ ] Job creation occurs through a durable `create_job` Command with a stable intended `job_id`.
 - [ ] Retrying one `create_job` Command cannot create duplicate Runtime Jobs.
 - [ ] CLI does not start a second daemon.
-- [ ] SQLite persists Jobs, Commands, Events, Executions, Interactions, and metadata.
+- [ ] SQLite persists Jobs, Commands, Events, Executions, Interactions, Failures, and metadata.
 - [ ] Professional artifacts persist under `/data/artifacts`.
 - [ ] `/data` survives container recreation.
 - [ ] Runtime resources are baked into the image from a known Git revision.
@@ -1002,7 +1002,7 @@ The planned V3 MVP runtime architecture now consists of:
 
 Proceed to **architecture reconciliation and implementation planning**.
 
-Before production Python, audit the ten models together for:
+Before production Python, audit the eleven models together for:
 - duplicated concepts,
 - contradictory state names,
 - missing interfaces,
