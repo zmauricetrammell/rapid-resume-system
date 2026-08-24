@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.9 — FIX-001, FIX-002, FIX-013, FIX-014, FIX-027, FIX-028, FIX-031, FIX-033, and FIX-034 applied
+Draft V0.9 — FIX-001, FIX-002, FIX-013, FIX-014, FIX-027, FIX-028, FIX-031, FIX-033, and FIX-034 applied; FIX-041 and FIX-042 applied
 
 ## Purpose
 
@@ -26,7 +26,7 @@ The Runtime Job is intentionally small. Historical professional artifacts, execu
 
 1. Professional state and runtime state remain separate.
 2. Professional agents never mutate Runtime Job state.
-3. Handlers own Runtime Job mutations.
+3. Runtime Job mutations are performed only by authorized deterministic runtime components; Operation Specifications declare professional-operation mutation authority, the Commit Coordinator applies professional commits, and the Router applies lifecycle/routing mutations.
 4. Current professional pointers always reference the latest successfully validated and committed state.
 5. Current pointers are never cleared merely because a new operation has started.
 6. New professional state becomes current only after persistence, schema validation, and stale-input validation succeed.
@@ -760,19 +760,19 @@ evaluation: artifact_ref | null
 
 Agents never set or clear Runtime Job pointers.
 
-Handlers follow:
+Professional operation processing follows:
 
 ```text
-1. Resolve current inputs.
-2. Snapshot exact input artifact IDs + versions into Execution.
-3. Invoke professional task.
-4. Receive output.
+1. Resolve the Operation Specification and current inputs.
+2. Snapshot exact identity/freshness dependencies into Execution.
+3. Handler coordinates professional invocation.
+4. Receive and stage output.
 5. Validate output.
-6. Confirm execution inputs are still current.
-7. Persist immutable output.
-8. Atomically update permitted current pointer(s).
-9. Return operation to idle.
-10. Evaluate routing predicates.
+6. Confirm declared freshness dependencies are still current.
+7. Finalize immutable artifact content.
+8. Commit Coordinator atomically applies only Operation-Specification-authorized current-state mutations, finalizes Execution, and persists artifact_committed.
+9. Event processor consumes artifact_committed and persists/reuses evaluate_routing Command.
+10. Router evaluates deterministic predicates and owns lifecycle/routing-history mutation.
 ```
 
 If any step before successful commit fails, existing current professional pointers remain unchanged.
@@ -798,9 +798,11 @@ It may be persisted historically for diagnostics but must not become current sta
 
 ---
 
-# 15. Handler Pointer Authority
+# 15. Operation Specification Pointer Authority
 
-Pointer authority includes the permitted mutation operation, not only the pointer/collection name.
+Pointer authority originates in the resolved Operation Specification and includes the permitted mutation operation, not only the pointer/collection name.
+
+The Handler may request only mutations within that resolved authority, and the Commit Coordinator enforces it.
 
 Current V2-compatible conceptual mapping:
 
@@ -839,7 +841,7 @@ evidence integration may UPSERT_VERSION affected JERs
 evidence integration may not replace the entire jer_set from a stale snapshot
 ```
 
-Exact executable mutation contracts belong in handler design and must be enforced by the commit layer.
+Exact executable mutation contracts belong in the Operation Specification Registry and are enforced by the Commit Coordinator.
 
 ---
 
@@ -1000,14 +1002,28 @@ Job Creation Service
 → Runtime Job creation
 → initial JER snapshot
 
-Handler
-→ professional execution
-→ validation
-→ persistence
-→ pointer commits
+Operation Specification
+→ professional-operation semantics
+→ allowed lifecycle phases
+→ expected outputs
+→ pointer/collection mutation authority
+
+OperationHandler
+→ coordinates operation-specific execution behavior
+
+Commit Coordinator
+→ professional output validation boundary
+→ immutable artifact metadata / commit-group state
+→ authorized professional pointer/collection commit
+→ Execution finalization
+→ transactional artifact_committed Event
+
+Event / Command Layer
+→ schedules deterministic follow-up work
 
 Router
 → deterministic lifecycle decisions
+→ routing-history + lifecycle mutation
 
 Runtime Job
 → current control-plane state
@@ -1015,6 +1031,9 @@ Runtime Job
 
 Interaction Store
 → authoritative Interaction lifecycle and provider metadata
+
+Interaction Runtime Service / responsible Command
+→ synchronizes RuntimeJob.interaction coarse projection with authoritative Interaction state using revision-checked mutation
 
 Trello / Discord
 → external projections and interaction surfaces

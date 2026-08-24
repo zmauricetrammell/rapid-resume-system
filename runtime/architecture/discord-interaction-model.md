@@ -1,7 +1,7 @@
 # RRS V3 Discord Interaction Model
 
 ## Status
-Draft V0.8 — FIX-016, FIX-017, FIX-018, FIX-019, FIX-035, FIX-037, and FIX-038 applied
+Draft V0.8 — FIX-016, FIX-017, FIX-018, FIX-019, FIX-035, FIX-037, and FIX-038 applied; FIX-040 applied
 
 ## Purpose
 The Discord Interaction Model defines how V3 uses Discord as the human conversation surface for Evidence Request investigation.
@@ -539,7 +539,30 @@ persisted Interviewer message
 
 Discord delivery remains an external side effect and may be retried/reconciled independently.
 
-If the Interviewer instead returns a completed Evidence Response, consumed-message processing must be coordinated with the professional artifact commit path rather than treating the result as an ordinary conversational turn.
+If the Interviewer instead returns a completed Evidence Response, the exact immutable consumed human-message batch is part of the professional commit transaction.
+
+Canonical boundary:
+
+```text
+filesystem artifact finalization as applicable
+↓
+BEGIN SQLITE TRANSACTION
+  persist/finalize Evidence Response artifact metadata
+  apply authorized RuntimeJob.unintegrated_evidence_responses ADD
+  mark exact consumed human-message IDs processed
+  record continuation provenance/completion boundary as required
+  finalize Execution as committed
+  persist artifact_committed Event
+COMMIT
+↓
+schedule/reuse complete_interaction
+```
+
+If that SQLite professional commit fails, none of those human-message IDs become processed and the same continuation remains retryable.
+
+The runtime must never expose a committed Evidence Response while the exact source human-message batch remains eligible for another Interviewer continuation.
+
+`complete_interaction` remains a later deterministic runtime mutation and is not folded into this professional commit transaction.
 
 ## 13. Stale ERQ Handling
 
@@ -601,9 +624,13 @@ A completed Interviewer result is a professional Evidence Response, not merely c
 The professional commit path owns:
 
 ```text
-Evidence Response artifact persistence
+Evidence Response artifact persistence / metadata
 +
 RuntimeJob.unintegrated_evidence_responses ADD
++
+exact consumed human-message IDs → processed
++
+continuation provenance boundary
 +
 Execution finalization
 +

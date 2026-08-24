@@ -1,7 +1,7 @@
 # RRS V3 Professional Invocation Model
 
 ## Status
-Draft V0.7 — FIX-029, FIX-030, FIX-032, FIX-035, and FIX-037 applied; supplemental Operation Specification Registry alignment retained
+Draft V0.7 — FIX-029, FIX-030, FIX-032, FIX-035, and FIX-037 applied; supplemental Operation Specification Registry alignment retained; FIX-040 and FIX-045 applied
 
 ## Purpose
 The Professional Invocation Model defines how the V3 runtime programmatically invokes professional AI operations while preserving authority boundaries, reproducibility, portability, and provider independence.
@@ -142,14 +142,12 @@ The bundle is immutable once execution begins.
 
 ## 4. Professional Artifacts vs Resources
 
-Professional artifacts include:
+Current V0.1 professional artifacts include:
 
 ```text
 Target Job
 JER
 JEA
-Information Request
-Information Response
 ERQ
 Evidence Response
 Resume
@@ -157,6 +155,15 @@ WCM
 Resume Evaluation
 Process Feedback
 ```
+
+Future/deferred Analyst/Custodian professional artifact concepts include:
+
+```text
+Information Request
+Information Response
+```
+
+Their classification as future professional artifacts does not create V0.1 Runtime Job pointers, lifecycle phases, routing predicates, handlers, or required schemas.
 
 Resources include:
 
@@ -982,6 +989,7 @@ Rules:
 - `kind` is required and unambiguous.
 - `conversation_turn` means the investigation remains conversationally active.
 - `completed_professional_artifact` means the professional candidate output enters normal extraction, schema validation, staging, freshness, and commit processing.
+- For a completed Evidence Response, the exact immutable human-message batch in the Invocation Bundle must be durably marked processed in the same SQLite transaction that commits the professional artifact metadata/current-state mutation, finalizes the Execution, and persists `artifact_committed`.
 - The returned artifact content is not authoritative merely because the Interviewer selected `completed_professional_artifact`.
 - V0.1 allows only `evidence_response` as the completed professional artifact type for Interviewer investigation.
 - Prose that appears to contain both a question and a completed Evidence Response is invalid until the Output Extractor can resolve exactly one union member.

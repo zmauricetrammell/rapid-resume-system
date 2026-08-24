@@ -1,7 +1,7 @@
 # RRS V3 Operation Specification Registry Model
 
 ## Status
-Draft V0.3 — supplemental V3 architecture addition; not assigned a reconciliation FIX ID
+Draft V0.3 — supplemental V3 architecture addition; not assigned a reconciliation FIX ID; FIX-039 applied
 
 ## Purpose
 
@@ -36,6 +36,7 @@ Handlers implement execution mechanics. Operation Specifications declare runtime
 11. Invalid or incomplete specifications fail startup/configuration validation.
 12. Runtime code must not infer missing operation semantics from folder layout or agent names.
 13. The registry has one deterministic build identity derived from the validated effective specification set and runtime build provenance.
+14. Semantic Operation Specification identity is independent of incidental source-control/build revision; Git/build identity is recorded separately as provenance.
 
 ---
 
@@ -336,14 +337,15 @@ These functions:
 
 Each effective Operation Specification receives immutable identity.
 
-Recommended specification identity inputs:
+Recommended semantic specification identity inputs:
 
 ```text
 operation_type
-canonical specification content
-resolved resource identities
-runtime build Git SHA
+canonical effective specification content
+resolved identities of resources whose content is part of the specification semantics
 ```
+
+Runtime/build Git SHA is provenance only. It must not enter `operation_specification_hash` merely because the specification was loaded from that Git revision.
 
 Conceptually:
 
@@ -369,13 +371,15 @@ Canonical registry ordering:
 operation_type ASC
 ```
 
-Runtime build identity should include:
+Runtime build identity is separate provenance and should include:
 
 ```text
 Git commit SHA
 container/image build identifier when available
 operation_registry_hash
 ```
+
+A Git-only change that leaves the effective semantic specification unchanged does not change `operation_specification_hash`. If a referenced contract, task, schema, template, or other material resource changes and that resource is an identity dependency for the operation, its own content identity changes the logical professional operation through the existing dependency rules.
 
 Example:
 

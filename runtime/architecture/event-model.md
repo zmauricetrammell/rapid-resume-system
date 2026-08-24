@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.10 — FIX-007, FIX-008, FIX-009, FIX-014, FIX-016, FIX-019, FIX-020, FIX-022, FIX-026, and FIX-036 applied
+Draft V0.10 — FIX-007, FIX-008, FIX-009, FIX-014, FIX-016, FIX-019, FIX-020, FIX-022, FIX-026, and FIX-036 applied; FIX-043 and FIX-045 applied
 
 ## Purpose
 
@@ -86,7 +86,6 @@ Examples:
 create_job
 schedule_operation
 evaluate_routing
-sync_trello
 open_interaction
 retry_execution
 enter_manual_review
@@ -613,6 +612,8 @@ artifact_committed
 
 `artifact_committed` is the canonical Event announcing that current professional state changed successfully.
 
+The Commit Coordinator persists `artifact_committed` inside the same SQLite transaction that performs the authoritative professional commit. OperationHandlers must not emit a second `artifact_committed` after commit returns.
+
 It is the sole professional-state Event that may produce:
 
 ```text
@@ -691,7 +692,6 @@ Recommended V0.1 commands:
 create_job
 schedule_operation
 evaluate_routing
-sync_trello
 open_interaction
 complete_interaction
 retry_execution
@@ -1367,7 +1367,6 @@ The failure is in control-plane progression.
 ```text
 routing_decided
         ↓
-sync_trello
         ↓
 Trello unavailable
         ↓

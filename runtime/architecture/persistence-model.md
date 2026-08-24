@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.15 — cumulative persistence reconciliation through FIX-038; FIX-033 and FIX-034 added
+Draft V0.15 — cumulative persistence reconciliation through FIX-038; FIX-033 and FIX-034 added; FIX-040, FIX-041, and FIX-044 applied
 
 ## Purpose
 
@@ -842,7 +842,18 @@ no next Interviewer message is committed
 
 This keeps retry behavior deterministic.
 
-If the continuation produces a completed Evidence Response rather than another conversational message, the professional artifact commit path owns completion semantics for that result; ordinary conversational-message processing must not independently finalize the professional result.
+If the continuation produces a completed Evidence Response rather than another conversational message, the professional artifact commit path owns the exact consumed-message boundary too.
+
+The same SQLite professional commit transaction must:
+- persist/finalize professional artifact metadata,
+- apply the authorized Runtime Job professional-state mutation,
+- mark the exact consumed human-message IDs processed,
+- finalize the Execution,
+- persist `artifact_committed`.
+
+If this transaction fails, the consumed human-message IDs remain unprocessed.
+
+Interaction completion still occurs later through `complete_interaction`.
 
 ---
 
@@ -1095,15 +1106,18 @@ must become current together.
 Example flow:
 
 ```text
-persist Resume artifact
-persist WCM artifact
+finalize immutable Resume artifact file
+finalize immutable WCM artifact file
 verify both
 ↓
 single SQLite transaction:
+  persist/finalize Resume + WCM artifact metadata
+  record/complete coupled commit-group state
   update resume pointer
   update wcm pointer
   increment Runtime Job revision
-  record commit metadata
+  finalize Execution as committed
+  persist one artifact_committed Event for the coupled product
 ```
 
 If the SQLite transaction fails:
@@ -1708,6 +1722,36 @@ Local `persisted_at` is retained separately for audit/recovery timing but is not
 Recovered messages use the same atomic message + Event persistence rule as live gateway messages.
 
 Discord itself must not be the only place the runtime knows which messages have already been observed.
+
+---
+
+# 39.1 Interaction Projection Synchronization
+
+The authoritative Interaction record owns detailed interaction lifecycle and provider state.
+
+`RuntimeJob.interaction` is only the coarse current projection.
+
+When one deterministic SQLite-local runtime action changes both authoritative Interaction state and the coarse Runtime Job projection, commit them together:
+
+```text
+BEGIN
+mutate authoritative Interaction
+mutate RuntimeJob.interaction projection
+increment Runtime Job revision
+persist required resulting Event(s)
+complete the responsible Command where applicable
+COMMIT
+```
+
+Examples include:
+- Interaction creation/activation when the Job projection becomes pending/active.
+- Pause/resume when the coarse projection changes.
+- Interaction completion when the projection becomes completed.
+- Interaction cancellation when the Runtime Job projection is cleared.
+
+Provider-only metadata synchronization that does not change the coarse projection does not increment Runtime Job revision.
+
+Recovery validates the projection against the authoritative Interaction. A safely derivable mismatch is repaired through a revision-checked Runtime Job mutation; an ambiguous mismatch enters the existing Failure/manual-review path.
 
 ---
 

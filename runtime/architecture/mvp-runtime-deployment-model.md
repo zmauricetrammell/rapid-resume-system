@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.16 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, FIX-029, FIX-030, and FIX-036 applied; supplemental Operation Specification Registry/startup-validation alignment retained
+Draft V0.16 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, FIX-029, FIX-030, and FIX-036 applied; supplemental Operation Specification Registry/startup-validation alignment retained; FIX-045 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -900,8 +900,8 @@ CLI persists create_job
 → resume generation
 → Resume + WCM commit
 → evaluation
-→ ready_to_submit
-→ complete
+→ Evaluation state satisfies is_ready_to_submit == true
+→ Router transitions lifecycle directly to complete
 ```
 
 ## 62. Evidence MVP Path
