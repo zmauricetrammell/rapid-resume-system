@@ -1,843 +1,809 @@
-# V3: Split Researcher into Analyst and Custodian
+# RRS V3 Handler Interface and Responsibility Model
 
-## Objective
+## Status
 
-Refactor the current Researcher role into two independent professional roles:
+Draft V0.2 — FIX-029 applied
 
-- **Analyst** — owns target interpretation, evidence requirements, evidence sufficiency, transferability, fit analysis, and Job Experience Analysis.
-- **Custodian** — owns authoritative professional evidence storage, retrieval, reconciliation, and integration.
+## Purpose
 
-The goal is to reduce concentration of epistemic authority, prevent premature target-driven over-optimization of professional evidence, and establish a cleaner interface between target analysis and professional evidence custody.
+The Handler Interface and Responsibility Model defines how V3 runtime handlers coordinate professional operations.
 
-This change was identified during V3 runtime design while defining the Evidence Integration handler.
+Handlers are deterministic software components. They do not read contracts at runtime in the same way AI agents do, and they do not perform professional reasoning.
 
----
+Their behavior is enforced through:
 
-# Problem
+- Python interfaces and types.
+- Runtime invariants.
+- Schema validation.
+- Explicit pointer-mutation authority.
+- Automated tests.
+- Shared execution/commit machinery.
 
-The current Researcher combines several distinct responsibilities:
-
-```text
-Target Job analysis
-      ↓
-Evidence requirement definition
-      ↓
-Professional evidence search
-      ↓
-Evidence selection
-      ↓
-Evidence sufficiency judgment
-      ↓
-Missing-information identification
-      ↓
-Evidence Request generation
-      ↓
-New evidence integration
-      ↓
-Re-analysis
-```
-
-This gives one professional role authority over both:
-
-1. **What evidence would satisfy the target**, and
-2. **What evidence exists and how authoritative professional records are changed.**
-
-That creates unnecessary coupling and a risk of early target-driven evidence optimization.
-
-The current Researcher can effectively:
-
-```text
-decide what would prove X
-→ search for X-like evidence
-→ interpret evidence against X
-→ request missing evidence
-→ modify the evidence repository
-→ reassess X
-```
-
-Even with strong contracts, this places too much analytical and evidentiary authority in one role.
+Handlers orchestrate professional operations. Professional agents reason.
 
 ---
 
-# Proposed Architecture
+# Core Invariants
 
-Split Researcher into:
+1. Handlers are operation-centric, not agent-centric.
+2. Commands dispatch professional operations, not agents.
+3. Handlers receive `job_id + command`, not mutable Runtime Job objects.
+4. Runtime Job state is loaded through repositories.
+5. Shared execution mechanics are centralized.
+6. Concrete handlers define only operation-specific behavior.
+7. Input resolution is deterministic.
+8. Invocation Bundles are immutable once execution begins.
+9. Every handler declares expected outputs.
+10. Every handler declares allowed Runtime Job pointer mutations.
+11. Handlers may not mutate pointers outside their declared authority.
+12. Professional invocation occurs behind a replaceable adapter.
+13. Handlers do not depend directly on Trello or Discord.
+14. Handlers do not route Runtime Jobs directly.
+15. Successful commits emit Events.
+16. Routing is triggered through the Event/Command layer.
+17. Deterministic reconciliation logic remains separate from professional reasoning.
+18. Handler behavior is ultimately enforced by executable code and tests.
+19. The handler framework must remain compatible with future Analyst/Custodian decomposition.
+
+---
+
+# 1. Common Handler Interface
+
+Every professional operation handler should implement a common conceptual interface:
+
+```python
+class OperationHandler(Protocol):
+    async def execute(
+        self,
+        job_id: JobId,
+        command: Command,
+    ) -> ExecutionResult:
+        ...
+```
+
+The handler receives `job_id + command`. It does not receive a mutable Runtime Job instance from upstream callers. The handler loads current Runtime Job state through the Runtime Job repository.
+
+---
+
+# 2. Handler Execution Pipeline
+
+Every professional operation should follow the same high-level pipeline:
 
 ```text
-ANALYST
-+
-CUSTODIAN
+Validate command
+→ Load Runtime Job
+→ Validate lifecycle
+→ Validate health
+→ Resolve invocation inputs
+→ Build operation identity
+→ Check idempotency
+→ Create Execution attempt
+→ Invoke professional operation
+→ Stage outputs
+→ Validate outputs
+→ Check input freshness
+→ Persist immutable artifacts
+→ Atomic Runtime Job pointer commit
+→ Finalize Execution
+→ Emit Events
 ```
+
+Routing occurs afterward through the Event/Command/Router pipeline.
+
+---
+
+# 3. Shared Execution Framework
+
+Common lifecycle mechanics should live in a shared framework rather than being reimplemented in every concrete handler.
 
 Conceptually:
 
-```text
-Target Job / Target Role Research
-              │
-              ▼
-           ANALYST
-              │
-              ▼
-      Information Request
-              │
-              ▼
-          CUSTODIAN
-              │
-       ┌──────┴──────┐
-       │             │
-       ▼             ▼
-Evidence exists   Material fact missing
-       │             │
-       │             ▼
-       │      Evidence Request
-       │             │
-       │             ▼
-       │        INTERVIEWER
-       │             │
-       │             ▼
-       │      Evidence Response
-       │             │
-       │             ▼
-       │         CUSTODIAN
-       │      integrate evidence
-       │             │
-       └──────┬──────┘
-              ▼
-      Information Response
-              │
-              ▼
-           ANALYST
-              │
-              ▼
-             JEA
-              │
-              ▼
-           WRITER
-              │
-              ▼
-       Resume + WCM
-              │
-              ▼
-         EVALUATOR
+```python
+class BaseOperationHandler:
+    async def execute(self, job_id, command):
+        job = await self.jobs.get(job_id)
+        self.validate_command(command)
+        self.validate_runtime_state(job)
+        bundle = await self.resolve_inputs(job, command)
+        operation_key = self.build_operation_key(bundle)
+        existing = await self.executions.find_by_operation_key(operation_key)
+
+        if existing and existing.is_committed:
+            return self.result_from_existing(existing)
+
+        execution = await self.begin_execution(
+            job=job,
+            command=command,
+            bundle=bundle,
+            operation_key=operation_key,
+        )
+
+        try:
+            raw_response = await self.invoke(bundle)
+            staged_outputs = await self.stage_outputs(execution, raw_response)
+            await self.validate_outputs(bundle, staged_outputs)
+            await self.check_freshness(job_id, bundle)
+            result = await self.commit(execution, staged_outputs)
+        except Exception as exc:
+            return await self.handle_failure(execution, exc)
+
+        await self.emit_commit_events(result)
+        return result
 ```
 
----
-
-# Core Separation
-
-## Analyst
-
-The Analyst answers:
-
-> What professional evidence would convincingly support this target?
-
-The Analyst owns:
-
-- Target-role interpretation.
-- Job-description analysis.
-- Future deep target/company research.
-- Requirement decomposition.
-- Evidence specification.
-- Evidence sufficiency.
-- Evidence relevance.
-- Evidence transferability.
-- Requirement coverage.
-- Candidate fit.
-- Functional Role Architecture.
-- Claim constraints derived from target/evidence comparison.
-- Job Experience Analysis.
-
-The Analyst does **not** own authoritative professional evidence storage.
-
-The Analyst should not directly modify JERs.
+This is conceptual architecture, not required final Python syntax.
 
 ---
 
-## Custodian
+# 4. Concrete Handler Responsibilities
 
-The Custodian answers:
+Concrete handlers define only behavior that differs by professional operation.
 
-> What authoritative professional evidence do we actually have?
-
-The Custodian owns:
-
-- Job Experience Record custody.
-- Professional evidence retrieval.
-- Evidence provenance.
-- Evidence conflict preservation.
-- Evidence-response reconciliation.
-- Authoritative evidence integration.
-- Professional evidence versioning.
-- Evidence Request generation when an Analyst-authorized information request cannot be resolved from current authoritative state.
-
-The Custodian does **not** determine target-job fit.
-
-The Custodian should not independently decide that a capability matters merely because a job description requests it.
-
----
-
-# Architectural Principle
-
-> **Analyst specifies the professional information needed. Custodian determines what authoritative information exists.**
-
-This creates an adversarial professional boundary before resume writing.
-
-The Analyst is incentivized to ask:
-
-> What would prove this requirement?
-
-The Custodian is constrained to answer:
-
-> This is what the professional record actually supports.
-
----
-
-# New Analyst ↔ Custodian Interface
-
-Introduce a professional request/response interface between Analyst and Custodian.
-
-Working names:
+Each handler should declare:
 
 ```text
-Information Request
-Information Response
+operation_type
+allowed_lifecycle_phases
+required_inputs
+optional_inputs
+required_resources
+retrieval_requirement
+expected_outputs
+allowed_pointer_mutations
 ```
 
-Alternative naming may be considered during schema design.
-
----
-
-# Information Request
-
-The Analyst produces an Information Request describing the professional facts needed to evaluate a target requirement or analytical question.
-
-Conceptual example:
-
-```yaml
-information_request:
-
-  requirement_id: REQ-007
-
-  evidence_sought:
-    capability: direct service desk people management
-
-    dimensions:
-      - direct-report relationship
-      - team size
-      - duration
-      - performance management
-      - coaching
-      - measurable workforce outcomes
-
-  materiality: high
-
-  target_context:
-    requirement: >
-      Directly manage 8-10 service desk analysts.
-
-  constraints:
-    - do not infer direct reporting from general department leadership
-```
-
-The request defines the analytical need.
-
-It does not prescribe what the professional evidence must say.
-
----
-
-# Information Response
-
-The Custodian returns an Information Response grounded only in authoritative professional state.
-
-Conceptually:
-
-```yaml
-information_response:
-
-  request_id: INFOREQ-001
-
-  status: partially_resolved
-
-  evidence:
-    - JER-0004:v3
-    - JER-0011:v2
-
-  resolved_dimensions:
-    - team size
-    - duration
-    - coaching
-
-  unresolved_dimensions:
-    - direct-report relationship
-
-  negative_evidence: []
-
-  known_limitations: []
-
-  provenance:
-    ...
-```
-
-The Analyst then determines what that evidence means for target fit.
-
----
-
-# Missing Information Resolution
-
-When current authoritative professional evidence cannot satisfy an Information Request, the Custodian may determine that a factual dimension remains unresolved.
-
-The Custodian may generate an Evidence Request only when:
-
-1. The Analyst's Information Request establishes that the factual dimension is materially needed.
-2. Current authoritative evidence cannot resolve it.
-3. Human factual investigation could reasonably resolve or materially improve it.
-
-This preserves separation:
+`retrieval_requirement` is one of:
 
 ```text
-Analyst
-→ determines materiality
-
-Custodian
-→ determines evidence availability
-
-Interviewer
-→ establishes missing facts
+none
+optional
+required
 ```
 
----
-
-# Recursive Resolution Model
-
-Preferred flow:
+and implement:
 
 ```text
-Analyst
-      │
-      ▼
-Information Request
-      │
-      ▼
-Custodian search
-      │
-      ├── sufficient evidence
-      │        │
-      │        ▼
-      │  Information Response
-      │
-      └── unresolved material fact
-               │
-               ▼
-         Evidence Request
-               │
-               ▼
-          Interviewer
-               │
-               ▼
-         Evidence Response
-               │
-               ▼
-          Custodian
-      integrate authoritative evidence
-               │
-               ▼
-      rerun Information Request
-               │
-               ▼
-      Information Response
-               │
-               ▼
-            Analyst
+resolve_inputs()
+invoke()
+validate_operation_specific_output()
+build_pointer_mutations()
 ```
 
-The Analyst receives the resolved professional evidence state rather than managing the evidence-acquisition loop itself.
+Common concerns remain in the shared framework.
 
 ---
 
-# Recursion Boundary
+# 5. Invocation Bundle
 
-Custodian evidence acquisition must remain bounded by the originating Information Request.
+Handlers resolve professional inputs into an immutable Invocation Bundle.
 
-The Custodian must not recursively search for increasingly impressive or target-optimized facts beyond the requested professional dimensions.
+```python
+@dataclass(frozen=True)
+class InvocationBundle:
+    job_id: JobId
+    operation_type: OperationType
+    artifact_refs: tuple[ArtifactRef, ...]
+    resource_refs: tuple[ResourceRef, ...]
+    schema_refs: tuple[SchemaRef, ...]
+    input_snapshot: InputSnapshot
+```
+
+The Invocation Bundle defines exactly what professional state and resources were supplied to the professional operation.
+
+---
+
+# 6. Input Resolver Boundary
+
+Resolvers may:
+
+- Read Runtime Job current pointers.
+- Resolve exact artifact versions.
+- Load professional contracts.
+- Load task instructions.
+- Load schemas.
+- Load shared resources.
+- Build deterministic input snapshots.
+
+Resolvers must not:
+
+- Interpret professional evidence.
+- Decide whether evidence is strong.
+- Change professional state.
+- Select downstream lifecycle.
+- Rewrite Runtime Job pointers.
+
+---
+
+# 6.1 Evidence Retrieval Boundary
+
+When an operation requires EvidenceSource retrieval, the handler resolves retrieval before professional invocation.
+
+Canonical flow:
+
+```text
+resolve professional inputs
+→ execute required retrieval
+→ validate retrieval result
+→ build immutable Invocation Bundle
+→ invoke professional agent
+```
+
+If required retrieval fails:
+
+```text
+EvidenceSource unavailable / unauthorized / timed out / invalid
+→ do not invoke professional agent
+→ Execution failure_class = EVIDENCE_SOURCE_UNAVAILABLE
+→ retry policy applies
+```
+
+The handler must distinguish:
+
+```text
+retrieval succeeded with zero matches
+```
+
+from:
+
+```text
+retrieval did not successfully execute
+```
+
+Only the first may be represented as an empty retrieval result.
+
+For optional retrieval, continuation without retrieval is permitted only when the handler's operation specification explicitly declares `retrieval_requirement = optional`.
+
+# 7. Expected Output Declaration
+
+Every concrete handler declares required professional output types.
+
+```text
+generate_analysis
+→ Job Experience Analysis
+
+request_evidence
+→ Evidence Request
+
+investigate_evidence_request
+→ Evidence Response
+
+integrate_evidence
+→ updated Job Experience Record version(s)
+
+generate_resume
+→ Targeted Resume
+→ Writer Content Manifest
+
+evaluate_resume
+→ Resume Evaluation
+```
+
+Missing required output causes execution failure before commit.
+
+---
+
+# 8. Coupled Outputs
+
+Handlers may declare output groups that must commit together.
+
+Current known coupled product:
+
+```text
+generate_resume
+→ Targeted Resume
+→ Writer Content Manifest
+```
+
+The handler must treat this as one commit group. No handler may advance only one pointer from a semantically coupled output group.
+
+---
+
+# 9. Pointer Mutation Authority
+
+Runtime pointer authority should be represented explicitly in code.
+
+```python
+class PointerField(Enum):
+    TARGET_JOB = "target_job"
+    JER_SET = "jer_set"
+    JEA = "jea"
+    ACTIVE_ERQS = "active_erqs"
+    UNINTEGRATED_EVIDENCE_RESPONSES = "unintegrated_evidence_responses"
+    RESUME = "resume"
+    WCM = "wcm"
+    EVALUATION = "evaluation"
+```
+
+Each concrete handler declares a fixed mutation set.
+
+Current conceptual mapping:
+
+| Operation | Allowed Current-Pointer Mutations |
+|---|---|
+| `generate_analysis` | `jea`; deterministic `active_erqs` reconciliation when applicable |
+| `request_evidence` | `active_erqs` |
+| `investigate_evidence_request` | `unintegrated_evidence_responses` |
+| `integrate_evidence` | `jer_set`; remove integrated response refs |
+| `generate_resume` | `resume`, `wcm` |
+| `evaluate_resume` | `evaluation` |
+
+This table is provisional pending Analyst/Custodian domain refactor.
+
+---
+
+# 10. Mutation Enforcement
+
+The shared Commit Coordinator must verify:
+
+```text
+requested mutation ∈ handler.allowed_pointer_mutations
+```
+
+If not, reject commit.
+
+Runtime pointer authority should not rely on developer convention.
+
+---
+
+# 11. Deterministic Reconciliation
+
+Some Runtime Job pointer changes may follow deterministically from a newly committed professional artifact.
 
 Example:
 
 ```text
-Analyst asks:
-"What was the candidate's direct-report relationship to the 10-person service desk?"
-
-Custodian may investigate:
-- direct
-- indirect
-- mixed
-- unresolved
-
-Custodian may not expand the investigation into:
-"Find any additional leadership accomplishments that would strengthen the resume."
+new JEA committed
+→ compare Material Evidence Need state with active ERQ origin references
+→ remove ERQs whose originating need is resolved or no_longer_material
 ```
+
+Conceptual helper:
+
+```python
+def reconcile_active_erqs(
+    active_erqs: tuple[ArtifactRef, ...],
+    committed_jea: JobExperienceAnalysis,
+) -> tuple[ArtifactRef, ...]:
+    ...
+```
+
+Deterministic reconciliation may only use explicit schema state. It must not infer professional meaning from prose.
 
 ---
 
-# Read / Write Separation
+# 12. Professional Invoker
 
-Custodian operations should have single-purpose professional semantics.
+Professional operations should execute behind a replaceable invocation interface.
 
-## Read Operation
+```python
+class ProfessionalInvoker(Protocol):
+    async def invoke(
+        self,
+        bundle: InvocationBundle,
+    ) -> RawProfessionalResponse:
+        ...
+```
+
+Possible implementations:
 
 ```text
-retrieve_evidence
+OpenAIProfessionalInvoker
+LocalModelInvoker
+TestProfessionalInvoker
 ```
 
-Purpose:
+Handlers should not depend on one specific model provider.
 
-- Search authoritative professional records.
-- Return evidence relevant to an Information Request.
-- Do not mutate authoritative evidence.
+---
 
-## Write Operation
+# 13. Runtime Ports / Interfaces
+
+Handlers should depend on interfaces rather than infrastructure implementations.
+
+Recommended ports:
 
 ```text
-integrate_evidence
+RuntimeJobRepository
+ArtifactRepository
+ExecutionRepository
+EventRepository
+ResourceRepository
+SchemaRegistry
+ProfessionalInvoker
+CommitCoordinator
 ```
 
-Purpose:
+Potential future ports:
 
-- Reconcile confirmed Evidence Responses into authoritative professional records.
-- Create/update JER state.
-- Do not simultaneously perform target-fit analysis.
+```text
+InteractionRepository
+CommandRepository
+```
 
-The same Custodian role may perform both operations, but one invocation should have one professional purpose.
-
----
-
-# Custodian Invocation Invariant
-
-> **A Custodian invocation either retrieves authoritative professional evidence or integrates authoritative professional evidence. It does not perform both professional operations in the same invocation.**
-
-An integration operation may necessarily read existing records to perform safe mutation, but its professional purpose remains write/reconciliation rather than target-specific evidence retrieval.
+Professional handlers should not directly depend on Trello API, Discord API, provider-specific webhook structures, or storage-specific SQL/filesystem details.
 
 ---
 
-# Analyst Responsibilities
+# 14. Command Dispatch
 
-Proposed Analyst operations:
+Commands select professional operations.
+
+```python
+handlers = {
+    OperationType.GENERATE_ANALYSIS: GenerateAnalysisHandler(...),
+    OperationType.REQUEST_EVIDENCE: RequestEvidenceHandler(...),
+    OperationType.GENERATE_RESUME: GenerateResumeHandler(...),
+    OperationType.EVALUATE_RESUME: EvaluateResumeHandler(...),
+}
+```
+
+Then:
+
+```python
+handler = handlers[command.operation_type]
+result = await handler.execute(command.job_id, command)
+```
+
+Dispatch does not use professional agent identity.
+
+---
+
+# 15. Why Dispatch by Operation
+
+Operation-centric dispatch preserves compatibility when professional roles change.
+
+Current:
+
+```text
+generate_analysis
+→ Researcher
+```
+
+Future:
+
+```text
+generate_analysis
+→ Analyst
+```
+
+The Runtime command may remain unchanged while the Invocation Resolver loads different professional resources.
+
+Likewise, `integrate_evidence` may move cleanly to Custodian.
+
+---
+
+# 16. Lifecycle Compatibility
+
+Each handler declares allowed lifecycle phases.
+
+Current conceptual mapping:
+
+```text
+generate_analysis → analysis
+request_evidence → evidence_request
+investigate_evidence_request → investigation
+integrate_evidence → evidence_integration
+generate_resume → resume_production
+evaluate_resume → evaluation
+```
+
+If an invalid command arrives, the handler rejects it. It does not silently repair lifecycle state.
+
+---
+
+# 17. Health Compatibility
+
+Normal professional operations may execute when health is `healthy` or `degraded`.
+
+They should not normally start when health is `recoverable_failure` or `blocked` unless the command is specifically a retry/recovery path.
+
+---
+
+# 18. Handler Validation Responsibilities
+
+Common validation includes:
+
+```text
+required outputs present
+artifact type correct
+schema validation passes
+cross-output validation passes
+input freshness preserved
+pointer mutations permitted
+commit conflicts absent
+```
+
+Concrete handlers may add operation-specific checks.
+
+Writer output validation may include Resume/WCM identity consistency. Evidence Response validation may include exact ERQ-version reference integrity.
+
+Handlers do not add professional interpretation.
+
+---
+
+# 19. Execution Result
+
+Handlers return runtime execution state, not raw professional artifacts.
+
+```python
+@dataclass(frozen=True)
+class ExecutionResult:
+    execution_id: ExecutionId
+    operation_key: OperationKey
+    status: ExecutionStatus
+    committed_artifacts: tuple[ArtifactRef, ...]
+    job_revision: int | None
+```
+
+Detailed failure state remains in the Execution record.
+
+---
+
+# 20. Failure Classes
+
+Handlers normalize execution failures to the Artifact/Execution Commit Model vocabulary.
+
+```python
+class FailureClass(Enum):
+    INVOCATION_FAILURE
+    OUTPUT_PARSE_FAILURE
+    SCHEMA_VALIDATION_FAILURE
+    CROSS_OUTPUT_VALIDATION_FAILURE
+    STALE_INPUT
+    ARTIFACT_PERSISTENCE_FAILURE
+    POINTER_COMMIT_CONFLICT
+    RUNTIME_JOB_PERSISTENCE_FAILURE
+    UNKNOWN_FAILURE
+```
+
+Integration projection failures are not professional-handler failures.
+
+---
+
+# 21. Event Emission
+
+Successful handler activity should emit generic runtime Events.
+
+Recommended sequence:
+
+```text
+execution_started
+artifact_committed
+execution_committed
+```
+
+Failures emit:
+
+```text
+execution_started
+execution_failed
+```
+
+For semantically coupled outputs, emit one `artifact_committed` event containing the commit group.
+
+---
+
+# 22. Routing Trigger Boundary
+
+Handlers do not call routing logic directly.
+
+Preferred flow:
+
+```text
+Handler commits professional output
+→ artifact_committed Event
+→ Event processor
+→ evaluate_routing Command
+→ Router
+```
+
+This keeps handlers, router, and integrations independently testable.
+
+---
+
+# 23. Trello Boundary
+
+Professional handlers must not:
+
+- Move Trello cards.
+- Add Trello comments.
+- Inspect Trello lists.
+- Read Trello state to determine lifecycle.
+- Store professional artifacts in Trello.
+
+Trello synchronization occurs through integration/event components.
+
+---
+
+# 24. Discord Boundary
+
+Professional handlers must not:
+
+- Open Discord threads directly.
+- Read raw Discord webhook payloads.
+- Treat Discord transcripts as professional evidence.
+- Mutate Runtime Job lifecycle based on Discord provider state.
+
+Discord belongs behind Interaction/Event adapters.
+
+---
+
+# 25. Long-Lived Investigation Operations
+
+Most handlers should be short-lived. Human investigation may be long-lived.
+
+The architecture must allow investigation to pause without holding database transactions, filesystem locks, worker processes, or in-memory mutable Job state.
+
+The Interaction subsystem should preserve continuation state. This does not change the Evidence Response professional output contract.
+
+---
+
+# 26. Evidence Integration
+
+V3 design has identified the need for an explicit professional `integrate_evidence` operation.
+
+This responsibility should eventually belong to the professional evidence Custodian.
+
+The operation should:
+
+- Consume confirmed Evidence Response(s).
+- Reconcile them into authoritative evidence state.
+- Produce updated JER version(s).
+- Preserve evidence provenance.
+- Preserve conflicts and uncertainty.
+
+It should not simultaneously perform target-fit analysis.
+
+---
+
+# 27. Future Analyst/Custodian Compatibility
+
+Potential future operations include:
 
 ```text
 analyze_target
 request_information
-generate_analysis
-```
-
-Exact task boundaries should be designed.
-
-The Analyst should eventually be able to analyze more than the literal job description.
-
-Future inputs may include:
-
-- Company research.
-- Similar job postings.
-- Hiring-manager public statements.
-- Organizational structure.
-- Company engineering/IT publications.
-- Market expectations.
-- Role-family patterns.
-
-This may eventually produce a richer:
-
-```text
-Target Role Model
-```
-
-The Custodian interface should remain unchanged regardless of how target requirements are derived.
-
----
-
-# Custodian Responsibilities
-
-Proposed Custodian operations:
-
-```text
 retrieve_evidence
 request_evidence
 integrate_evidence
+generate_analysis
 ```
 
-Exact task boundaries should be designed.
+The Handler framework should require only:
 
-Custodian remains authoritative for JER state.
+- New `OperationType` values.
+- New concrete handlers/resolvers.
+- New expected-output declarations.
+- New pointer mutation declarations.
+- Updated routing rules.
+
+The shared execution pipeline should not require redesign.
 
 ---
 
-# Interviewer Boundary
+# 28. Handler Model Is Not an Agent Contract
 
-Interviewer remains responsible only for human factual investigation.
+This document is an implementation architecture resource.
 
-Flow:
+Handlers do not read it at runtime.
+
+The executable authority hierarchy is:
 
 ```text
-Evidence Request
-      ↓
-Interviewer
-      ↓
-Human investigation
-      ↓
-Evidence Response
+Architecture model
+→ Python interfaces/types
+→ Handler implementation
+→ Automated tests
 ```
 
-Interviewer does not determine:
-
-- Target relevance.
-- Evidence strength.
-- Evidence sufficiency.
-- Transferability.
-- Job fit.
-- JER integration.
+When prose and executable implementation disagree, the system should be treated as defective until reconciled.
 
 ---
 
-# Writer Boundary
+# 29. Automated Testing
 
-Writer remains unchanged conceptually.
+Handler invariants should be enforced with automated tests.
 
-Writer consumes Analyst-authorized analytical state.
+Required test classes include:
 
 ```text
-JEA
-→ Writer
-→ Resume + WCM
-```
+generate_resume during analysis
+→ rejected
 
-Writer does not independently query the Custodian.
+GenerateResumeHandler attempts evaluation mutation
+→ rejected
+
+two identical schedule_operation Commands
+→ one logical professional operation
+
+Writer starts with JEA v3
+JEA v4 commits before Writer returns
+→ Writer output stale
+→ Resume/WCM pointers unchanged
+
+Resume persists
+WCM fails
+→ neither current pointer advances
+
+Trello projection fails after professional commit
+→ professional pointers remain committed
+```
 
 ---
 
-# Evaluator Boundary
+# 30. Suggested Python Package Boundary
 
-Evaluator remains the downstream adversarial product-review layer.
-
-The Analyst/Custodian split creates an earlier adversarial boundary:
+Implementation may eventually resemble:
 
 ```text
-Analyst
-vs
-Custodian
+runtime/
+├── models/
+│   ├── runtime_job.py
+│   ├── execution.py
+│   ├── event.py
+│   ├── command.py
+│   └── artifacts.py
+├── handlers/
+│   ├── base.py
+│   ├── generate_analysis.py
+│   ├── request_evidence.py
+│   ├── investigation.py
+│   ├── integrate_evidence.py
+│   ├── generate_resume.py
+│   └── evaluate_resume.py
+├── repositories/
+├── invocation/
+├── commit/
+└── tests/
 ```
 
-while Evaluator remains:
-
-```text
-Target objective
-vs
-finished resume product
-```
-
-These controls address different failure modes.
+This structure is provisional.
 
 ---
 
-# Expected Benefits
+# 31. V0.1 Acceptance Criteria
 
-## Reduced Early Over-Optimization
+The Handler Interface and Responsibility Model is acceptable when:
 
-The same professional role no longer:
-
-```text
-defines desired evidence
-+
-searches evidence
-+
-interprets evidence
-+
-modifies evidence
-```
-
----
-
-## Stronger Evidence Integrity
-
-Custodian optimizes for:
-
-```text
-accuracy
-provenance
-completeness
-conflict preservation
-```
-
-rather than target fit.
+- [ ] Handlers are operation-centric rather than agent-centric.
+- [ ] One common handler interface exists.
+- [ ] Handlers receive `job_id + command`.
+- [ ] Runtime Job is loaded through a repository.
+- [ ] Shared execution mechanics are centralized.
+- [ ] Concrete handlers define only operation-specific behavior.
+- [ ] Invocation Bundles are deterministic and immutable.
+- [ ] Resolvers do not perform professional reasoning.
+- [ ] Every handler declares expected outputs.
+- [ ] Every handler declares allowed pointer mutations.
+- [ ] Unauthorized pointer mutation is rejected.
+- [ ] Deterministic reconciliation uses schema-defined state only.
+- [ ] Professional invocation is replaceable/testable.
+- [ ] Professional handlers do not depend directly on Trello or Discord.
+- [ ] Lifecycle compatibility is enforced.
+- [ ] Health compatibility is enforced.
+- [ ] Output validation occurs before commit.
+- [ ] Coupled outputs remain atomic.
+- [ ] Handlers never route directly.
+- [ ] Successful commits emit generic Events.
+- [ ] Failure handling preserves last valid professional state.
+- [ ] Handler behavior is enforceable through Python types and tests.
+- [ ] Future Analyst/Custodian operations can be added without redesigning the shared framework.
 
 ---
 
-## Stronger Analytical Independence
-
-Analyst can challenge evidence sufficiency without owning evidence custody.
-
----
-
-## Cleaner V3 Runtime Interfaces
-
-Runtime operations become easier to define:
-
-```text
-analyze target
-retrieve evidence
-request evidence
-investigate
-integrate evidence
-analyze evidence
-write resume
-evaluate resume
-```
-
----
-
-## Future Deep Target Research
-
-The Analyst can evolve beyond literal job-description interpretation without requiring changes to professional evidence custody.
-
----
-
-## Better Testing
-
-Analyst and Custodian behavior can be tested independently.
-
-Examples:
-
-```text
-Given an Information Request,
-does Custodian return all and only supported evidence?
-```
-
-```text
-Given an Information Response,
-does Analyst classify requirement coverage conservatively?
-```
-
----
-
-# V3 Runtime Impact
-
-This split changes the expected handler model.
-
-Instead of:
-
-```text
-GenerateAnalysisHandler
-RequestEvidenceHandler
-EvidenceIntegrationHandler
-```
-
-all centered on Researcher, V3 may eventually use:
-
-```text
-AnalyzeTargetHandler
-
-RetrieveEvidenceHandler
-
-RequestEvidenceHandler
-
-InvestigationHandler
-
-IntegrateEvidenceHandler
-
-GenerateAnalysisHandler
-
-GenerateResumeHandler
-
-EvaluateResumeHandler
-```
-
-Exact handler decomposition should follow finalized professional task boundaries.
-
----
-
-# Routing Impact
-
-The current Routing Model assumes:
-
-```text
-analysis
-→ evidence_request
-```
-
-based directly on JEA Material Evidence Needs.
-
-The split may introduce a professional evidence-resolution cycle before final JEA generation.
-
-Conceptually:
-
-```text
-target_analysis
-      ↓
-information_request
-      ↓
-evidence_retrieval
-      ↓
-├── evidence complete
-│      ↓
-│   analysis
-│
-└── evidence incomplete
-       ↓
-   evidence_request
-       ↓
-   investigation
-       ↓
-   evidence_integration
-       ↓
-   evidence_retrieval
-```
-
-The Runtime Job and Routing Model must be reviewed after professional interfaces are finalized.
-
----
-
-# Artifact Impact
-
-Potential new artifacts:
-
-```text
-Information Request
-Information Response
-```
-
-Potential future artifact:
-
-```text
-Target Role Model
-```
-
-Existing artifacts likely retained:
-
-```text
-JER
-Evidence Request
-Evidence Response
-JEA
-Resume
-WCM
-Resume Evaluation
-Process Feedback
-```
-
-Exact schemas should be designed only after role/task boundaries are approved.
-
----
-
-# Migration Considerations
-
-The current Researcher role should not be deleted until equivalent Analyst and Custodian responsibilities are fully defined.
-
-Migration should:
-
-1. Inventory current Researcher authorities.
-2. Assign each authority to Analyst or Custodian.
-3. Identify any authority that should disappear.
-4. Define new task boundaries.
-5. Define Analyst/Custodian artifacts.
-6. Update schemas.
-7. Update V3 routing assumptions.
-8. Update handler interface design.
-9. Validate against previously successful V2 jobs.
-10. Remove legacy Researcher role only after parity is demonstrated.
-
----
-
-# Compatibility Goal
-
-The split should preserve the successful behavior already validated during V2 testing.
-
-Existing successful final products should remain reproducible or improve.
-
-The refactor should not reduce:
-
-- Evidence completeness.
-- Resume quality.
-- Traceability.
-- Human investigation quality.
-- Candidate-fit accuracy.
-
----
-
-# Non-Goals
-
-This issue does not yet:
-
-- Implement Analyst or Custodian.
-- Finalize new schemas.
-- Finalize handler code.
-- Redesign Writer.
-- Redesign Evaluator.
-- Change Interviewer authority.
-- Decide the future Target Role Model.
-- Introduce arbitrary recursive evidence exploration.
-- Make Custodian responsible for target-job interpretation.
-- Make Analyst responsible for JER mutation.
-
----
-
-# Design Questions
-
-The implementation/design work should resolve:
-
-- [ ] Exact Analyst contract.
-- [ ] Exact Custodian contract.
-- [ ] Analyst task boundaries.
-- [ ] Custodian task boundaries.
-- [ ] Information Request schema.
-- [ ] Information Response schema.
-- [ ] Whether `request_evidence` belongs exclusively to Custodian.
-- [ ] Exact trigger for recursive human evidence resolution.
-- [ ] Exact completion condition for an Information Request.
-- [ ] JER integration semantics.
-- [ ] Whether JEA remains Analyst output.
-- [ ] Whether a Target Role Model is needed now or later.
-- [ ] How product-feedback Evidence Uncertainty reaches Analyst/Custodian.
-- [ ] V3 Runtime Job changes.
-- [ ] V3 Routing Model changes.
-- [ ] V3 Handler Interface changes.
-
----
-
-# Acceptance Criteria
-
-The Analyst/Custodian split is ready for implementation when:
-
-- [ ] No professional authority is ambiguously shared.
-- [ ] Analyst cannot mutate authoritative professional evidence.
-- [ ] Custodian cannot determine target-job fit.
-- [ ] Custodian retrieval is target-query bounded.
-- [ ] Custodian read and write operations have separate task semantics.
-- [ ] Analyst expresses evidence needs through a structured professional artifact.
-- [ ] Custodian responds through a structured professional artifact.
-- [ ] Missing material facts can enter the Interviewer loop without workflow awareness inside professional agents.
-- [ ] Confirmed Evidence Responses return to Custodian for integration.
-- [ ] Analyst receives authoritative evidence results after evidence resolution.
-- [ ] JEA generation remains traceable to exact professional evidence state.
-- [ ] Existing successful V2 resume workflows remain reproducible.
-- [ ] V3 handlers and routing can invoke the new professional operations deterministically.
-
----
-
-# Definition of Done
-
-The current Researcher concentration of authority is replaced by two independent professional roles:
-
-```text
-Analyst
-→ defines and evaluates professional information needs against the target
-
-Custodian
-→ retrieves, preserves, and integrates authoritative professional evidence
-```
-
-The resulting architecture must preserve:
-
-- Professional evidence integrity.
-- Target-analysis independence.
-- Human evidence investigation.
-- Partner independence.
-- Deterministic V3 orchestration.
-- Existing Writer/Evaluator interfaces where practical.
-
-This issue is complete when the Analyst/Custodian professional interfaces are stable enough for the V3 Handler Interface and Routing Models to be finalized.
+# Next Design Step
+
+After this model is accepted, continue with the **V3 Persistence Model**.
+
+The Persistence Model should define:
+
+- Runtime Job storage.
+- Professional artifact storage.
+- Execution storage.
+- Event storage.
+- Interaction storage.
+- Immutable artifact versioning.
+- Runtime transactions.
+- Concurrency/version checks.
+- Storage technology boundaries.
+- Recovery guarantees.

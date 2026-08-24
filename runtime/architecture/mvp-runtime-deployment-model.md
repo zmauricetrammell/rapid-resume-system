@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.12 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, FIX-036, and FIX-037 applied
+Draft V0.12 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, FIX-029, and FIX-036 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -16,7 +16,7 @@ Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-
 7. Contracts, tasks, schemas, and runtime code are baked into the image from a known Git revision.
 8. Secrets stay outside the image and professional/runtime artifacts.
 9. Recovery completes before new work is accepted.
-10. Discord and Google Drive failures degrade affected capabilities without corrupting professional state.
+10. Discord and Google Drive failures do not corrupt professional state; required EvidenceSource unavailability blocks the affected professional operation as a recoverable failure rather than silently continuing with incomplete evidence.
 11. No inbound HTTP server is required for MVP.
 12. Trello, Redis, Celery, RabbitMQ, PostgreSQL, Kubernetes, and a web UI are post-MVP.
 13. Every daemon process start receives a unique `runtime_instance_id` used for work ownership, leases, logs, and restart reconciliation.
@@ -98,9 +98,7 @@ Owns staging, validation coordination, freshness checks, immutable artifact pers
 ### Interaction Processor
 Owns long-lived Interviewer continuation using persisted ERQ and conversation state.
 
-Before each continuation, it resolves all currently unprocessed authorized human messages into one immutable, deterministically ordered batch.
-
-For ordinary conversational continuation, it atomically marks that exact consumed batch processed and persists the next Interviewer message before Discord delivery.
+For ordinary conversational continuation, it atomically marks the exact consumed human-message batch processed and persists the next Interviewer message before Discord delivery.
 
 ### Discord Adapter
 Owns Discord provider ingress/egress only; no professional reasoning.
@@ -501,16 +499,7 @@ Idempotency protects duplicate processing.
 
 ## 25.1 Interviewer Continuation Persistence
 
-Before invoking the Interviewer, the Interaction Processor resolves all currently unprocessed authorized human messages available at that moment into one stable ordered batch.
-
-Ordering is:
-
-```text
-provider_created_at ASC
-provider_message_id ASC
-```
-
-Messages arriving after this batch is resolved remain for the next continuation. The exact message IDs become part of continuation identity/provenance.
+Before invoking the Interviewer, the Interaction Processor resolves the stable ordered batch of currently unprocessed human messages.
 
 When the Interviewer returns another conversational turn:
 
@@ -621,6 +610,40 @@ Model/provider settings belong to runtime configuration. Later Analyst/Custodian
 
 ## 33. EvidenceSource Configuration
 V0.1 selects `google_drive`; future deployments may select local filesystem/index/vector implementations.
+
+## 33.1 EvidenceSource Availability
+
+The configured EvidenceSource is a runtime dependency only for operations whose specification requires retrieval.
+
+For a required retrieval operation:
+
+```text
+EvidenceSource unavailable
+→ do not invoke professional model
+→ mark/retry affected Execution as recoverable retrieval failure
+→ preserve current professional state
+```
+
+Examples include:
+- Google Drive API unavailable,
+- expired/revoked credentials,
+- provider timeout,
+- connector failure,
+- required source inaccessible.
+
+The runtime must not substitute:
+
+```text
+[]
+```
+
+for a failed retrieval call.
+
+An empty result is valid only after a successful EvidenceSource query.
+
+Unrelated operations that do not require EvidenceSource access may continue running.
+
+Repeated retrieval failure may move the affected Job to blocked/manual-review state according to normal retry policy, but it never authorizes the agent to reason from a knowingly incomplete required corpus.
 
 ## 34. Internal Polling
 Simple SQLite polling is sufficient:
@@ -843,8 +866,6 @@ At any nonterminal point, restarting the container must not require manual recon
 - [ ] Intact staged output may resume validation after restart without unnecessary model re-invocation.
 - [ ] Active Discord investigation resumes after restart.
 - [ ] Interviewer continuation atomically consumes its exact human-message batch and persists the next conversational turn.
-- [ ] Each continuation batches all currently available unprocessed authorized human messages before invocation.
-- [ ] Messages arriving after batch resolution are deferred to the next continuation.
 - [ ] Evidence Response commit and Interaction completion remain separate recoverable steps.
 - [ ] An Interaction cannot complete before the exact Evidence Response for its current ERQ/version is committed.
 - [ ] Discord delivery occurs only after the next Interviewer message is durable.

@@ -1,7 +1,7 @@
 # RRS V3 Professional Invocation Model
 
 ## Status
-Draft V0.2 — FIX-037 applied
+Draft V0.3 — FIX-029 and FIX-037 applied
 
 ## Purpose
 The Professional Invocation Model defines how the V3 runtime programmatically invokes professional AI operations while preserving authority boundaries, reproducibility, portability, and provider independence.
@@ -33,6 +33,7 @@ Raw model output does not become authoritative professional state until it passe
 19. Invocation provenance records exact model, resources, inputs, retrieval results, and runtime version.
 20. Large-context retrieval complexity is handled by the evidence-retrieval layer rather than blindly uploading the whole corpus.
 21. Tool/provider access may be introduced only through explicit runtime authorization.
+22. If an operation declares an EvidenceSource as required, source unavailability is a recoverable operation failure; the runtime must not silently invoke the professional agent with incomplete retrieval.
 
 ## 1. Invocation Position in the Runtime
 
@@ -295,6 +296,66 @@ TestEvidenceSource
 ```
 
 Higher-level operations depend on the normalized interface, not provider-specific connectors.
+
+## 12.1 EvidenceSource Availability and Failure Semantics
+
+An operation may declare evidence retrieval as:
+
+```text
+required
+```
+
+or:
+
+```text
+optional
+```
+
+This is an operation-specification decision, not a provider decision.
+
+If retrieval is required and the configured EvidenceSource cannot produce a valid retrieval result because of:
+
+- provider outage,
+- authentication failure,
+- authorization failure,
+- connector/API unavailability,
+- source timeout,
+- unreadable provider response,
+- required source not reachable,
+
+the runtime must fail the professional operation before model invocation.
+
+Canonical behavior:
+
+```text
+required EvidenceSource unavailable
+→ do not construct a falsely complete Invocation Bundle
+→ do not invoke professional agent
+→ Execution records recoverable retrieval failure
+→ normal retry policy applies
+```
+
+The runtime must never reinterpret provider failure as:
+
+```text
+no relevant evidence found
+```
+
+Those states are materially different.
+
+A successful empty retrieval result is valid only when the EvidenceSource completed normally and explicitly returned no matches.
+
+Recommended distinction:
+
+```text
+retrieval_succeeded_empty
+retrieval_succeeded_with_results
+retrieval_failed_unavailable
+```
+
+If retrieval is optional, the operation specification must explicitly authorize continuation without it. The Invocation Bundle must record that no retrieval result was supplied and why.
+
+For the current Researcher-compatible evidence path, retrieval against the configured professional evidence corpus should be treated as required whenever the operation depends on corpus search for correctness.
 
 ## 13. Google Drive Access Boundary
 
@@ -874,6 +935,8 @@ unless a specific operation intentionally requires that behavior and context bud
 Invocation failures map to the existing runtime vocabulary:
 
 ```text
+EVIDENCE_SOURCE_UNAVAILABLE
+
 INVOCATION_FAILURE
 OUTPUT_PARSE_FAILURE
 SCHEMA_VALIDATION_FAILURE
@@ -882,6 +945,13 @@ STALE_INPUT
 ```
 
 A dedicated retrieval-failure class may be added later only if implementation evidence justifies it.
+
+
+`EVIDENCE_SOURCE_UNAVAILABLE` is recoverable by default.
+
+It means the runtime could not obtain required retrieval input from the configured EvidenceSource. It does not mean the corpus contained no relevant evidence.
+
+The professional agent must not be invoked for that Execution unless required retrieval succeeds.
 
 ## 52. V0.1 Acceptance Criteria
 
