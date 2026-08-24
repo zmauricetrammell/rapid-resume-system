@@ -796,6 +796,8 @@ evaluate_routing
 ```text
 complete_interaction
 → Interaction.status = completed
+→ RuntimeJob.interaction projection = completed
+→ increment Runtime Job revision
 → interaction_completed Event
 → Command completed
 ```
@@ -900,14 +902,23 @@ Runtime components emit Events after successfully completing meaningful runtime 
 
 Examples:
 
-## Handler
+## Commit Coordinator
 
-After successful professional commit:
+As part of the successful authoritative professional commit transaction:
 
 ```text
 artifact_committed
+```
+
+## Execution Lifecycle Telemetry
+
+After the physical Execution reaches its committed terminal state:
+
+```text
 execution_committed
 ```
+
+`execution_committed` remains audit/telemetry only and does not independently schedule routing.
 
 ## Router
 

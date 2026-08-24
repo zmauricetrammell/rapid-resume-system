@@ -1640,6 +1640,10 @@ Evidence Response artifact metadata
 +
 RuntimeJob.unintegrated_evidence_responses ADD
 +
+exact consumed human-message IDs → processed
++
+continuation provenance boundary as required
++
 Execution committed
 +
 artifact_committed Event
