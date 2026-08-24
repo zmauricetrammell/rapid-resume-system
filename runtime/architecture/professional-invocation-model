@@ -1,7 +1,7 @@
 # RRS V3 Professional Invocation Model
 
 ## Status
-Draft V0.4 — FIX-029, FIX-030, and FIX-037 applied
+Draft V0.5 — FIX-029, FIX-030, FIX-031, and FIX-037 applied
 
 ## Purpose
 The Professional Invocation Model defines how the V3 runtime programmatically invokes professional AI operations while preserving authority boundaries, reproducibility, portability, and provider independence.
@@ -35,6 +35,7 @@ Raw model output does not become authoritative professional state until it passe
 21. Tool/provider access may be introduced only through explicit runtime authorization.
 22. If an operation declares an EvidenceSource as required, source unavailability is a recoverable operation failure; the runtime must not silently invoke the professional agent with incomplete retrieval.
 23. Runtime dispatch is operation-centric; professional-role bindings are configuration/resource mappings, not permanent architectural ownership by the current V2 agent names.
+24. Operation semantics are loaded from a first-class immutable Operation Specification Registry rather than inferred from handler classes.
 
 ## 1. Invocation Position in the Runtime
 
@@ -169,34 +170,43 @@ These categories are versioned/fingerprinted separately.
 
 ## 5. Operation Specification
 
-Each operation has an explicit runtime specification.
+Every professional operation resolves one immutable Operation Specification from the Operation Specification Registry.
 
-```yaml
-generate_resume:
-  professional_role: writer
+The specification declares:
+- handler key,
+- allowed lifecycle phases,
+- professional binding,
+- required/optional inputs,
+- identity dependencies,
+- freshness dependencies,
+- retrieval requirement,
+- required resources,
+- expected outputs,
+- coupled output groups,
+- schemas,
+- pointer authority,
+- deterministic reconciliation,
+- retry-policy reference.
 
-  required_resources:
-    contract: agents/writer/contract.md
-    task: agents/writer/tasks/generate-resume.md
+The Python handler does not own these declarations.
 
-  required_inputs:
-    - target_job
-    - job_experience_analysis
-    - resume_skeleton
-    - prompt_bank
+Conceptually:
 
-  optional_inputs:
-    - resume_evaluation
-
-  expected_outputs:
-    - targeted_resume
-    - writer_content_manifest
-
-  schemas:
-    - schemas/writer-content-manifest.yaml
+```python
+spec = operation_specifications.get(operation_type)
+handler = handlers.get(spec.handler_key)
+result = await handler.execute(job_id, command, spec)
 ```
 
-The runtime does not discover dependencies opportunistically by scanning folders.
+The effective specification is frozen into Execution/Invocation provenance before professional work begins.
+
+Changing a material specification field changes operation identity when it can legitimately change professional output or commit behavior.
+
+See:
+
+```text
+runtime/architecture/operation-specification-registry-model.md
+```
 
 ## 6. Resource Identity
 
@@ -1055,6 +1065,10 @@ It means the runtime could not obtain required retrieval input from the configur
 The professional agent must not be invoked for that Execution unless required retrieval succeeds.
 
 ## 52. V0.1 Acceptance Criteria
+
+- [ ] Operation Specification Registry is the authoritative declarative source for professional operation semantics.
+- [ ] Professional invocation consumes a resolved immutable Operation Specification rather than handler-owned declarations.
+- [ ] Material specification identity participates in operation identity/provenance.
 
 - [ ] Runtime dispatch is operation-centric rather than permanently agent-centric.
 - [ ] Current Researcher bindings are explicitly V2-compatible and provisional.

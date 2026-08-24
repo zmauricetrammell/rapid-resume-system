@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.13 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, FIX-029, FIX-030, and FIX-036 applied
+Draft V0.14 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, FIX-029, FIX-030, FIX-031, and FIX-036 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -21,6 +21,7 @@ Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-
 12. Trello, Redis, Celery, RabbitMQ, PostgreSQL, Kubernetes, and a web UI are post-MVP.
 13. Every daemon process start receives a unique `runtime_instance_id` used for work ownership, leases, logs, and restart reconciliation.
 14. The orchestration runtime binds professional roles to operations through configuration/resources; V2 Researcher ownership is not a permanent runtime dependency.
+15. Professional operation semantics are loaded from a validated first-class Operation Specification Registry before runtime readiness.
 
 ## 1. Deployment Shape
 
@@ -31,6 +32,7 @@ Docker Host
     │   ├── Runtime Control Service
     │   ├── Command Processor
     │   ├── Event Processor
+    │   ├── Operation Specification Registry
     │   ├── Handler Registry
     │   ├── Professional Invoker
     │   ├── EvidenceSource Registry
@@ -81,8 +83,11 @@ Claims durable Commands from SQLite, validates current state, dispatches work, r
 ### Event Processor
 Claims normalized Events, derives resulting Commands, and updates Event processing state. It does not invoke AI directly.
 
+### Operation Specification Registry
+Loads and validates the immutable declarative specification for each `operation_type`.
+
 ### Handler Registry
-Maps `operation_type` to the correct OperationHandler.
+Maps each specification's `handler_key` to the Python OperationHandler implementation.
 
 ### Professional Invoker
 Invokes configured AI providers using immutable Invocation Bundles.
@@ -407,6 +412,7 @@ Executions should be traceable to this build identity.
 5. Open SQLite.
 6. Apply pragmas.
 7. Apply DB migrations.
+8. Load and validate the Operation Specification Registry.
 7. Validate artifact/staging paths.
 8. Run lightweight persistence checks.
 10. Recover incomplete Executions, terminating `running` attempts owned by prior runtime instances as interrupted.
@@ -612,16 +618,27 @@ Use Docker secrets where convenient or environment variables for MVP. Never stor
 
 ## 32. Professional Operation and Model Configuration
 
-The runtime dispatches by `operation_type`.
+Professional operation semantics are defined in the Operation Specification Registry.
 
-Operation configuration resolves:
-- professional role,
-- contract,
-- task,
-- schemas/resources,
-- provider/model configuration.
+For each `operation_type`, the specification resolves:
+- handler key,
+- lifecycle permissions,
+- input/dependency rules,
+- retrieval policy,
+- professional role/resources,
+- schemas/output contract,
+- pointer authority,
+- reconciliation rules.
 
-Current V2-compatible bindings may include:
+The Handler Registry separately resolves:
+
+```text
+handler_key → Python handler implementation
+```
+
+Provider/model settings remain independently configurable.
+
+Current V2-compatible bindings may remain:
 
 ```text
 generate_analysis → researcher
@@ -634,30 +651,9 @@ evaluate_resume → evaluator
 
 These bindings are provisional.
 
-The future Analyst/Custodian split may replace selected bindings or introduce additional operations without changing deployment topology, Command processing, Event processing, or the common handler framework.
+The future Analyst/Custodian split can update or add Operation Specifications without redesigning deployment topology, Command/Event processing, or the common handler framework.
 
-Conceptually:
-
-```yaml
-operation_bindings:
-  generate_analysis:
-    professional_role: researcher
-
-  generate_resume:
-    professional_role: writer
-```
-
-may later become:
-
-```yaml
-operation_bindings:
-  generate_analysis:
-    professional_role: analyst
-```
-
-Provider/model settings remain independently configurable.
-
-The runtime image may contain multiple professional role resource sets simultaneously during migration.
+The runtime image may contain operation specifications, multiple professional role resource sets, handler implementations, schemas, and templates from the known build Git revision.
 
 ## 33. EvidenceSource Configuration
 V0.1 selects `google_drive`; future deployments may select local filesystem/index/vector implementations.
@@ -890,6 +886,10 @@ CLI create Job
 At any nonterminal point, restarting the container must not require manual reconstruction of normal runtime state. Persisted human answers should not need to be repeated.
 
 ## V0.1 Acceptance Criteria
+
+- [ ] Operation Specification Registry loads and validates before runtime readiness.
+- [ ] Handler Registry and Operation Specification Registry have separate responsibilities.
+- [ ] Runtime professional bindings, pointer authority, retrieval rules, and output contracts come from declarative operation specifications.
 
 - [ ] One Docker container runs the MVP.
 - [ ] One Python daemon owns runtime processing.

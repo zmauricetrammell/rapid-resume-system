@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.3 — FIX-029 and FIX-030 applied
+Draft V0.4 — FIX-029, FIX-030, and FIX-031 applied
 
 ## Purpose
 
@@ -45,6 +45,7 @@ Handlers orchestrate professional operations. Professional agents reason.
 18. Handler behavior is ultimately enforced by executable code and tests.
 19. The handler framework must remain compatible with future Analyst/Custodian decomposition.
 20. OperationHandlers never encode permanent ownership by a professional role; the professional role/resources are resolved by the operation specification.
+21. Operation declarations live in the Operation Specification Registry, not as duplicated class-level handler configuration.
 
 ---
 
@@ -101,11 +102,11 @@ Conceptually:
 
 ```python
 class BaseOperationHandler:
-    async def execute(self, job_id, command):
+    async def execute(self, job_id, command, specification):
         job = await self.jobs.get(job_id)
         self.validate_command(command)
-        self.validate_runtime_state(job)
-        bundle = await self.resolve_inputs(job, command)
+        self.validate_runtime_state(job, specification)
+        bundle = await self.resolve_inputs(job, command, specification)
         operation_key = self.build_operation_key(bundle)
         existing = await self.executions.find_by_operation_key(operation_key)
 
@@ -138,42 +139,46 @@ This is conceptual architecture, not required final Python syntax.
 
 # 4. Concrete Handler Responsibilities
 
-Concrete handlers define only behavior that differs by professional operation.
+Concrete handlers implement only operation-specific execution behavior that cannot be expressed declaratively.
 
-Each handler should declare:
-
-```text
-operation_type
-allowed_lifecycle_phases
-required_inputs
-optional_inputs
-required_resources
-retrieval_requirement
-professional_binding
-expected_outputs
-allowed_pointer_mutations
-```
-
-`retrieval_requirement` is one of:
+The handler receives a resolved immutable:
 
 ```text
-none
-optional
-required
+OperationSpecification
 ```
 
-`professional_binding` identifies the configured professional role and resource set used for the operation. It is resolved from runtime operation specification rather than embedded in the handler class.
+The specification owns:
+- allowed lifecycle phases,
+- required/optional inputs,
+- dependency declarations,
+- retrieval requirement,
+- professional binding,
+- required resources,
+- expected outputs,
+- coupled output groups,
+- schema references,
+- pointer mutation authority,
+- deterministic reconciliation declarations.
 
-and implement:
+Concrete handlers implement only mechanics such as:
 
 ```text
-resolve_inputs()
-invoke()
-validate_operation_specific_output()
-build_pointer_mutations()
+resolve_operation_specific_inputs()
+perform_operation_specific_retrieval_query_construction()
+validate_operation_specific_cross_output_rules()
+build_authorized_pointer_mutation_values()
 ```
 
-Common concerns remain in the shared framework.
+Shared framework code owns lifecycle validation, resource loading, professional binding resolution, generic validation, freshness, commit authorization, idempotency, and Event emission.
+
+Do not duplicate declarative specification values inside handler classes.
+
+If handler behavior conflicts with the resolved specification:
+
+```text
+specification authority wins
+→ unauthorized behavior rejected
+```
 
 ---
 
@@ -415,6 +420,7 @@ ExecutionRepository
 EventRepository
 ResourceRepository
 SchemaRegistry
+OperationSpecificationRegistry
 ProfessionalInvoker
 CommitCoordinator
 ```
@@ -432,25 +438,34 @@ Professional handlers should not directly depend on Trello API, Discord API, pro
 
 # 14. Command Dispatch
 
-Commands select professional operations.
+Commands select operations.
+
+Canonical dispatch:
 
 ```python
-handlers = {
-    OperationType.GENERATE_ANALYSIS: GenerateAnalysisHandler(...),
-    OperationType.REQUEST_EVIDENCE: RequestEvidenceHandler(...),
-    OperationType.GENERATE_RESUME: GenerateResumeHandler(...),
-    OperationType.EVALUATE_RESUME: EvaluateResumeHandler(...),
-}
+spec = operation_specifications.get(command.operation_type)
+handler = handlers.get(spec.handler_key)
+
+result = await handler.execute(
+    command.job_id,
+    command,
+    spec,
+)
 ```
 
-Then:
+The registries are distinct:
 
-```python
-handler = handlers[command.operation_type]
-result = await handler.execute(command.job_id, command)
+```text
+Operation Specification Registry
+operation_type → semantics + handler_key
+
+Handler Registry
+handler_key → Python implementation
 ```
 
 Dispatch does not use professional agent identity.
+
+A handler implementation may support compatible specifications, but it does not define the specification itself.
 
 ---
 
@@ -821,6 +836,9 @@ The Handler Interface and Responsibility Model is acceptable when:
 - [ ] Handlers receive `job_id + command`.
 - [ ] Runtime Job is loaded through a repository.
 - [ ] Shared execution mechanics are centralized.
+- [ ] Declarative operation semantics live in the Operation Specification Registry rather than handler classes.
+- [ ] Handler Registry resolves Python implementation by `handler_key`; Operation Specification Registry resolves semantics by `operation_type`.
+- [ ] Handlers receive immutable resolved specifications and cannot expand their authority.
 - [ ] Concrete handlers define only operation-specific behavior.
 - [ ] Invocation Bundles are deterministic and immutable.
 - [ ] Resolvers do not perform professional reasoning.
