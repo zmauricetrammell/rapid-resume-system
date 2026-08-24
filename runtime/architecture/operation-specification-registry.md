@@ -1,7 +1,7 @@
 # RRS V3 Operation Specification Registry Model
 
 ## Status
-Draft V0.2 — FIX-031 and FIX-032
+Draft V0.3 — supplemental V3 architecture addition; not assigned a reconciliation FIX ID
 
 ## Purpose
 

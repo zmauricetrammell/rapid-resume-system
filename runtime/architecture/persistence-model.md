@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.14 — FIX-007, FIX-008, FIX-009, FIX-015, FIX-016, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, FIX-036, FIX-037, and FIX-038 applied
+Draft V0.15 — cumulative persistence reconciliation through FIX-038; FIX-033 and FIX-034 added
 
 ## Purpose
 
@@ -78,7 +78,7 @@ The container image itself must not be treated as durable storage.
 
 # 2. Logical Stores
 
-V3 defines five authoritative logical stores:
+V3 defines six authoritative logical stores:
 
 ```text
 Runtime Job Store
@@ -86,6 +86,7 @@ Professional Artifact Store
 Execution Store
 Event Store
 Interaction Store
+Failure Store
 ```
 
 They may share physical technology, but their responsibilities remain separate.
@@ -99,6 +100,7 @@ Artifact content       → filesystem
 Execution Store        → SQLite
 Event Store            → SQLite
 Interaction Store      → SQLite
+Failure Store          → SQLite
 ```
 
 ---
@@ -120,6 +122,51 @@ It stores:
 - Creation/update/completion timestamps.
 
 It does not store full professional artifact bodies.
+
+---
+
+# 3.1 RuntimeJob Repository Aggregate
+
+SQLite may normalize Runtime Job state across multiple tables/columns, but repository callers receive one canonical in-memory aggregate:
+
+```text
+RuntimeJob
+├── identity
+├── lifecycle
+├── operation
+├── interaction projection
+├── health
+├── professional_state
+└── routing_history
+```
+
+`RuntimeJobRepository.get(job_id)` owns assembly of that aggregate.
+
+Callers must not depend on:
+- table joins,
+- JSON-column placement,
+- foreign-key layout,
+- collection table layout.
+
+Conceptual interface:
+
+```python
+class RuntimeJobRepository(Protocol):
+    async def get(self, job_id: JobId) -> RuntimeJob:
+        ...
+
+    async def mutate(
+        self,
+        job_id: JobId,
+        expected_revision: int,
+        mutation: RuntimeJobMutation,
+    ) -> RuntimeJob:
+        ...
+```
+
+Repository mutation applies CAS semantics and returns the new canonical aggregate after successful commit.
+
+The persistence schema may evolve without changing the aggregate contract.
 
 ---
 
@@ -796,6 +843,73 @@ no next Interviewer message is committed
 This keeps retry behavior deterministic.
 
 If the continuation produces a completed Evidence Response rather than another conversational message, the professional artifact commit path owns completion semantics for that result; ordinary conversational-message processing must not independently finalize the professional result.
+
+---
+
+# 22.1 Failure Store
+
+Runtime failures that materially affect Job health are persistent records.
+
+Conceptual table:
+
+```text
+failures
+------------------------------------------------
+failure_id
+job_id
+execution_id nullable
+event_id nullable
+command_id nullable
+interaction_id nullable
+failure_class
+message
+details_ref nullable
+created_at
+resolved_at nullable
+resolution_message nullable
+```
+
+Recommended record:
+
+```yaml
+failure:
+  failure_id: FAIL-0012
+  job_id: JOB-0001
+
+  execution_id: EXEC-0082
+  event_id: null
+  command_id: null
+  interaction_id: null
+
+  failure_class: schema_validation_failure
+  message: "Resume Evaluation failed schema validation."
+  details_ref: null
+
+  created_at: ...
+  resolved_at: null
+  resolution_message: null
+```
+
+Rules:
+- Failure records are persistent runtime/control-plane history.
+- `failure_class` uses the normalized runtime failure vocabulary.
+- `message` is concise technical/runtime context, not a professional conclusion.
+- Large diagnostics belong behind `details_ref` rather than being embedded in Runtime Job state.
+- Resolving a Failure sets `resolved_at`; it does not delete the record.
+- `RuntimeJob.health.failure_id` points to the current material unresolved Failure.
+- A Runtime Job health mutation and its `failure_id` update use normal revision/CAS semantics.
+- Creation of a Failure and the authoritative health mutation that makes it current should commit atomically when both are SQLite-local consequences of the same failure.
+- A newly observed later Failure may replace `health.failure_id` while older unresolved records remain queryable.
+- Recovery/manual review may resolve or supersede failures explicitly; no implicit deletion occurs.
+
+Indexes should support:
+
+```text
+job_id + resolved_at
+execution_id
+event_id
+command_id
+```
 
 ---
 
@@ -1689,6 +1803,7 @@ EventRepository
 CommandRepository
 
 InteractionRepository
+FailureRepository
 ```
 
 SQLite/filesystem implementations satisfy these ports.
@@ -1741,6 +1856,34 @@ class RuntimeJobRepository(Protocol):
 ```
 
 The repository owns runtime persistence semantics.
+
+---
+
+# 45.1 Failure Repository Interface
+
+Conceptually:
+
+```python
+class FailureRepository(Protocol):
+    async def create(self, failure: Failure) -> Failure:
+        ...
+
+    async def get(self, failure_id: FailureId) -> Failure:
+        ...
+
+    async def list_unresolved(self, job_id: JobId) -> tuple[Failure, ...]:
+        ...
+
+    async def resolve(
+        self,
+        failure_id: FailureId,
+        resolved_at: datetime,
+        resolution_message: str | None,
+    ) -> Failure:
+        ...
+```
+
+The Runtime Control Service uses this repository to explain blocked/recoverable Jobs without parsing logs.
 
 ---
 
@@ -2113,6 +2256,10 @@ Job-level health remains in Runtime Job state.
 ---
 
 # 66. V0.1 Acceptance Criteria
+
+- [ ] `RuntimeJobRepository` assembles and returns the canonical in-memory RuntimeJob aggregate independent of SQLite layout.
+- [ ] Persistent Failure records support `health.failure_id` and survive resolution.
+- [ ] Failure creation plus current Job health linkage is atomic when produced by one SQLite-local failure transition.
 
 The Persistence Model is acceptable when:
 

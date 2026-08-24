@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.7 — FIX-001, FIX-002, FIX-013, FIX-014, FIX-027, and FIX-028 applied
+Draft V0.9 — FIX-001, FIX-002, FIX-013, FIX-014, FIX-027, FIX-028, FIX-031, FIX-033, and FIX-034 applied
 
 ## Purpose
 
@@ -45,6 +45,9 @@ The Runtime Job is intentionally small. Historical professional artifacts, execu
 19. Runtime Job interaction state is a coarse projection of the authoritative Interaction record and does not mirror every provider/runtime Interaction status.
 20. Process Feedback is governance/Kaizen evidence and never appears in `RuntimeJob.professional_state`.
 21. Runtime Job creation is owned by the deterministic `create_job` runtime Command; a new Job begins at revision 1 with an exact Target Job pointer and pinned initial JER snapshot.
+22. Information Request, Information Response, and Target Role state are explicitly deferred future architecture concepts and are not part of the V0.1 Runtime Job aggregate.
+23. `RuntimeJobRepository.get()` returns one canonical in-memory `RuntimeJob` aggregate independent of normalized SQLite table layout.
+24. `health.failure_id` references the current material unresolved persistent `Failure` record; detailed failure state is not embedded in the Runtime Job.
 
 ---
 
@@ -128,6 +131,51 @@ runtime_job:
       reason: "Two unresolved Material Evidence Needs remain."
       execution_id: EXEC-0042
 ```
+
+---
+
+# 0. Canonical In-Memory RuntimeJob Aggregate
+
+Repositories expose one canonical aggregate to handlers, routers, control-surface services, and recovery logic.
+
+Conceptual Python shape:
+
+```python
+@dataclass(frozen=True)
+class RuntimeJob:
+    identity: RuntimeJobIdentity
+    lifecycle: LifecycleState
+    operation: OperationState
+    interaction: InteractionProjection
+    health: HealthState
+    professional_state: ProfessionalState
+    routing_history: tuple[RoutingDecision, ...]
+```
+
+Equivalent conceptual structure:
+
+```yaml
+runtime_job:
+  identity: ...
+  lifecycle: ...
+  operation: ...
+  interaction: ...
+  health: ...
+  professional_state: ...
+  routing_history: [...]
+```
+
+Rules:
+- The aggregate is the authoritative in-memory representation of current Runtime Job state.
+- It is assembled by `RuntimeJobRepository`; callers do not manually join persistence tables.
+- It contains current control-plane state and current professional artifact references, not artifact bodies.
+- It does not expose SQLite row-layout details.
+- Collection fields use deterministic immutable runtime collections such as tuples/frozen values once loaded.
+- Repository mutations return or make available a newly loaded aggregate at the new revision rather than mutating a shared object in place.
+- The aggregate's `identity.revision` is the CAS/concurrency version for authoritative Runtime Job mutations.
+- Historical Events, Executions, Interactions, Failure records, and artifact bodies remain separate stores and are referenced by identity.
+
+This aggregate is intentionally persistence-independent so SQLite normalization may evolve without changing handler/router contracts.
 
 ---
 
@@ -420,6 +468,25 @@ Meanings:
 - `degraded` — a nonfatal runtime/integration problem exists; professional workflow may continue.
 - `recoverable_failure` — current operation requires retry before continuing.
 - `blocked` — automation cannot safely recover; manual review is required.
+
+`failure_id` semantics:
+
+```text
+health.status == healthy
+→ failure_id = null
+
+health.status in [degraded, recoverable_failure, blocked]
+→ failure_id references the current material unresolved Failure when one exists
+```
+
+A Runtime Job stores only the pointer to the current material failure. Full failure history belongs in the persistent Failure Store.
+
+When the current material failure is resolved:
+- its Failure record receives `resolved_at`,
+- `health.failure_id` is cleared or replaced by another unresolved material Failure,
+- health is recomputed through an authoritative Runtime Job mutation.
+
+A historical resolved Failure is never deleted merely because health becomes healthy.
 
 Example:
 - Trello comment sync failure → `degraded`.
@@ -955,6 +1022,53 @@ Trello / Discord
 
 ---
 
+# 23.1 Explicitly Deferred Professional State
+
+The following concepts are intentionally not part of the V0.1 Runtime Job professional-state aggregate:
+
+```text
+Information Request
+Information Response
+Target Role
+```
+
+Their absence in V0.1 is deliberate, not an implicit claim that they will never exist.
+
+These concepts are reserved for the planned Analyst/Custodian decomposition.
+
+Expected future use may include:
+
+```text
+Target Job
+→ Analyst scrutinizes target
+→ Target Role / structured target interpretation
+→ Information Request
+→ Custodian retrieval
+→ Information Response
+→ Analyst analysis
+```
+
+V0.1 does not define:
+- Runtime Job current pointers for these artifact/state types,
+- collection semantics for them,
+- routing predicates for them,
+- lifecycle phases dedicated to them,
+- mutation authority for them.
+
+Until the Analyst/Custodian design is finalized, runtime code must not invent placeholder fields such as:
+
+```text
+professional_state.target_role
+professional_state.information_requests
+professional_state.information_responses
+```
+
+If the future design introduces these concepts, they must be added through an explicit architecture/schema update with defined artifact identity/version semantics, current-state ownership, operation authority, routing behavior, persistence behavior, and freshness/identity dependencies.
+
+This preserves the MVP boundary without constraining the final architecture.
+
+---
+
 # 24. Data Stored Outside Runtime Job
 
 ## Professional Artifact Store
@@ -987,6 +1101,14 @@ Contains provider-specific Discord or other human-interaction metadata.
 ## Event Store / Runtime Log
 Contains webhook events, retries, integration events, and other runtime history.
 
+## Failure Store
+
+Contains persistent runtime failure records.
+
+`RuntimeJob.health.failure_id` references the current material unresolved Failure when health is not healthy.
+
+Failure history is not embedded in the Runtime Job aggregate.
+
 ## Governance / Process Feedback
 Process Feedback may be retained in the common Artifact Store or a future supervisory/governance index, but it is not a current Runtime Job professional-state pointer.
 
@@ -1015,6 +1137,11 @@ It should not answer:
 
 # 26. V0.1 Acceptance Criteria
 
+- [ ] `RuntimeJobRepository` returns one canonical persistence-independent `RuntimeJob` aggregate.
+- [ ] The aggregate contains current control-plane state and references, not historical record bodies.
+- [ ] `health.failure_id` references a persistent unresolved Failure record rather than embedding failure detail.
+- [ ] Resolved Failure history remains persistent after Runtime Job health recovers.
+
 - [ ] Lifecycle, operation, interaction, and health are orthogonal.
 - [ ] Runtime Job interaction state is a coarse projection of the authoritative Interaction record.
 - [ ] Cancelled authoritative Interactions clear the Runtime Job interaction projection rather than requiring a duplicate `cancelled` projection state.
@@ -1023,6 +1150,8 @@ It should not answer:
 - [ ] Collection mutation commits are revision-checked and cannot silently overwrite concurrent valid members.
 - [ ] Historical artifact contents are not duplicated in Runtime Job.
 - [ ] Process Feedback remains outside `RuntimeJob.professional_state` and does not participate in routing.
+- [ ] Information Request, Information Response, and Target Role are explicitly documented as deferred future state rather than silently omitted.
+- [ ] V0.1 Runtime Job does not invent provisional current pointers for deferred Analyst/Custodian concepts.
 - [ ] Handlers can resolve complete invocation bundles from current pointers.
 - [ ] Current pointers are never cleared before replacement artifacts commit.
 - [ ] Failed operations preserve the last valid professional state.

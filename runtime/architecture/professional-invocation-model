@@ -1,7 +1,7 @@
 # RRS V3 Professional Invocation Model
 
 ## Status
-Draft V0.6 — FIX-029, FIX-030, FIX-031, FIX-032, and FIX-037 applied
+Draft V0.7 — FIX-029, FIX-030, FIX-032, FIX-035, and FIX-037 applied; supplemental Operation Specification Registry alignment retained
 
 ## Purpose
 The Professional Invocation Model defines how the V3 runtime programmatically invokes professional AI operations while preserving authority boundaries, reproducibility, portability, and provider independence.
@@ -37,6 +37,8 @@ Raw model output does not become authoritative professional state until it passe
 23. Runtime dispatch is operation-centric; professional-role bindings are configuration/resource mappings, not permanent architectural ownership by the current V2 agent names.
 24. Operation semantics are loaded from a first-class immutable Operation Specification Registry rather than inferred from handler classes.
 25. Invocation provenance records both the exact operation specification hash and the validated registry/build identity that governed the Execution.
+26. Evidence retrieval crosses provider boundaries only through provider-neutral `EvidenceQuery`, `EvidenceSearchResult`, and `RetrievedEvidenceItem` runtime types.
+27. Interviewer continuation returns a typed union: `ConversationTurn` or `CompletedProfessionalArtifact`; ambiguous free-form return shape is not a valid continuation result.
 
 ## 1. Invocation Position in the Runtime
 
@@ -419,51 +421,119 @@ Analyst
 
 The source abstraction survives the refactor.
 
-## 15. Evidence Query
+## 15. Provider-Neutral Evidence Retrieval Types
 
-Conceptual structure:
+The EvidenceSource boundary uses three provider-neutral runtime types:
+
+```text
+EvidenceQuery
+EvidenceSearchResult
+RetrievedEvidenceItem
+```
+
+Provider adapters translate provider-specific APIs into these types before professional reasoning receives retrieval results.
+
+### `EvidenceQuery`
 
 ```yaml
 evidence_query:
   query_id: QUERY-0042
-  job_id: JOB-0001
-
-  information_need:
-    capability: direct service desk people management
-    dimensions:
-      - direct-report relationship
-      - team size
-      - duration
-      - performance management
-
-  scope:
-    source_collection: professional_corpus
-
-  constraints:
-    - preserve provenance
-    - do not infer direct reporting
+  purpose: "Find evidence relevant to service-desk leadership and SLA ownership."
+  search_text: "service desk SLA vendor leadership"
+  requested_evidence_types:
+    - job_experience_record
+    - source_document
+  filters:
+    source_scope: reusable_professional_evidence
+    date_from: null
+    date_to: null
+  max_results: 20
 ```
 
-The exact schema may evolve with Analyst/Custodian design.
+Rules:
+- `query_id` is runtime identity for this resolved query.
+- `purpose` describes why retrieval is authorized.
+- `search_text` is provider-neutral search intent.
+- `requested_evidence_types` and `filters` are normalized runtime constraints.
+- Provider-specific query syntax does not appear in the common type.
 
-## 16. Evidence Search Result
+### `RetrievedEvidenceItem`
+
+```yaml
+retrieved_evidence_item:
+  item_id: RETRIEVED-0007
+
+  source_ref:
+    source_type: google_drive
+    source_item_id: "provider-stable-id"
+    source_version: "provider-version-or-modified-identity"
+
+  title: "Network Operations Report"
+  media_type: application/pdf
+
+  content:
+    excerpt: "..."
+    normalized_text_hash: sha256:...
+
+  metadata:
+    modified_at: ...
+    logical_path: "Professional Evidence/Reports/..."
+```
+
+Rules:
+- `item_id` is runtime retrieval identity, not provider identity.
+- `source_ref` preserves enough stable source identity for provenance and change detection.
+- `content.excerpt` contains only the selected content supplied downstream.
+- `normalized_text_hash` fingerprints the supplied professional evidence content.
+- Provider-specific metadata may be retained under normalized metadata only when useful for provenance; downstream professional operations must not depend on provider-specific fields.
+
+### `EvidenceSearchResult`
 
 ```yaml
 evidence_search_result:
-  retrieval_id: RET-0042
-  source_type: google_drive
   query_id: QUERY-0042
+  status: succeeded
 
-  returned_items:
-    - source_id: DRIVE-FILE-001
-      source_version: "modified-time-or-provider-version"
-      title: "..."
-      content_hash: sha256:...
-      excerpt_ref: ...
-      relevance_metadata: ...
+  items:
+    - retrieved_evidence_item
 
-  completed_at: ...
+  executed_at: ...
+  source_adapter: google_drive
+  result_fingerprint: sha256:...
 ```
+
+Allowed status:
+
+```text
+succeeded
+```
+
+Provider failure does not produce an `EvidenceSearchResult` with an empty item list. It produces the recoverable retrieval failure defined by the EvidenceSource failure model.
+
+A successful query may return:
+
+```text
+items: []
+```
+
+which means retrieval completed normally and found no matching evidence.
+
+## 16. Retrieval Fingerprint Inputs
+
+`EvidenceSearchResult.result_fingerprint` is deterministic from the normalized retrieval result supplied to professional reasoning.
+
+Recommended canonical fingerprint inputs:
+
+```text
+query identity/content
+ordered RetrievedEvidenceItem source identity
+source version identity
+normalized supplied-content hash
+```
+
+Provider request IDs, latency, pagination tokens, and other transport details do not affect the professional retrieval fingerprint unless they change the evidence content supplied.
+
+Items should be canonicalized in stable source identity order before hashing so provider response ordering does not change logical operation identity.
 
 ## 17. Retrieval Provenance
 
@@ -879,6 +949,43 @@ provider_message_id ASC
 
 Messages committed after batch resolution do not mutate the current Invocation Bundle and belong to the next continuation.
 
+### Typed Continuation Result
+
+The Interviewer must return exactly one member of this tagged union:
+
+```text
+InterviewerContinuationResult =
+  ConversationTurn
+  | CompletedProfessionalArtifact
+```
+
+`ConversationTurn`:
+
+```yaml
+kind: conversation_turn
+message:
+  content: "..."
+  message_type: question
+```
+
+`CompletedProfessionalArtifact`:
+
+```yaml
+kind: completed_professional_artifact
+artifact:
+  artifact_type: evidence_response
+  schema_version: ...
+  content: ...
+```
+
+Rules:
+- `kind` is required and unambiguous.
+- `conversation_turn` means the investigation remains conversationally active.
+- `completed_professional_artifact` means the professional candidate output enters normal extraction, schema validation, staging, freshness, and commit processing.
+- The returned artifact content is not authoritative merely because the Interviewer selected `completed_professional_artifact`.
+- V0.1 allows only `evidence_response` as the completed professional artifact type for Interviewer investigation.
+- Prose that appears to contain both a question and a completed Evidence Response is invalid until the Output Extractor can resolve exactly one union member.
+
 This gives a stable logical boundary:
 
 ```text
@@ -888,8 +995,6 @@ same Interaction
 + same exact ordered human-message batch
 → same continuation input
 ```
-
-The Interviewer may return a next conversational turn or an Evidence Response.
 
 No provider conversation/session memory is required for correctness.
 
@@ -1095,6 +1200,12 @@ It means the runtime could not obtain required retrieval input from the configur
 The professional agent must not be invoked for that Execution unless required retrieval succeeds.
 
 ## 52. V0.1 Acceptance Criteria
+
+- [ ] Evidence retrieval uses provider-neutral `EvidenceQuery`, `EvidenceSearchResult`, and `RetrievedEvidenceItem` types.
+- [ ] Successful empty retrieval is distinguishable from EvidenceSource failure.
+- [ ] Retrieval fingerprints are deterministic from normalized supplied evidence, not provider transport details.
+- [ ] Interviewer continuation returns exactly one typed `ConversationTurn` or `CompletedProfessionalArtifact`.
+- [ ] V0.1 `CompletedProfessionalArtifact` from Interviewer is restricted to Evidence Response and still requires normal professional commit processing.
 
 - [ ] Invocation provenance records exact specification and registry/build identity.
 - [ ] Registry/build identity is immutable for an Execution.

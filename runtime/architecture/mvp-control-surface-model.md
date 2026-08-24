@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.2 — FIX-014 applied
+Draft V0.3 — FIX-014 and FIX-034 applied
 
 ## Purpose
 
@@ -549,8 +549,9 @@ Health:
 recoverable_failure
 
 Failure:
-EXEC-0042
-invocation_failure
+FAIL-0011
+class: invocation_failure
+Execution: EXEC-0042
 attempt 1 of 3
 
 $ rrs job retry JOB-0001
@@ -706,6 +707,39 @@ It does not determine:
 - whether an agent made the correct professional judgment.
 
 Those remain professional/governance concerns.
+
+---
+
+# 24.1 Failure Record Resolution
+
+`rrs job show`, `rrs job retry`, and `rrs job review` resolve:
+
+```text
+RuntimeJob.health.failure_id
+→ FailureRepository.get(failure_id)
+```
+
+The Failure record provides:
+- normalized failure class,
+- related Execution/Event/Command/Interaction IDs,
+- concise runtime message,
+- diagnostic reference when present,
+- creation/resolution timestamps.
+
+The CLI must not:
+- parse runtime logs to reconstruct authoritative failure state,
+- treat an Execution ID as the Failure identity,
+- invent professional conclusions from technical errors.
+
+If `health.failure_id` references a missing Failure record:
+
+```text
+runtime integrity error
+→ surface clearly
+→ do not fabricate a replacement explanation
+```
+
+Resolved historical Failure records remain available for inspection even after Job health returns to healthy.
 
 ---
 
@@ -1123,6 +1157,10 @@ no CLI command directly sets lifecycle phase
 ---
 
 # 45. V0.1 Acceptance Criteria
+
+- [ ] Health/review output resolves persistent Failure records via `health.failure_id`.
+- [ ] CLI distinguishes Failure identity from related Execution/Event/Command identity.
+- [ ] Missing referenced Failure records surface as runtime-integrity errors rather than inferred explanations.
 
 - [ ] MVP can operate without Trello.
 - [ ] CLI can create a Runtime Job.

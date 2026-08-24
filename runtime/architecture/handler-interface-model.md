@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.4 — FIX-029, FIX-030, and FIX-031 applied
+Draft V0.5 — FIX-029 and FIX-030 applied; supplemental Operation Specification Registry alignment retained
 
 ## Purpose
 

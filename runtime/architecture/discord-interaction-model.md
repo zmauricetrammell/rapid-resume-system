@@ -1,7 +1,7 @@
 # RRS V3 Discord Interaction Model
 
 ## Status
-Draft V0.7 — FIX-016, FIX-017, FIX-018, FIX-019, FIX-037, and FIX-038 applied
+Draft V0.8 — FIX-016, FIX-017, FIX-018, FIX-019, FIX-035, FIX-037, and FIX-038 applied
 
 ## Purpose
 The Discord Interaction Model defines how V3 uses Discord as the human conversation surface for Evidence Request investigation.
@@ -41,6 +41,7 @@ one active Evidence Request investigation per Runtime Job at a time
 19. Evidence Response professional commit and Interaction completion are separate authoritative mutations; Interaction completion occurs only after the exact Evidence Response has committed successfully.
 20. Each Interviewer continuation consumes one stable ordered batch containing all currently unprocessed authorized human messages available at batch resolution time.
 21. Every persisted Discord Interaction Message records provider chronology fields sufficient for deterministic ordering and reconnect reconciliation.
+22. Interviewer continuation produces exactly one typed result: `ConversationTurn` or `CompletedProfessionalArtifact`; V0.1 completed artifacts are Evidence Responses.
 
 ## 1. Discord Topology
 
@@ -148,35 +149,47 @@ If Discord thread creation fails, keep the Interaction `pending` and retry provi
 
 No long-lived in-memory model session is required.
 
-Each continuation uses:
+Each continuation receives the exact persisted context and immutable human-message batch defined by the Invocation Model.
+
+The result is:
 
 ```text
-Evidence Request
-+
-persisted ordered conversation
-+
-latest unprocessed human response
-+
-Interviewer contract
-+
-investigate_evidence_request task
-+
-Evidence Response schema
+InterviewerContinuationResult
 ```
 
-and produces either:
+with exactly one tagged member:
 
 ```text
-next conversational turn
+ConversationTurn
+CompletedProfessionalArtifact
 ```
 
-or:
+`ConversationTurn`:
 
-```text
-completed Evidence Response
+```yaml
+kind: conversation_turn
+message:
+  content: "..."
+  message_type: question
 ```
 
-Professional continuity comes from persistence.
+`CompletedProfessionalArtifact`:
+
+```yaml
+kind: completed_professional_artifact
+artifact:
+  artifact_type: evidence_response
+  content: ...
+```
+
+Rules:
+- `ConversationTurn` persists as the next Interviewer Interaction Message before Discord delivery.
+- `CompletedProfessionalArtifact` enters the normal professional output pipeline.
+- It does not directly mark the Interaction complete.
+- The Evidence Response must extract, validate, stage, pass freshness checks, and commit before `complete_interaction` may run.
+- A continuation result that cannot be resolved to exactly one tagged member is invalid and retryable according to professional invocation policy.
+
+Professional continuity comes from persistence, not provider chat-session memory.
 
 ## 6. Message Record
 
@@ -898,6 +911,10 @@ V0.1 does not require:
 - Discord as a runtime database.
 
 ## 26. V0.1 Acceptance Criteria
+
+- [ ] Interviewer continuation result is a tagged union: `ConversationTurn` or `CompletedProfessionalArtifact`.
+- [ ] V0.1 completed Interviewer professional artifact is restricted to Evidence Response.
+- [ ] Typed completion still enters normal professional commit processing before Interaction completion.
 
 - [ ] One configured RRS Discord channel is used.
 - [ ] One ERQ maps to one Discord thread.

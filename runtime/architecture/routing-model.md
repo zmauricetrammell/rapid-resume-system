@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.6 — FIX-003, FIX-004, FIX-007, FIX-020, and FIX-021 applied
+Draft V0.7 — FIX-003, FIX-004, FIX-007, FIX-020, FIX-021, and FIX-031 applied
 
 ## Purpose
 
@@ -35,6 +35,7 @@ Professional agents remain unaware of routing, Trello, Discord, other agents, do
 13. A routing-history append and lifecycle transition are one authoritative Runtime Job mutation and commit atomically with the resulting `lifecycle_changed` Event.
 14. `artifact_committed` is the sole canonical professional-state routing trigger; Execution completion alone never triggers routing.
 15. Routine no-change routing evaluations do not append routing history; self-transitions are recorded only when they represent a discrete meaningful work milestone.
+16. V0.1 routing does not infer or route on deferred Information Request, Information Response, or Target Role state; those concepts await the Analyst/Custodian architecture.
 
 ---
 
@@ -1076,6 +1077,55 @@ unless the caller explicitly identifies a meaningful milestone.
 
 ---
 
+# 30.1 Deferred Analyst / Custodian Routing State
+
+V0.1 routing is intentionally limited to the current V2-compatible professional artifact flow.
+
+The following future concepts are explicitly deferred:
+
+```text
+Target Role
+Information Request
+Information Response
+```
+
+The router must not infer their existence from prose, agent commentary, or missing evidence.
+
+V0.1 therefore defines no predicates such as:
+
+```text
+target_role exists
+information_request pending
+information_response available
+```
+
+and no lifecycle transitions dedicated to those concepts.
+
+The future Analyst/Custodian design may introduce a flow such as:
+
+```text
+target analysis
+→ information request
+→ evidence retrieval/custody
+→ information response
+→ analysis
+```
+
+but those transitions are outside the current routing contract.
+
+When that design is adopted, routing changes must be explicit and artifact-grounded. They must define exact committed state predicates, transition ownership, event/command triggers, and interaction with existing Evidence Request investigation.
+
+Until then:
+
+```text
+absence of Target Role / Information Request / Information Response
+≠ architecture defect
+```
+
+It is a deliberate MVP deferral.
+
+---
+
 # 31. Routing Trigger Points
 
 Routing should run after meaningful committed Runtime Job state changes.
@@ -1726,6 +1776,8 @@ The Routing Model is acceptable when:
 - [ ] Routine no-change evaluations do not append routing history.
 - [ ] Self-transitions are recorded only for explicit meaningful milestones.
 - [ ] Duplicate or periodic routing checks over unchanged state remain no-ops.
+- [ ] V0.1 routing explicitly excludes deferred Target Role, Information Request, and Information Response predicates.
+- [ ] Future Analyst/Custodian routing concepts require an explicit architecture update rather than implicit runtime inference.
 
 ---
 
