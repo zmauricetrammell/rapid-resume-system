@@ -1,7 +1,7 @@
 # RRS V3 MVP Runtime and Deployment Model
 
 ## Status
-Draft V0.12 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, FIX-029, and FIX-036 applied
+Draft V0.13 — FIX-008, FIX-009, FIX-014, FIX-015, FIX-017, FIX-018, FIX-019, FIX-022, FIX-026, FIX-029, FIX-030, and FIX-036 applied
 
 ## Purpose
 Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-backed artifacts, Discord, Google Drive retrieval, and a CLI control surface.
@@ -20,6 +20,7 @@ Define how the V3 MVP runs in Docker with one Python daemon, SQLite, filesystem-
 11. No inbound HTTP server is required for MVP.
 12. Trello, Redis, Celery, RabbitMQ, PostgreSQL, Kubernetes, and a web UI are post-MVP.
 13. Every daemon process start receives a unique `runtime_instance_id` used for work ownership, leases, logs, and restart reconciliation.
+14. The orchestration runtime binds professional roles to operations through configuration/resources; V2 Researcher ownership is not a permanent runtime dependency.
 
 ## 1. Deployment Shape
 
@@ -97,6 +98,10 @@ Owns staging, validation coordination, freshness checks, immutable artifact pers
 
 ### Interaction Processor
 Owns long-lived Interviewer continuation using persisted ERQ and conversation state.
+
+Before each continuation, it resolves all currently unprocessed authorized human messages into one immutable, deterministically ordered batch.
+
+For ordinary conversational continuation, it atomically marks that exact consumed batch processed and persists the next Interviewer message before Discord delivery.
 
 For ordinary conversational continuation, it atomically marks the exact consumed human-message batch processed and persists the next Interviewer message before Discord delivery.
 
@@ -605,8 +610,54 @@ Examples:
 
 Use Docker secrets where convenient or environment variables for MVP. Never store them in artifacts, Runtime Jobs, generic Events, logs, Discord messages, or source control.
 
-## 32. Model Configuration
-Model/provider settings belong to runtime configuration. Later Analyst/Custodian mappings may replace Researcher without changing deployment topology.
+## 32. Professional Operation and Model Configuration
+
+The runtime dispatches by `operation_type`.
+
+Operation configuration resolves:
+- professional role,
+- contract,
+- task,
+- schemas/resources,
+- provider/model configuration.
+
+Current V2-compatible bindings may include:
+
+```text
+generate_analysis → researcher
+request_evidence → researcher
+integrate_evidence → researcher
+investigate_evidence_request → interviewer
+generate_resume → writer
+evaluate_resume → evaluator
+```
+
+These bindings are provisional.
+
+The future Analyst/Custodian split may replace selected bindings or introduce additional operations without changing deployment topology, Command processing, Event processing, or the common handler framework.
+
+Conceptually:
+
+```yaml
+operation_bindings:
+  generate_analysis:
+    professional_role: researcher
+
+  generate_resume:
+    professional_role: writer
+```
+
+may later become:
+
+```yaml
+operation_bindings:
+  generate_analysis:
+    professional_role: analyst
+```
+
+Provider/model settings remain independently configurable.
+
+The runtime image may contain multiple professional role resource sets simultaneously during migration.
 
 ## 33. EvidenceSource Configuration
 V0.1 selects `google_drive`; future deployments may select local filesystem/index/vector implementations.

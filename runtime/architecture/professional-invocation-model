@@ -1,7 +1,7 @@
 # RRS V3 Professional Invocation Model
 
 ## Status
-Draft V0.3 — FIX-029 and FIX-037 applied
+Draft V0.4 — FIX-029, FIX-030, and FIX-037 applied
 
 ## Purpose
 The Professional Invocation Model defines how the V3 runtime programmatically invokes professional AI operations while preserving authority boundaries, reproducibility, portability, and provider independence.
@@ -34,6 +34,7 @@ Raw model output does not become authoritative professional state until it passe
 20. Large-context retrieval complexity is handled by the evidence-retrieval layer rather than blindly uploading the whole corpus.
 21. Tool/provider access may be introduced only through explicit runtime authorization.
 22. If an operation declares an EvidenceSource as required, source unavailability is a recoverable operation failure; the runtime must not silently invoke the professional agent with incomplete retrieval.
+23. Runtime dispatch is operation-centric; professional-role bindings are configuration/resource mappings, not permanent architectural ownership by the current V2 agent names.
 
 ## 1. Invocation Position in the Runtime
 
@@ -558,25 +559,93 @@ Provider APIs may represent these differently, but logical content remains stabl
 
 ## 24. Professional Role Mapping
 
-Current conceptual mapping:
+Runtime dispatch is based on:
 
 ```text
-generate_analysis → researcher
-request_evidence → researcher
-investigate_evidence_request → interviewer
-integrate_evidence → future custodian
-generate_resume → writer
-evaluate_resume → evaluator
+operation_type
 ```
 
-Future:
+not on a permanently encoded agent identity.
+
+The runtime resolves a professional implementation for an operation from explicit operation/resource configuration.
+
+Current V2-compatible mapping:
 
 ```text
-analyze_target → analyst
-retrieve_evidence → custodian
-integrate_evidence → custodian
-generate_analysis → analyst
+generate_analysis
+→ researcher
+
+request_evidence
+→ researcher
+
+investigate_evidence_request
+→ interviewer
+
+integrate_evidence
+→ researcher
+
+generate_resume
+→ writer
+
+evaluate_resume
+→ evaluator
 ```
+
+This mapping exists only to run the currently stable V2 professional agents through the V3 runtime.
+
+It is provisional.
+
+The planned Analyst/Custodian decomposition may instead map operations such as:
+
+```text
+analyze_target
+→ analyst
+
+request_information
+→ analyst
+
+retrieve_evidence
+→ custodian
+
+integrate_evidence
+→ custodian
+
+generate_analysis
+→ analyst
+
+investigate_evidence_request
+→ interviewer
+
+generate_resume
+→ writer
+
+evaluate_resume
+→ evaluator
+```
+
+The exact future operation vocabulary will be finalized by the Analyst/Custodian design issue.
+
+The important architectural rule is:
+
+```text
+Command
+→ operation_type
+→ OperationHandler
+→ operation specification
+→ configured professional role/resources
+```
+
+not:
+
+```text
+Command
+→ hard-coded Researcher/Writer/Evaluator class
+```
+
+Changing which professional role implements an operation must not require changing Command semantics, Runtime Job lifecycle semantics, Event vocabulary, or the common handler interface unless the operation itself changes.
+
+Professional role mapping belongs in runtime operation specifications/configuration and is recorded in Invocation provenance.
+
 
 ## 25. Professional Invoker Interface
 
@@ -601,17 +670,49 @@ TestProfessionalInvoker
 
 Provider/model selection belongs in runtime configuration.
 
+Professional-role identity is also resolved through configuration/resources rather than being hard-coded into the orchestration framework.
+
+Conceptually:
+
+```yaml
+operation_bindings:
+  generate_analysis:
+    professional_role: researcher
+    contract: agents/researcher/contract.md
+    task: agents/researcher/tasks/generate-analysis.md
+
+  generate_resume:
+    professional_role: writer
+    contract: agents/writer/contract.md
+    task: agents/writer/tasks/generate-resume.md
+```
+
+Provider selection may then be configured independently:
+
 ```yaml
 professional_roles:
+  researcher:
+    provider: openai
+    model: configured-model
+
   writer:
     provider: openai
     model: configured-model
+
   evaluator:
     provider: openai
     model: configured-model
 ```
 
-Professional contracts do not hard-code model identity.
+After the Analyst/Custodian split, the operation binding may change without redesigning the runtime:
+
+```yaml
+operation_bindings:
+  generate_analysis:
+    professional_role: analyst
+```
+
+Professional contracts do not hard-code model identity, and orchestration code does not permanently hard-code V2 professional-role ownership.
 
 ## 27. Invocation Provenance
 
@@ -954,6 +1055,11 @@ It means the runtime could not obtain required retrieval input from the configur
 The professional agent must not be invoked for that Execution unless required retrieval succeeds.
 
 ## 52. V0.1 Acceptance Criteria
+
+- [ ] Runtime dispatch is operation-centric rather than permanently agent-centric.
+- [ ] Current Researcher bindings are explicitly V2-compatible and provisional.
+- [ ] Professional role/resource bindings are configuration-resolved and provenance-recorded.
+- [ ] Future Analyst/Custodian rebinding can occur without redesigning the orchestration core.
 
 - [ ] Interviewer continuation identity includes the exact ordered human-message batch.
 - [ ] Later-arriving messages cannot mutate an already-resolved Invocation Bundle.

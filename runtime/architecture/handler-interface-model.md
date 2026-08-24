@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft V0.2 — FIX-029 applied
+Draft V0.3 — FIX-029 and FIX-030 applied
 
 ## Purpose
 
@@ -44,6 +44,7 @@ Handlers orchestrate professional operations. Professional agents reason.
 17. Deterministic reconciliation logic remains separate from professional reasoning.
 18. Handler behavior is ultimately enforced by executable code and tests.
 19. The handler framework must remain compatible with future Analyst/Custodian decomposition.
+20. OperationHandlers never encode permanent ownership by a professional role; the professional role/resources are resolved by the operation specification.
 
 ---
 
@@ -148,6 +149,7 @@ required_inputs
 optional_inputs
 required_resources
 retrieval_requirement
+professional_binding
 expected_outputs
 allowed_pointer_mutations
 ```
@@ -159,6 +161,8 @@ none
 optional
 required
 ```
+
+`professional_binding` identifies the configured professional role and resource set used for the operation. It is resolved from runtime operation specification rather than embedded in the handler class.
 
 and implement:
 
@@ -255,7 +259,7 @@ For optional retrieval, continuation without retrieval is permitted only when th
 
 # 7. Expected Output Declaration
 
-Every concrete handler declares required professional output types.
+Every concrete handler declares required professional output types. The following is the current V2-compatible operation set:
 
 ```text
 generate_analysis
@@ -327,7 +331,9 @@ Current conceptual mapping:
 | `generate_resume` | `resume`, `wcm` |
 | `evaluate_resume` | `evaluation` |
 
-This table is provisional pending Analyst/Custodian domain refactor.
+This table describes current V2-compatible operation semantics and is provisional pending the Analyst/Custodian domain refactor.
+
+Pointer authority belongs to operations, not professional role names. Rebinding `generate_analysis` from Researcher to Analyst does not grant new pointer authority unless the operation specification itself changes.
 
 ---
 
@@ -450,25 +456,67 @@ Dispatch does not use professional agent identity.
 
 # 15. Why Dispatch by Operation
 
-Operation-centric dispatch preserves compatibility when professional roles change.
+Operation-centric dispatch prevents orchestration code from becoming coupled to the current professional organization.
 
-Current:
-
-```text
-generate_analysis
-→ Researcher
-```
-
-Future:
+Current V2-compatible implementation may resolve:
 
 ```text
 generate_analysis
-→ Analyst
+→ Researcher resources
+
+request_evidence
+→ Researcher resources
+
+integrate_evidence
+→ Researcher resources
 ```
 
-The Runtime command may remain unchanged while the Invocation Resolver loads different professional resources.
+These are resource bindings, not permanent handler ownership.
 
-Likewise, `integrate_evidence` may move cleanly to Custodian.
+Future mappings may resolve:
+
+```text
+generate_analysis
+→ Analyst resources
+
+retrieve_evidence
+→ Custodian resources
+
+integrate_evidence
+→ Custodian resources
+```
+
+without changing the common runtime dispatch rule:
+
+```text
+command.operation_type
+→ OperationHandler
+→ OperationSpecification
+→ professional role/resources
+```
+
+A handler such as:
+
+```text
+GenerateAnalysisHandler
+```
+
+means:
+
+```text
+handler for the generate_analysis operation
+```
+
+not:
+
+```text
+ResearcherHandler
+```
+
+The same handler framework may load different contracts/tasks/schemas after the professional domain split.
+
+If the Analyst/Custodian redesign introduces genuinely new operations, those operations may receive new handlers. Existing orchestration abstractions remain unchanged.
+
 
 ---
 
@@ -766,6 +814,9 @@ This structure is provisional.
 The Handler Interface and Responsibility Model is acceptable when:
 
 - [ ] Handlers are operation-centric rather than agent-centric.
+- [ ] Professional role/resource ownership is resolved by operation specification rather than hard-coded handler identity.
+- [ ] Current Researcher operation bindings are documented as V2-compatible and provisional.
+- [ ] Analyst/Custodian rebinding does not require changing the common handler interface.
 - [ ] One common handler interface exists.
 - [ ] Handlers receive `job_id + command`.
 - [ ] Runtime Job is loaded through a repository.
