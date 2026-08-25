@@ -1,2 +1,4 @@
 runtime/.venv/
 runtime/.coverage
+__pycache__/
+*.py[cod]
