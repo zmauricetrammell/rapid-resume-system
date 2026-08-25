@@ -1,0 +1,40 @@
+name: Runtime CI
+
+on:
+  push:
+    paths:
+      - "runtime/**"
+      - ".github/workflows/runtime-ci.yml"
+  pull_request:
+    paths:
+      - "runtime/**"
+      - ".github/workflows/runtime-ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: runtime
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: runtime/pyproject.toml
+
+      - name: Install runtime and development tools
+        run: python -m pip install --upgrade pip && pip install -e ".[dev]"
+
+      - name: Ruff
+        run: ruff check src tests
+
+      - name: Mypy
+        run: mypy
+
+      - name: Tests
+        run: pytest --cov=rrs --cov-report=term-missing
