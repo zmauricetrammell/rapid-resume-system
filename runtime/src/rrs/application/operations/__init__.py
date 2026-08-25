@@ -1,0 +1,1 @@
+"""Operation registry application services."""
