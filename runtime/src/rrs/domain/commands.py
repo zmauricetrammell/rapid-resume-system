@@ -28,6 +28,7 @@ class Command:
     attempt_count: int
     created_at: datetime
     completed_at: datetime | None
+    last_error: str | None = None
 
     def __post_init__(self) -> None:
         if not self.command_id or not self.command_type:
@@ -43,3 +44,4 @@ class Command:
 
 
 __all__ = ["Command"]
+
