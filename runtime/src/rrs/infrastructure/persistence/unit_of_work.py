@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from types import TracebackType
@@ -119,4 +120,13 @@ class SQLiteUnitOfWork:
         return self.connection
 
 
-__all__ = ["SQLiteUnitOfWork"]
+@dataclass(frozen=True)
+class SQLiteUnitOfWorkFactory:
+    database_path: Path
+
+    def __call__(self) -> SQLiteUnitOfWork:
+        return SQLiteUnitOfWork(self.database_path)
+
+
+__all__ = ["SQLiteUnitOfWork", "SQLiteUnitOfWorkFactory"]
+
