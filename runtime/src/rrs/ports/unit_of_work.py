@@ -47,4 +47,9 @@ class UnitOfWork(Protocol):
     async def rollback(self) -> None: ...
 
 
-__all__ = ["UnitOfWork"]
+class UnitOfWorkFactory(Protocol):
+    def __call__(self) -> UnitOfWork: ...
+
+
+__all__ = ["UnitOfWork", "UnitOfWorkFactory"]
+
