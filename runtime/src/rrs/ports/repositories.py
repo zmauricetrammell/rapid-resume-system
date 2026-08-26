@@ -17,6 +17,7 @@ from rrs.domain.ids import (
     InvocationId,
     JobId,
     MessageId,
+    OperationKey,
     RoutingDecisionId,
     RuntimeInstanceId,
 )
@@ -39,6 +40,17 @@ class ArtifactRepository(Protocol):
 
 class ExecutionRepository(Protocol):
     def get(self, execution_id: ExecutionId) -> Execution | None: ...
+
+    def get_by_operation_key(
+        self,
+        operation_key: OperationKey,
+    ) -> tuple[Execution, ...]: ...
+
+    def get_active_by_operation_key(
+        self,
+        operation_key: OperationKey,
+    ) -> Execution | None: ...
+
     def add(self, execution: Execution) -> None: ...
 
 

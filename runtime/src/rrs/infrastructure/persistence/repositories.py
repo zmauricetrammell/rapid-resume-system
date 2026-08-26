@@ -324,6 +324,49 @@ class SQLiteExecutionRepository:
             started_at=_dt(row[12]),
             completed_at=_dt(row[13]),
         )
+    
+    def get_by_operation_key(
+        self,
+        operation_key: OperationKey,
+        ) -> tuple[Execution, ...]:
+        rows = self.connection.execute(
+            """
+            SELECT execution_id
+            FROM executions
+            WHERE operation_key = ?
+            ORDER BY attempt_number, execution_id
+            """,
+            (str(operation_key),),
+        ).fetchall()
+
+        executions: list[Execution] = []
+        for row in rows:
+            execution = self.get(ExecutionId(row[0]))
+            if execution is not None:
+                executions.append(execution)
+
+        return tuple(executions)
+
+    def get_active_by_operation_key(
+        self,
+        operation_key: OperationKey,
+    ) -> Execution | None:
+        row = self.connection.execute(
+            """
+            SELECT execution_id
+            FROM executions
+            WHERE operation_key = ?
+            AND status NOT IN ('stale', 'committed', 'failed', 'cancelled')
+            ORDER BY attempt_number DESC, execution_id
+            LIMIT 1
+            """,
+            (str(operation_key),),
+        ).fetchone()
+
+        if row is None:
+            return None
+
+        return self.get(ExecutionId(row[0]))
 
 
 class SQLiteEventRepository:

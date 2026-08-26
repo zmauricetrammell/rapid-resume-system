@@ -151,6 +151,30 @@ def add_minimal_job(db: sqlite3.Connection) -> RuntimeJob:
     SQLiteRuntimeJobRepository(db).add(job)
     return job
 
+def execution(
+    execution_id: str,
+    operation_key: str,
+    attempt_number: int,
+    status: ExecutionStatus,
+    *,
+    completed_at: datetime | None = None,
+) -> Execution:
+    return Execution(
+        execution_id=ExecutionId(execution_id),
+        job_id=JobId("job-1"),
+        owner_runtime_instance_id=RuntimeInstanceId("runtime-1"),
+        operation_type=OperationType.GENERATE_ANALYSIS,
+        operation_key=OperationKey(operation_key),
+        attempt_number=attempt_number,
+        status=status,
+        input_snapshot=InputSnapshot((), ()),
+        staged_outputs=(),
+        committed_outputs=(),
+        failure_id=None,
+        created_at=NOW,
+        started_at=NOW,
+        completed_at=completed_at,
+    )
 
 def test_artifact_repository_round_trip(tmp_path: Path) -> None:
     db = connection(tmp_path)
@@ -184,7 +208,107 @@ def test_runtime_instance_repository_round_trip(tmp_path: Path) -> None:
     finally:
         db.close()
 
+def test_execution_repository_returns_attempt_history_in_order(
+    tmp_path: Path,
+) -> None:
+    db = connection(tmp_path)
+    try:
+        add_minimal_job(db)
+        add_runtime_instance(db)
 
+        repo = SQLiteExecutionRepository(db)
+
+        attempt_two = execution(
+            "execution-2",
+            "operation-1",
+            2,
+            ExecutionStatus.COMMITTED,
+            completed_at=NOW,
+        )
+        attempt_one = execution(
+            "execution-1",
+            "operation-1",
+            1,
+            ExecutionStatus.FAILED,
+            completed_at=NOW,
+        )
+
+        repo.add(attempt_two)
+        repo.add(attempt_one)
+
+        assert repo.get_by_operation_key(
+            OperationKey("operation-1")
+        ) == (
+            attempt_one,
+            attempt_two,
+        )
+    finally:
+        db.close()
+
+
+def test_execution_repository_returns_active_attempt(
+    tmp_path: Path,
+) -> None:
+    db = connection(tmp_path)
+    try:
+        add_minimal_job(db)
+        add_runtime_instance(db)
+
+        repo = SQLiteExecutionRepository(db)
+
+        historical = execution(
+            "execution-1",
+            "operation-1",
+            1,
+            ExecutionStatus.FAILED,
+            completed_at=NOW,
+        )
+        active = execution(
+            "execution-2",
+            "operation-1",
+            2,
+            ExecutionStatus.RUNNING,
+        )
+
+        repo.add(historical)
+        repo.add(active)
+
+        assert repo.get_active_by_operation_key(
+            OperationKey("operation-1")
+        ) == active
+    finally:
+        db.close()
+
+
+def test_execution_repository_returns_none_without_active_attempt(
+    tmp_path: Path,
+) -> None:
+    db = connection(tmp_path)
+    try:
+        add_minimal_job(db)
+        add_runtime_instance(db)
+
+        repo = SQLiteExecutionRepository(db)
+
+        repo.add(
+            execution(
+                "execution-1",
+                "operation-1",
+                1,
+                ExecutionStatus.COMMITTED,
+                completed_at=NOW,
+            )
+        )
+
+        assert (
+            repo.get_active_by_operation_key(
+                OperationKey("operation-1")
+            )
+            is None
+        )
+    finally:
+        db.close()
+        
 def test_execution_repository_round_trip(tmp_path: Path) -> None:
     db = connection(tmp_path)
     try:
