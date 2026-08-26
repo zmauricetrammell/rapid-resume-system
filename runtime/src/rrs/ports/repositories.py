@@ -120,6 +120,60 @@ class EventRepository(Protocol):
 
 class CommandRepository(Protocol):
     def get(self, command_id: CommandId) -> Command | None: ...
+
+    def get_by_dedupe_key(self, dedupe_key: str) -> Command | None: ...
+
+    def claim_next(
+        self,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        now: datetime,
+        lease_expires_at: datetime,
+    ) -> Command | None: ...
+
+    def renew_lease(
+        self,
+        command_id: CommandId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        now: datetime,
+        lease_expires_at: datetime,
+    ) -> Command | None: ...
+
+    def mark_completed(
+        self,
+        command_id: CommandId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        completed_at: datetime,
+    ) -> Command | None: ...
+
+    def mark_retry_pending(
+        self,
+        command_id: CommandId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        now: datetime,
+        error: str,
+    ) -> Command | None: ...
+
+    def mark_failed(
+        self,
+        command_id: CommandId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        completed_at: datetime,
+        error: str,
+    ) -> Command | None: ...
+
+    def mark_cancelled(
+        self,
+        command_id: CommandId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        completed_at: datetime,
+    ) -> Command | None: ...
+
     def add(self, command: Command) -> None: ...
 
 
@@ -166,4 +220,5 @@ __all__ = [
     "RuntimeInstanceRepository",
     "RuntimeJobRepository",
 ]
+
 

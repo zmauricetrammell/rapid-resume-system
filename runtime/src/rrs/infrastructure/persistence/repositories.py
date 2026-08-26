@@ -680,14 +680,42 @@ class SQLiteCommandRepository:
     def __init__(self, connection: sqlite3.Connection) -> None:
         self.connection = connection
 
+    @staticmethod
+    def _validate_lease_window(
+        now: datetime,
+        lease_expires_at: datetime,
+    ) -> None:
+        for value, field_name in (
+            (now, "now"),
+            (lease_expires_at, "lease_expires_at"),
+        ):
+            if value.tzinfo is None or value.utcoffset() is None:
+                raise ValueError(f"{field_name} must be timezone-aware")
+        if lease_expires_at <= now:
+            raise ValueError("lease_expires_at must be later than now")
+
+    @staticmethod
+    def _require_aware(value: datetime, field_name: str) -> None:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError(f"{field_name} must be timezone-aware")
+
+    def _command_from_returning(
+        self,
+        row: tuple[object, ...] | None,
+    ) -> Command | None:
+        if row is None:
+            return None
+        return self.get(CommandId(str(row[0])))
+
     def add(self, item: Command) -> None:
         self.connection.execute(
             """
             INSERT INTO commands(
                 command_id, command_type, job_id, payload_json, status,
-                dedupe_key, causation_event_id, attempt_count,
-                owner_runtime_instance_id, lease_expires_at, created_at, completed_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                dedupe_key, causation_event_id, attempt_count, last_error,
+                owner_runtime_instance_id, lease_expires_at, created_at,
+                completed_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 str(item.command_id),
@@ -698,6 +726,7 @@ class SQLiteCommandRepository:
                 item.dedupe_key,
                 item.causation_event_id,
                 item.attempt_count,
+                item.last_error,
                 item.owner_runtime_instance_id,
                 _text(item.lease_expires_at),
                 _text(item.created_at),
@@ -710,7 +739,8 @@ class SQLiteCommandRepository:
             """
             SELECT command_id, command_type, job_id, payload_json, status,
                    dedupe_key, causation_event_id, owner_runtime_instance_id,
-                   lease_expires_at, attempt_count, created_at, completed_at
+                   lease_expires_at, attempt_count, last_error, created_at,
+                   completed_at
             FROM commands WHERE command_id = ?
             """,
             (str(command_id),),
@@ -730,9 +760,215 @@ class SQLiteCommandRepository:
             ),
             lease_expires_at=_dt(row[8]),
             attempt_count=row[9],
-            created_at=_dt(row[10]),  # type: ignore[arg-type]
-            completed_at=_dt(row[11]),
+            last_error=row[10],
+            created_at=_dt(row[11]),  # type: ignore[arg-type]
+            completed_at=_dt(row[12]),
         )
+
+    def get_by_dedupe_key(self, dedupe_key: str) -> Command | None:
+        row = self.connection.execute(
+            """
+            SELECT command_id
+            FROM commands
+            WHERE dedupe_key = ?
+            """,
+            (dedupe_key,),
+        ).fetchone()
+        if row is None:
+            return None
+        return self.get(CommandId(row[0]))
+
+    def claim_next(
+        self,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        now: datetime,
+        lease_expires_at: datetime,
+    ) -> Command | None:
+        self._validate_lease_window(now, lease_expires_at)
+        row = self.connection.execute(
+            """
+            UPDATE commands
+            SET status = ?,
+                attempt_count = attempt_count + 1,
+                last_error = NULL,
+                owner_runtime_instance_id = ?,
+                lease_expires_at = ?,
+                completed_at = NULL
+            WHERE command_id = (
+                SELECT command_id
+                FROM commands
+                WHERE status IN (?, ?)
+                   OR (
+                       status = ?
+                       AND lease_expires_at IS NOT NULL
+                       AND julianday(lease_expires_at) <= julianday(?)
+                   )
+                ORDER BY julianday(created_at), command_id
+                LIMIT 1
+            )
+            RETURNING command_id
+            """,
+            (
+                CommandStatus.PROCESSING.value,
+                str(owner_runtime_instance_id),
+                _text(lease_expires_at),
+                CommandStatus.PENDING.value,
+                CommandStatus.RETRY_PENDING.value,
+                CommandStatus.PROCESSING.value,
+                _text(now),
+            ),
+        ).fetchone()
+        return self._command_from_returning(row)
+
+    def renew_lease(
+        self,
+        command_id: CommandId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        now: datetime,
+        lease_expires_at: datetime,
+    ) -> Command | None:
+        self._validate_lease_window(now, lease_expires_at)
+        row = self.connection.execute(
+            """
+            UPDATE commands
+            SET lease_expires_at = ?
+            WHERE command_id = ?
+              AND status = ?
+              AND owner_runtime_instance_id = ?
+              AND julianday(lease_expires_at) > julianday(?)
+            RETURNING command_id
+            """,
+            (
+                _text(lease_expires_at),
+                str(command_id),
+                CommandStatus.PROCESSING.value,
+                str(owner_runtime_instance_id),
+                _text(now),
+            ),
+        ).fetchone()
+        return self._command_from_returning(row)
+
+    def mark_completed(
+        self,
+        command_id: CommandId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        completed_at: datetime,
+    ) -> Command | None:
+        return self._mark_terminal(
+            command_id,
+            owner_runtime_instance_id,
+            status=CommandStatus.COMPLETED,
+            completed_at=completed_at,
+            error=None,
+        )
+
+    def mark_retry_pending(
+        self,
+        command_id: CommandId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        now: datetime,
+        error: str,
+    ) -> Command | None:
+        self._require_aware(now, "now")
+        if not error:
+            raise ValueError("error must be nonempty")
+        row = self.connection.execute(
+            """
+            UPDATE commands
+            SET status = ?,
+                last_error = ?,
+                owner_runtime_instance_id = NULL,
+                lease_expires_at = NULL,
+                completed_at = NULL
+            WHERE command_id = ?
+              AND status = ?
+              AND owner_runtime_instance_id = ?
+              AND julianday(lease_expires_at) > julianday(?)
+            RETURNING command_id
+            """,
+            (
+                CommandStatus.RETRY_PENDING.value,
+                error,
+                str(command_id),
+                CommandStatus.PROCESSING.value,
+                str(owner_runtime_instance_id),
+                _text(now),
+            ),
+        ).fetchone()
+        return self._command_from_returning(row)
+
+    def mark_failed(
+        self,
+        command_id: CommandId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        completed_at: datetime,
+        error: str,
+    ) -> Command | None:
+        if not error:
+            raise ValueError("error must be nonempty")
+        return self._mark_terminal(
+            command_id,
+            owner_runtime_instance_id,
+            status=CommandStatus.FAILED,
+            completed_at=completed_at,
+            error=error,
+        )
+
+    def mark_cancelled(
+        self,
+        command_id: CommandId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        completed_at: datetime,
+    ) -> Command | None:
+        return self._mark_terminal(
+            command_id,
+            owner_runtime_instance_id,
+            status=CommandStatus.CANCELLED,
+            completed_at=completed_at,
+            error=None,
+        )
+
+    def _mark_terminal(
+        self,
+        command_id: CommandId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        status: CommandStatus,
+        completed_at: datetime,
+        error: str | None,
+    ) -> Command | None:
+        self._require_aware(completed_at, "completed_at")
+        row = self.connection.execute(
+            """
+            UPDATE commands
+            SET status = ?,
+                last_error = ?,
+                owner_runtime_instance_id = NULL,
+                lease_expires_at = NULL,
+                completed_at = ?
+            WHERE command_id = ?
+              AND status = ?
+              AND owner_runtime_instance_id = ?
+              AND julianday(lease_expires_at) > julianday(?)
+            RETURNING command_id
+            """,
+            (
+                status.value,
+                error,
+                _text(completed_at),
+                str(command_id),
+                CommandStatus.PROCESSING.value,
+                str(owner_runtime_instance_id),
+                _text(completed_at),
+            ),
+        ).fetchone()
+        return self._command_from_returning(row)
 
 
 class SQLiteInteractionRepository:
@@ -1205,3 +1441,4 @@ __all__ = [
     "SQLiteRuntimeInstanceRepository",
     "SQLiteRuntimeJobRepository",
 ]
+
