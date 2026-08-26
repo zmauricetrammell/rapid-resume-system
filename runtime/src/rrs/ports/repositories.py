@@ -1,5 +1,6 @@
 """Repository protocols for durable RRS runtime records."""
 
+from datetime import datetime
 from typing import Protocol
 
 from rrs.domain.artifacts import ArtifactMetadata, ArtifactRef
@@ -56,6 +57,64 @@ class ExecutionRepository(Protocol):
 
 class EventRepository(Protocol):
     def get(self, event_id: EventId) -> Event | None: ...
+
+    def get_by_provider_identity(
+        self,
+        provider: str,
+        provider_event_id: str,
+    ) -> Event | None: ...
+
+    def claim_next(
+        self,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        now: datetime,
+        lease_expires_at: datetime,
+    ) -> Event | None: ...
+
+    def renew_lease(
+        self,
+        event_id: EventId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        now: datetime,
+        lease_expires_at: datetime,
+    ) -> Event | None: ...
+
+    def mark_processed(
+        self,
+        event_id: EventId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        processed_at: datetime,
+    ) -> Event | None: ...
+
+    def mark_ignored(
+        self,
+        event_id: EventId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        processed_at: datetime,
+    ) -> Event | None: ...
+
+    def mark_retry_pending(
+        self,
+        event_id: EventId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        now: datetime,
+        error: str,
+    ) -> Event | None: ...
+
+    def mark_dead_letter(
+        self,
+        event_id: EventId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        processed_at: datetime,
+        error: str,
+    ) -> Event | None: ...
+
     def add(self, event: Event) -> None: ...
 
 
@@ -107,3 +166,4 @@ __all__ = [
     "RuntimeInstanceRepository",
     "RuntimeJobRepository",
 ]
+

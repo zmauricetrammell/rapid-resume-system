@@ -373,6 +373,33 @@ class SQLiteEventRepository:
     def __init__(self, connection: sqlite3.Connection) -> None:
         self.connection = connection
 
+    @staticmethod
+    def _validate_lease_window(
+        now: datetime,
+        lease_expires_at: datetime,
+    ) -> None:
+        for value, field_name in (
+            (now, "now"),
+            (lease_expires_at, "lease_expires_at"),
+        ):
+            if value.tzinfo is None or value.utcoffset() is None:
+                raise ValueError(f"{field_name} must be timezone-aware")
+        if lease_expires_at <= now:
+            raise ValueError("lease_expires_at must be later than now")
+
+    @staticmethod
+    def _require_aware(value: datetime, field_name: str) -> None:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError(f"{field_name} must be timezone-aware")
+
+    def _event_from_returning(
+        self,
+        row: tuple[object, ...] | None,
+    ) -> Event | None:
+        if row is None:
+            return None
+        return self.get(EventId(str(row[0])))
+
     def add(self, item: Event) -> None:
         self.connection.execute(
             """
@@ -380,9 +407,9 @@ class SQLiteEventRepository:
                 event_id, event_type, job_id, payload_json,
                 source_category, source_provider, provider_event_id,
                 correlation_id, causation_id, criticality, status,
-                attempt_count, owner_runtime_instance_id, lease_expires_at,
-                created_at, processed_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                attempt_count, last_error, owner_runtime_instance_id,
+                lease_expires_at, created_at, processed_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 str(item.event_id),
@@ -397,6 +424,7 @@ class SQLiteEventRepository:
                 item.criticality.value,
                 item.status.value,
                 item.attempt_count,
+                item.last_error,
                 item.owner_runtime_instance_id,
                 _text(item.lease_expires_at),
                 _text(item.created_at),
@@ -410,8 +438,8 @@ class SQLiteEventRepository:
             SELECT event_id, event_type, job_id, payload_json,
                    source_category, source_provider, provider_event_id,
                    correlation_id, causation_id, criticality, status,
-                   attempt_count, owner_runtime_instance_id, lease_expires_at,
-                   created_at, processed_at
+                   attempt_count, last_error, owner_runtime_instance_id,
+                   lease_expires_at, created_at, processed_at
             FROM events WHERE event_id = ?
             """,
             (str(event_id),),
@@ -429,13 +457,223 @@ class SQLiteEventRepository:
             criticality=EventCriticality(row[9]),
             status=EventStatus(row[10]),
             attempt_count=row[11],
+            last_error=row[12],
             owner_runtime_instance_id=(
-                None if row[12] is None else RuntimeInstanceId(row[12])
+                None if row[13] is None else RuntimeInstanceId(row[13])
             ),
-            lease_expires_at=_dt(row[13]),
-            created_at=_dt(row[14]),  # type: ignore[arg-type]
-            processed_at=_dt(row[15]),
+            lease_expires_at=_dt(row[14]),
+            created_at=_dt(row[15]),  # type: ignore[arg-type]
+            processed_at=_dt(row[16]),
         )
+
+    def get_by_provider_identity(
+        self,
+        provider: str,
+        provider_event_id: str,
+    ) -> Event | None:
+        row = self.connection.execute(
+            """
+            SELECT event_id
+            FROM events
+            WHERE source_provider = ? AND provider_event_id = ?
+            """,
+            (provider, provider_event_id),
+        ).fetchone()
+        if row is None:
+            return None
+        return self.get(EventId(row[0]))
+
+    def claim_next(
+        self,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        now: datetime,
+        lease_expires_at: datetime,
+    ) -> Event | None:
+        self._validate_lease_window(now, lease_expires_at)
+        row = self.connection.execute(
+            """
+            UPDATE events
+            SET status = ?,
+                attempt_count = attempt_count + 1,
+                last_error = NULL,
+                owner_runtime_instance_id = ?,
+                lease_expires_at = ?,
+                processed_at = NULL
+            WHERE event_id = (
+                SELECT event_id
+                FROM events
+                WHERE status IN (?, ?)
+                   OR (
+                       status = ?
+                       AND lease_expires_at IS NOT NULL
+                       AND julianday(lease_expires_at) <= julianday(?)
+                   )
+                ORDER BY julianday(created_at), event_id
+                LIMIT 1
+            )
+            RETURNING event_id
+            """,
+            (
+                EventStatus.PROCESSING.value,
+                str(owner_runtime_instance_id),
+                _text(lease_expires_at),
+                EventStatus.RECEIVED.value,
+                EventStatus.RETRY_PENDING.value,
+                EventStatus.PROCESSING.value,
+                _text(now),
+            ),
+        ).fetchone()
+        return self._event_from_returning(row)
+
+    def renew_lease(
+        self,
+        event_id: EventId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        now: datetime,
+        lease_expires_at: datetime,
+    ) -> Event | None:
+        self._validate_lease_window(now, lease_expires_at)
+        row = self.connection.execute(
+            """
+            UPDATE events
+            SET lease_expires_at = ?
+            WHERE event_id = ?
+              AND status = ?
+              AND owner_runtime_instance_id = ?
+              AND julianday(lease_expires_at) > julianday(?)
+            RETURNING event_id
+            """,
+            (
+                _text(lease_expires_at),
+                str(event_id),
+                EventStatus.PROCESSING.value,
+                str(owner_runtime_instance_id),
+                _text(now),
+            ),
+        ).fetchone()
+        return self._event_from_returning(row)
+
+    def mark_processed(
+        self,
+        event_id: EventId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        processed_at: datetime,
+    ) -> Event | None:
+        return self._mark_terminal(
+            event_id,
+            owner_runtime_instance_id,
+            status=EventStatus.PROCESSED,
+            processed_at=processed_at,
+            error=None,
+        )
+
+    def mark_ignored(
+        self,
+        event_id: EventId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        processed_at: datetime,
+    ) -> Event | None:
+        return self._mark_terminal(
+            event_id,
+            owner_runtime_instance_id,
+            status=EventStatus.IGNORED,
+            processed_at=processed_at,
+            error=None,
+        )
+
+    def mark_retry_pending(
+        self,
+        event_id: EventId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        now: datetime,
+        error: str,
+    ) -> Event | None:
+        self._require_aware(now, "now")
+        if not error:
+            raise ValueError("error must be nonempty")
+        row = self.connection.execute(
+            """
+            UPDATE events
+            SET status = ?,
+                last_error = ?,
+                owner_runtime_instance_id = NULL,
+                lease_expires_at = NULL,
+                processed_at = NULL
+            WHERE event_id = ?
+              AND status = ?
+              AND owner_runtime_instance_id = ?
+              AND julianday(lease_expires_at) > julianday(?)
+            RETURNING event_id
+            """,
+            (
+                EventStatus.RETRY_PENDING.value,
+                error,
+                str(event_id),
+                EventStatus.PROCESSING.value,
+                str(owner_runtime_instance_id),
+                _text(now),
+            ),
+        ).fetchone()
+        return self._event_from_returning(row)
+
+    def mark_dead_letter(
+        self,
+        event_id: EventId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        processed_at: datetime,
+        error: str,
+    ) -> Event | None:
+        if not error:
+            raise ValueError("error must be nonempty")
+        return self._mark_terminal(
+            event_id,
+            owner_runtime_instance_id,
+            status=EventStatus.DEAD_LETTER,
+            processed_at=processed_at,
+            error=error,
+        )
+
+    def _mark_terminal(
+        self,
+        event_id: EventId,
+        owner_runtime_instance_id: RuntimeInstanceId,
+        *,
+        status: EventStatus,
+        processed_at: datetime,
+        error: str | None,
+    ) -> Event | None:
+        self._require_aware(processed_at, "processed_at")
+        row = self.connection.execute(
+            """
+            UPDATE events
+            SET status = ?,
+                last_error = ?,
+                owner_runtime_instance_id = NULL,
+                lease_expires_at = NULL,
+                processed_at = ?
+            WHERE event_id = ?
+              AND status = ?
+              AND owner_runtime_instance_id = ?
+              AND julianday(lease_expires_at) > julianday(?)
+            RETURNING event_id
+            """,
+            (
+                status.value,
+                error,
+                _text(processed_at),
+                str(event_id),
+                EventStatus.PROCESSING.value,
+                str(owner_runtime_instance_id),
+                _text(processed_at),
+            ),
+        ).fetchone()
+        return self._event_from_returning(row)
 
 
 class SQLiteCommandRepository:

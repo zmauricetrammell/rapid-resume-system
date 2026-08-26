@@ -51,6 +51,7 @@ class Event:
     lease_expires_at: datetime | None
     created_at: datetime
     processed_at: datetime | None
+    last_error: str | None = None
 
     def __post_init__(self) -> None:
         if not self.event_id or not self.event_type:
@@ -66,3 +67,4 @@ class Event:
 
 
 __all__ = ["Event", "EventSource"]
+
